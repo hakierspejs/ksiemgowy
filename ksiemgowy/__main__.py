@@ -4,7 +4,7 @@ import imaplib
 import os
 import collections
 
-import mbankmail
+import ksiemgowy.mbankmail
 
 
 def gen_mbank_emails(login, password, imap_server):
@@ -27,7 +27,7 @@ def main():
     login = os.environ['IMAP_LOGIN']
     password = open('IMAP_PASSWORD').read().strip()
     for mail_id, msgstr in gen_mbank_emails(login, password, 'imap.gmail.com'):
-        parsed = mbankmail.parse_mbank_email(msgstr)
+        parsed = ksiemgowy.mbankmail.parse_mbank_email(msgstr)
         for action in parsed.get('actions', []):
             is_acct_watched = action['in_acc_no'] == '9811...178886'
             if action['type'] == 'in_transfer' and is_acct_watched:
