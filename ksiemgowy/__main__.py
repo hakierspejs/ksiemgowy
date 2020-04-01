@@ -1,13 +1,23 @@
 #!/usr/bin/env python
 
+"""ksiemgowy's main submodule, also used as an entry point. Contains the
+logic used to generate database entries."""
+
+# This is here because pylint has generates a false positive:
+# pylint:disable=unsubscriptable-object
+
 import imaplib
 import os
 import collections
+import json
 
 import ksiemgowy.mbankmail
 
 
 def gen_mbank_emails(login, password, imap_server):
+    """Connects to imap_server using login and password from the arguments,
+    then yields a pair (mail_id_as_str, email_as_eml_string) for each of
+    e-mails coming from mBank."""
     mail = imaplib.IMAP4_SSL(imap_server)
     mail.login(login, password)
     mail.select('inbox')
@@ -23,6 +33,7 @@ def gen_mbank_emails(login, password, imap_server):
 
 
 def main():
+    """Program's entry point."""
     actions = collections.defaultdict(list)
     login = os.environ['IMAP_LOGIN']
     password = open('IMAP_PASSWORD').read().strip()
@@ -33,7 +44,6 @@ def main():
             if action['type'] == 'in_transfer' and is_acct_watched:
                 actions[mail_id].append(action)
 
-    import json
     print(json.dumps(actions))
 
 

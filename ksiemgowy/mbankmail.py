@@ -19,6 +19,8 @@ INCOMING_RE = re.compile(
 
 
 def parse_mbank_html(mbank_html):
+    """Parses mBank .htm attachment file and generates a list of actions
+    that were derived from it."""
     h = lxml.html.fromstring(mbank_html)
     date = h.xpath('//h5/text()')[0].split(' - ')[0]
     actions = []
@@ -26,8 +28,7 @@ def parse_mbank_html(mbank_html):
         desc_e = row.xpath('.//td[2]/text()')
         if not desc_e:
             continue
-        else:
-            desc_s = desc_e[0].strip()
+        desc_s = desc_e[0].strip()
         time = row.xpath('.//td[1]')[0].text_content().strip()
         g = INCOMING_RE.match(desc_s)
         if not g:
@@ -40,6 +41,8 @@ def parse_mbank_html(mbank_html):
 
 
 def parse_mbank_email(msgstr):
+    """Finds attachment with mBank account update in an .eml mBank email,
+    then behaves like parse_mbank_html."""
     msg = email.message_from_string(msgstr)
     parsed = {}
     for part in msg.walk():
@@ -53,6 +56,8 @@ def parse_mbank_email(msgstr):
 
 
 def parse_args():
+    """Parses command-line arguments and returns them in a form usable as
+    **kwargs."""
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument('-i', '--input-fpath', required=True)
     parser.add_argument('--mode', choices=['eml', 'html'], required=True)
@@ -60,6 +65,9 @@ def parse_args():
 
 
 def main(input_fpath, mode):
+    """Entry point for the submodule, used for diagnostics. Reads data from
+    input_fpath, then runs either parse_mbank_html or parse_mbank_email,
+    depending on the mode."""
     with open(input_fpath) as f:
         s = f.read()
     if mode == 'html':
