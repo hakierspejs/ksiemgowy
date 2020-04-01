@@ -6,6 +6,8 @@ JSON."""
 import re
 import json
 import argparse
+import email
+
 import lxml.html
 
 INCOMING_RE = re.compile(
@@ -16,28 +18,59 @@ INCOMING_RE = re.compile(
 )
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument('-i', '--input-fpath', required=True)
-    return parser.parse_args().__dict__
-
-
 def parse_mbank_html(mbank_html):
     h = lxml.html.fromstring(mbank_html)
+    date = h.xpath('//h5/text()')[0].split(' - ')[0]
     actions = []
-    for entry in h.xpath('//tr/td[2]/text()')[2:]:
-        g = INCOMING_RE.match(entry)
+    for row in h.xpath('//tr')[2:]:
+        desc_e = row.xpath('.//td[2]/text()')
+        if not desc_e:
+            continue
+        else:
+            desc_s = desc_e[0].strip()
+        time = row.xpath('.//td[1]')[0].text_content().strip()
+        g = INCOMING_RE.match(desc_s)
         if not g:
             continue
         action = g.groupdict()
         action['type'] = 'in_transfer'
+        action['timestamp'] = f'{date} {time}'
         actions.append(action)
     return {'actions': actions}
 
 
-def main(input_fpath):
+
+def parse_mbank_email(msgstr):
+    msg = email.message_from_string(msgstr)
+    done = False
+    parsed = {}
+    for part in msg.walk():
+        params = dict(part.get_params())
+        if 'name' not in params or part.get_content_type() != 'text/html':
+            continue
+        parsed = parse_mbank_html(part.get_payload(decode=True))
+        if parsed['actions']:
+            break
+    return parsed
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument('-i', '--input-fpath', required=True)
+    parser.add_argument('--mode', choices=['eml', 'html'], required=True)
+    return parser.parse_args().__dict__
+
+
+def main(input_fpath, mode):
     with open(input_fpath) as f:
-        print(json.dumps(parse_mbank_html(f.read())))
+        s = f.read()
+    if mode == 'html':
+        result = parse_mbank_html(s)
+    elif mode == 'eml':
+        result = parse_mbank_email(s)
+    else:
+        raise RuntimeError('Unexpected mode: %s' % mode)
+    print(json.dumps(result))
 
 
 if __name__ == '__main__':

@@ -1,34 +1,41 @@
 #!/usr/bin/env python
 
 import imaplib
-import email
 import os
+import collections
 
 import mbankmail
 
-mail = imaplib.IMAP4_SSL('imap.gmail.com')
-mail.login(os.environ['GMAIL_EMAIL'], open('GMAIL_PASSWORD').read().strip())
-mail.select('inbox')
-_, data = mail.search(None, 'FROM', 'kontakt@mbank.pl')
-mail_ids = data[0]
-id_list = mail_ids.split()
 
-actions = {}
-for mail_id in reversed(id_list):
-    _, data = mail.fetch(mail_id, '(RFC822)')
-    for response_part in data:
-        if not isinstance(response_part, tuple):
-            continue
-        msg = email.message_from_string(response_part[1].decode())
-        done = False
-        for part in msg.walk():
-            params = dict(part.get_params())
-            if 'name' not in params or part.get_content_type() != 'text/html':
+def gen_mbank_emails(login, password, imap_server):
+    mail = imaplib.IMAP4_SSL(imap_server)
+    mail.login(login, password)
+    mail.select('inbox')
+    _, data = mail.search(None, 'FROM', 'kontakt@mbank.pl')
+    mail_ids = data[0]
+    id_list = mail_ids.split()
+    for mail_id in reversed(id_list):
+        _, data = mail.fetch(mail_id, '(RFC822)')
+        for response_part in data:
+            if not isinstance(response_part, tuple):
                 continue
-            parsed = mbankmail.parse_mbank_html(part.get_payload(decode=True))
-            if not parsed['actions']:
-                continue
-            actions[mail_id.decode()] = parsed
+            yield mail_id.decode(), response_part[1].decode()
 
-import json
-print(json.dumps(actions))
+
+def main():
+    actions = collections.defaultdict(list)
+    login = os.environ['IMAP_LOGIN']
+    password = open('IMAP_PASSWORD').read().strip()
+    for mail_id, msgstr in gen_mbank_emails(login, password, 'imap.gmail.com'):
+        parsed = mbankmail.parse_mbank_email(msgstr)
+        for action in parsed.get('actions', []):
+            is_acct_watched = action['in_acc_no'] == '9811...178886'
+            if action['type'] == 'in_transfer' and is_acct_watched:
+                actions[mail_id].append(action)
+
+    import json
+    print(json.dumps(actions))
+
+
+if __name__ == '__main__':
+    main()
