@@ -39,10 +39,8 @@ def parse_mbank_html(mbank_html):
     return {'actions': actions}
 
 
-
 def parse_mbank_email(msgstr):
     msg = email.message_from_string(msgstr)
-    done = False
     parsed = {}
     for part in msg.walk():
         params = dict(part.get_params())
