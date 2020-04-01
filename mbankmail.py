@@ -9,11 +9,12 @@ import argparse
 import lxml.html
 
 INCOMING_RE = re.compile(
-    '^mBank: Przelew przych. z rach. (?P<in_acc_no>\d{4}\.{3}\d{6})'
-    ' na rach\. (?P<out_acc_no>\d{8}) '
-    'kwota (?P<amount_pln>\d+,\d{2}) PLN od (?P<in_person>.+) U; '
-    '(?P<in_desc>.+); Dost\. (?P<balance>\d+,\d{2}) PLN$'
+    '^mBank: Przelew przych. z rach. (?P<in_acc_no>\\.d{4}\\.{3}\\.d{6})'
+    ' na rach\\. (?P<out_acc_no>\\.d{8}) '
+    'kwota (?P<amount_pln>\\.d+,\\.d{2}) PLN od (?P<in_person>.+) U; '
+    '(?P<in_desc>.+); Dost\\. (?P<balance>\\.d+,\\.d{2}) PLN$'
 )
+
 
 def parse_args():
     parser = argparse.ArgumentParser(__doc__)
@@ -21,9 +22,8 @@ def parse_args():
     return parser.parse_args().__dict__
 
 
-def main(input_fpath):
-    with open(input_fpath) as f:
-        h = lxml.html.fromstring(f.read())
+def parse_mbank_html(mbank_html):
+    h = lxml.html.fromstring(mbank_html)
     actions = []
     for entry in h.xpath('//tr/td[2]/text()')[2:]:
         g = INCOMING_RE.match(entry)
@@ -32,7 +32,12 @@ def main(input_fpath):
         action = g.groupdict()
         action['type'] = 'in_transfer'
         actions.append(action)
-    print(json.dumps({'actions': actions}))
+    return {'actions': actions}
+
+
+def main(input_fpath):
+    with open(input_fpath) as f:
+        print(json.dumps(parse_mbank_html(f.read())))
 
 
 if __name__ == '__main__':
