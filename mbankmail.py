@@ -9,10 +9,10 @@ import argparse
 import lxml.html
 
 INCOMING_RE = re.compile(
-    '^mBank: Przelew przych. z rach. (?P<in_acc_no>\\.d{4}\\.{3}\\.d{6})'
-    ' na rach\\. (?P<out_acc_no>\\.d{8}) '
-    'kwota (?P<amount_pln>\\.d+,\\.d{2}) PLN od (?P<in_person>.+) U; '
-    '(?P<in_desc>.+); Dost\\. (?P<balance>\\.d+,\\.d{2}) PLN$'
+    '^mBank: Przelew przych. z rach. (?P<in_acc_no>\\d{4}\\.{3}\\d{6})'
+    ' na rach\\. (?P<out_acc_no>\\d{8}) '
+    'kwota (?P<amount_pln>\\d+,\\d{2}) PLN od (?P<in_person>.+) U; '
+    '(?P<in_desc>.+); Dost\\. (?P<balance>\\d+,\\d{2}) PLN$'
 )
 
 
