@@ -7,6 +7,7 @@ import re
 import json
 import argparse
 import email
+import dataclasses
 
 import lxml.html
 
@@ -16,6 +17,16 @@ INCOMING_RE = re.compile(
     'kwota (?P<amount_pln>\\d+,\\d{2}) PLN od (?P<in_person>.+) U; '
     '(?P<in_desc>.+); Dost\\. (?P<balance>\\d+,\\d{2}) PLN$'
 )
+
+
+@dataclasses.dataclass
+class MbankAction:
+    in_acc_no: str
+    out_acc_no: str
+    amount_pln: str
+    in_person: str
+    in_desc: str
+    balance: str
 
 
 def parse_mbank_html(mbank_html):
@@ -36,7 +47,8 @@ def parse_mbank_html(mbank_html):
         action = g.groupdict()
         action['type'] = 'in_transfer'
         action['timestamp'] = f'{date} {time}'
-        actions.append(action)
+        mbank_action = MbankAction(**action)
+        actions.append(dataclasses.asdict(mbank_action))
     return {'actions': actions}
 
 
