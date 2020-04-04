@@ -45,7 +45,7 @@ def main():
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msgstr)
         for action in parsed.get('actions', []):
             is_acct_watched = action['in_acc_no'] == '9811...178886'
-            if action['type'] == 'in_transfer' and is_acct_watched:
+            if action['action_type'] == 'in_transfer' and is_acct_watched:
                 public_state.add_mbank_action(action)
 
 

@@ -27,6 +27,8 @@ class MbankAction:
     in_person: str
     in_desc: str
     balance: str
+    timestamp: str
+    action_type: str
 
 
 def parse_mbank_html(mbank_html):
@@ -45,7 +47,7 @@ def parse_mbank_html(mbank_html):
         if not g:
             continue
         action = g.groupdict()
-        action['type'] = 'in_transfer'
+        action['action_type'] = 'in_transfer'
         action['timestamp'] = f'{date} {time}'
         mbank_action = MbankAction(**action)
         actions.append(dataclasses.asdict(mbank_action))
