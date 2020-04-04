@@ -7,7 +7,7 @@ class PrivateState:
         metadata = sqlalchemy.MetaData(self.db)
 
         self.observed_email_ids = sqlalchemy.Table(
-            'users', metadata,
+            'observed_email_ids', metadata,
             sqlalchemy.Column(
                 'id', sqlalchemy.Integer, primary_key=True),
             sqlalchemy.Column(
