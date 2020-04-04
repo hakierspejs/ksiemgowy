@@ -25,4 +25,4 @@ class PrivateState:
         return False
 
     def mark_imap_id_already_handled(self, imap_id):
-        self.observed_email_ids.insert().execute(imap_id=imap_id)
+        self.observed_email_ids.insert(None).execute(imap_id=imap_id)

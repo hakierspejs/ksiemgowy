@@ -21,4 +21,4 @@ class PublicState:
             yield entry.mbank_action
 
     def add_mbank_action(self, mbank_action):
-        self.mbank_actions.insert().execute(mbank_action=mbank_action)
+        self.mbank_actions.insert(None).execute(mbank_action=mbank_action)
