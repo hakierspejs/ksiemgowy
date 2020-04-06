@@ -21,7 +21,8 @@ def gen_unseen_mbank_emails(login, password, imap_server):
     mail = imaplib.IMAP4_SSL(imap_server)
     mail.login(login, password)
     mail.select('inbox')
-    _, data = mail.search(None, 'FROM', 'kontakt@mbank.pl')
+    filter_s = '(SINCE "03-Mar-2020" FROM "kontakt@mbank.pl")'
+    _, data = mail.search(None, filter_s)
     mail_ids = data[0]
     id_list = mail_ids.split()
     private_state = ksiemgowy.private_state.PrivateState()
@@ -44,9 +45,9 @@ def main():
     for msgstr in gen_unseen_mbank_emails(login, password, 'imap.gmail.com'):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msgstr)
         for action in parsed.get('actions', []):
-            is_acct_watched = action['in_acc_no'] == '9811...178886'
-            if action['action_type'] == 'in_transfer' and is_acct_watched:
-                public_state.add_mbank_action(action)
+            is_acct_watched = action.out_acc_no == '76561893'
+            if action.action_type == 'in_transfer' and is_acct_watched:
+                public_state.add_mbank_action(action.anonymized().asdict())
 
 
 if __name__ == '__main__':
