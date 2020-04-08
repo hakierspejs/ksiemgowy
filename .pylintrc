@@ -1,2 +1,2 @@
 [MESSAGES CONTROL]
-disable=C0103
+disable=C0103,too-many-instance-attributes,missing-module-docstring,missing-class-docstring,missing-function-docstring,bad-continuation
