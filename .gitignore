@@ -1,2 +1,6 @@
 GMAIL_PASSWORD
+IMAP_PASSWORD
 __pycache__
+envfile
+*.sqlite
+db

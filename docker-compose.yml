@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+    ksiemgowy:
+        build: .
+        env_file: envfile
+        secrets:
+          - imap_password
+        volumes:
+          - "./db:/db"
+
+secrets:
+  imap_password:
+    file: IMAP_PASSWORD

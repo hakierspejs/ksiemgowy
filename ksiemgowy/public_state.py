@@ -2,8 +2,8 @@ import sqlalchemy
 
 
 class PublicState:
-    def __init__(self):
-        self.db = sqlalchemy.create_engine('sqlite:///public_state.sqlite')
+    def __init__(self, db_uri):
+        self.db = sqlalchemy.create_engine(db_uri)
         metadata = sqlalchemy.MetaData(self.db)
 
         self.mbank_actions = sqlalchemy.Table(

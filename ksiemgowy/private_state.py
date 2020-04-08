@@ -2,8 +2,8 @@ import sqlalchemy
 
 
 class PrivateState:
-    def __init__(self):
-        self.db = sqlalchemy.create_engine('sqlite:///private_state.sqlite')
+    def __init__(self, db_uri):
+        self.db = sqlalchemy.create_engine(db_uri)
         metadata = sqlalchemy.MetaData(self.db)
 
         self.observed_email_ids = sqlalchemy.Table(
