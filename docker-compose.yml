@@ -1,12 +1,28 @@
 version: '3.7'
 services:
-    ksiemgowy:
-        build: .
-        env_file: envfile
+    ksiemgowyd:
+        build:
+          context: .
+          dockerfile: Dockerfile-ksiemgowyd
+        env_file:
+            - envfile_secret
+            - envfile_public
         secrets:
           - imap_password
         volumes:
-          - "./db:/db"
+          - "./db_private:/db_private"
+          - "./db_public:/db_public"
+    ksiemgowy_web:
+        build:
+          context: .
+          dockerfile: Dockerfile-web
+        env_file:
+            - envfile_public
+        volumes:
+          - "./db_public:/db_public"
+        expose:
+          - 5000
+
 
 secrets:
   imap_password:
