@@ -21,9 +21,23 @@ services:
         volumes:
           - "./db_public:/db_public"
         expose:
-          - 5000
+         - 5000
+    ksiemgowy_updater:
+        build:
+          context: .
+          dockerfile: Dockerfile-homepage-updater
+        env_file:
+            - envfile_public
+        environment:
+            DEPLOY_KEY_PATH: /run/secrets/deploy_key
+        volumes:
+          - "./db_public:/db_public"
+        secrets:
+          - deploy_key
 
 
 secrets:
   imap_password:
     file: IMAP_PASSWORD
+  deploy_key:
+    file: homepage_deploykey
