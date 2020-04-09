@@ -9,6 +9,7 @@ import argparse
 import email
 import dataclasses
 import os
+import pprint
 import copy
 import hashlib
 
@@ -108,7 +109,7 @@ def main(input_fpath, mode):
         result = parse_mbank_email(s)
     else:
         raise RuntimeError('Unexpected mode: %s' % mode)
-    print(json.dumps(result))
+    pprint.pprint(result)
 
 
 if __name__ == '__main__':

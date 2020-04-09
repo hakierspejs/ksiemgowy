@@ -44,6 +44,7 @@ def gen_unseen_mbank_emails(db, mail):
         for response_part in data:
             if not isinstance(response_part, tuple):
                 continue
+            LOGGER.info('Handling e-mail id: %r', mail_id)
             yield response_part[1].decode()
             db.mark_imap_id_already_handled(mail_id)
 
@@ -60,6 +61,7 @@ def check_for_updates(
     for msgstr in gen_unseen_mbank_emails(private_state, mail):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msgstr)
         for action in parsed.get('actions', []):
+            LOGGER.info('Observed an action')
             is_acct_watched = action.out_acc_no == ACC_NO
             if action.action_type == 'in_transfer' and is_acct_watched:
                 public_state.add_mbank_action(action.anonymized().asdict())
