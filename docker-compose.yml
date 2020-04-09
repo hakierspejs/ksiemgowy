@@ -12,6 +12,7 @@ services:
         volumes:
           - "./db_private:/db_private"
           - "./db_public:/db_public"
+        restart: unless-stopped
     ksiemgowy_web:
         build:
           context: .
@@ -22,6 +23,7 @@ services:
           - "./db_public:/db_public"
         expose:
          - 5000
+        restart: unless-stopped
     ksiemgowy_updater:
         build:
           context: .
@@ -34,7 +36,7 @@ services:
           - "./db_public:/db_public"
         secrets:
           - deploy_key
-
+        restart: unless-stopped
 
 secrets:
   imap_password:
