@@ -118,7 +118,7 @@ def main():
     deploy_key_path = os.environ['DEPLOY_KEY_PATH']
     state = ksiemgowy.public_state.PublicState(PUBLIC_DB_URI)
     maybe_update(state, deploy_key_path)
-    schedule.every().hour.do(maybe_update, (state, deploy_key_path))
+    schedule.every().hour.do(maybe_update, state, deploy_key_path)
     while True:
         time.sleep(1.0)
         schedule.run_pending()

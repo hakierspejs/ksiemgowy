@@ -6,6 +6,7 @@ logic used to generate database entries."""
 # This is here because pylint has generates a false positive:
 # pylint:disable=unsubscriptable-object
 
+import atexit
 import imaplib
 import os
 import time
@@ -82,15 +83,20 @@ def build_args():
     )
 
 
+@atexit.register
+def atexit_handler(*_, **__):
+    LOGGER.info('Shutting down')
+
+
 def main():
     logging.basicConfig(level='INFO')
+    LOGGER.info('ksiemgowyd started')
     args = build_args()
     check_for_updates(*args)
-    schedule.every().hour.do(check_for_updates, args)
+    schedule.every().hour.do(check_for_updates, *args)
     while True:
         schedule.run_pending()
         time.sleep(1)
-
 
 if __name__ == '__main__':
     main()
