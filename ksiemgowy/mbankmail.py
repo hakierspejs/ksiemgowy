@@ -4,7 +4,6 @@
 JSON."""
 
 import re
-import json
 import argparse
 import email
 import dataclasses
