@@ -40,16 +40,17 @@ def gen_unseen_mbank_emails(db, mail):
     mail_ids = data[0]
     id_list = mail_ids.split()
     for mail_id in reversed(id_list):
-        if db.was_imap_id_already_handled(mail_id):
-            continue
         _, data = mail.fetch(mail_id, '(RFC822)')
-        for response_part in data:
+        for n, response_part in enumerate(data):
             if not isinstance(response_part, tuple):
                 continue
-            LOGGER.info('Handling e-mail id: %r', mail_id)
             msg = email.message_from_string(response_part[1].decode())
+            mail_key = f'{msg["Date"]}_{n}'
+            if db.was_imap_id_already_handled(mail_key):
+                continue
+            LOGGER.info('Handling e-mail id: %r', mail_id)
             yield msg
-            db.mark_imap_id_already_handled(msg['Date'])
+            db.mark_imap_id_already_handled(mail_key)
 
 
 def check_for_updates(
