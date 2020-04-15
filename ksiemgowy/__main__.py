@@ -9,6 +9,7 @@ logic used to generate database entries."""
 import atexit
 import imaplib
 import os
+import email
 import time
 import logging
 
@@ -46,8 +47,9 @@ def gen_unseen_mbank_emails(db, mail):
             if not isinstance(response_part, tuple):
                 continue
             LOGGER.info('Handling e-mail id: %r', mail_id)
-            yield response_part[1].decode()
-            db.mark_imap_id_already_handled(mail_id)
+            msg = email.message_from_string(response_part[1].decode())
+            yield msg
+            db.mark_imap_id_already_handled(msg['Date'])
 
 
 def check_for_updates(
@@ -59,8 +61,8 @@ def check_for_updates(
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
     private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
     mail = imap_connect(imap_login, imap_password, imap_server)
-    for msgstr in gen_unseen_mbank_emails(private_state, mail):
-        parsed = ksiemgowy.mbankmail.parse_mbank_email(msgstr)
+    for msg in gen_unseen_mbank_emails(private_state, mail):
+        parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get('actions', []):
             LOGGER.info('Observed an action')
             is_acct_watched = action.out_acc_no == ACC_NO

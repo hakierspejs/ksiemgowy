@@ -5,7 +5,6 @@ JSON."""
 
 import re
 import argparse
-import email
 import dataclasses
 import os
 import pprint
@@ -72,10 +71,9 @@ def parse_mbank_html(mbank_html):
     return {'actions': actions}
 
 
-def parse_mbank_email(msgstr):
+def parse_mbank_email(msg):
     """Finds attachment with mBank account update in an .eml mBank email,
     then behaves like parse_mbank_html."""
-    msg = email.message_from_string(msgstr)
     parsed = {}
     for part in msg.walk():
         params = dict(part.get_params())

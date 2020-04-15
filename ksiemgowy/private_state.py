@@ -11,7 +11,7 @@ class PrivateState:
             sqlalchemy.Column(
                 'id', sqlalchemy.Integer, primary_key=True),
             sqlalchemy.Column(
-                'imap_id', sqlalchemy.Integer, unique=True),
+                'imap_id', sqlalchemy.String, unique=True),
         )
         try:
             self.observed_email_ids.create()
