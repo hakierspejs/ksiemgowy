@@ -4,17 +4,34 @@ import contextlib
 import datetime
 import os
 import shutil
+import logging
 import subprocess
 import textwrap
 import time
+import socket
 
 import schedule
 
 import ksiemgowy.public_state
 
+LOGGER = logging.getLogger('homepage_updater')
 HOMEPAGE_REPO = 'hakierspejs/homepage'
 DUES_FILE_PATH = '_includes/dues.txt'
 DUES_SEPARATOR = '\n\n{% comment %} END OF AUTOUPDATED PART {% endcomment %}'
+
+
+def upload_to_graphite(h, metric, value):
+    s = socket.socket()
+    try:
+        s.connect(h)
+        now = int(time.time())
+        buf = f'{metric} {value} {now}\n'.encode()
+        LOGGER.info('Sending %r to %r', buf, h)
+        s.send(buf)
+        s.close()
+    except (ConnectionRefusedError, socket.timeout) as e:
+        LOGGER.exception(e)
+    time.sleep(3.0)
 
 
 def parse_last_updated(s):
@@ -38,6 +55,11 @@ def get_local_state(db):
         num_subscribers += 1
         total += action['amount_pln']
     last_updated_s = last_updated.strftime('%d-%m-%Y')
+    h = ('graphite.hs-ldz.pl', 2003)
+    upload_to_graphite(h, 'hakierspejs.finanse.total_lastmonth', total)
+    upload_to_graphite(
+        h, 'hakierspejs.finanse.num_subscribers', num_subscribers
+    )
     return textwrap.dedent(f'''
         {{% assign dues_total_lastmonth = {total} %}}
         {{% assign dues_last_updated = "{last_updated_s}" %}}
