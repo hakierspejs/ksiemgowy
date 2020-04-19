@@ -13,10 +13,12 @@ import socket
 import schedule
 
 import ksiemgowy.public_state
+import meetupscraper
 
 LOGGER = logging.getLogger('homepage_updater')
 HOMEPAGE_REPO = 'hakierspejs/homepage'
 DUES_FILE_PATH = '_includes/dues.txt'
+MEETUP_FILE_PATH = '_includes/next_meeting.txt'
 DUES_SEPARATOR = '\n\n{% comment %} END OF AUTOUPDATED PART {% endcomment %}'
 
 
@@ -41,7 +43,7 @@ def parse_last_updated(s):
     return datetime.datetime.strptime(date_s, '%d-%m-%Y')
 
 
-def get_local_state(db):
+def get_local_state_dues(db):
     now = datetime.datetime.now()
     month_ago = now - datetime.timedelta(days=31)
     total = 200
@@ -67,7 +69,7 @@ def get_local_state(db):
     ''').strip(), last_updated
 
 
-def get_remote_state():
+def get_remote_state_dues():
     with open(f'homepage/{DUES_FILE_PATH}') as f:
         ret = f.read().split(DUES_SEPARATOR)
     return ret[0], ret[1], parse_last_updated(''.join(ret))
@@ -113,8 +115,8 @@ def git_cloned(deploy_key_path):
             pass
 
 
-def update_remote_state(new_state, env):
-    with open(f'homepage/{DUES_FILE_PATH}', 'w') as f:
+def update_remote_state(filepath, new_state, env):
+    with open(filepath, 'w') as f:
         f.write(new_state)
     subprocess.check_call(
         ['git', 'commit', '-am', 'dues: autoupdate'], cwd='homepage', env=env
@@ -124,15 +126,47 @@ def update_remote_state(new_state, env):
     )
 
 
+def get_meetup_actual_state():
+    next_events = meetupscraper.get_upcoming_events('Hakierspejs-Łódź')
+    next_event = list(sorted(next_events, key=lambda x: x.date))[0]
+    next_date = next_event.date.strftime("%d-%m-%Y %H:%M")
+    return textwrap.dedent(f'''
+        {{% assign next_meeting = "{next_date}" %}}
+        {{% assign next_meeting_url = "{next_event.url}" %}}
+
+        {{% comment %}}
+          {{% assign next_meeting_location = "" %}}
+        {{% endcomment %}}
+    ''').strip()
+
+
+def get_meetup_remote_state():
+    with open(f'homepage/{MEETUP_FILE_PATH}') as f:
+        return f.read()
+
+
+def maybe_update_dues(db, git_env):
+    local_state, last_updated_local = get_local_state_dues(db)
+    remote_state, suffix, last_updated_remote = get_remote_state_dues()
+    is_newer = last_updated_local > last_updated_remote
+    if remote_state != local_state and is_newer:
+        new_state = ''.join([local_state, DUES_SEPARATOR, suffix])
+        update_remote_state(f'homepage/{DUES_FILE_PATH}', new_state, git_env)
+
+
+def maybe_update_meetup(git_env):
+    actual_state = get_meetup_actual_state()
+    remote_state = get_meetup_remote_state()
+    if remote_state != actual_state:
+        fpath = f'homepage/{MEETUP_FILE_PATH}'
+        update_remote_state(fpath, actual_state, git_env)
+
+
 def maybe_update(db, deploy_key_path):
     time.sleep(600.0)
     with git_cloned(deploy_key_path) as git_env:
-        local_state, last_updated_local = get_local_state(db)
-        remote_state, suffix, last_updated_remote = get_remote_state()
-        is_newer = last_updated_local > last_updated_remote
-        if remote_state != local_state and is_newer:
-            new_state = ''.join([local_state, DUES_SEPARATOR, suffix])
-            update_remote_state(new_state, git_env)
+        maybe_update_dues(db, git_env)
+        maybe_update_meetup(git_env)
 
 
 def main():
