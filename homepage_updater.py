@@ -50,7 +50,7 @@ def get_local_state(db):
     for action in db.list_mbank_actions():
         if action['timestamp'] < month_ago:
             continue
-        if last_updated is None:
+        elif last_updated is None or action['timestamp'] > last_updated:
             last_updated = action['timestamp']
         num_subscribers += 1
         total += action['amount_pln']
