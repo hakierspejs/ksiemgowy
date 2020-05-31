@@ -1,1 +1,0 @@
-meetupscraper>=0.4

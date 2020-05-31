@@ -13,7 +13,6 @@ import socket
 import schedule
 
 import ksiemgowy.public_state
-import meetupscraper
 
 LOGGER = logging.getLogger('homepage_updater')
 HOMEPAGE_REPO = 'hakierspejs/homepage'
@@ -126,25 +125,6 @@ def update_remote_state(filepath, new_state, env):
     )
 
 
-def get_meetup_actual_state():
-    next_events = meetupscraper.get_upcoming_events('Hakierspejs-Łódź')
-    next_event = list(sorted(next_events, key=lambda x: x.date))[0]
-    next_date = next_event.date.strftime("%d-%m-%Y %H:%M")
-    return textwrap.dedent(f'''
-        {{% assign next_meeting = "{next_date}" %}}
-        {{% assign next_meeting_url = "{next_event.url}" %}}
-
-        {{% comment %}}
-          {{% assign next_meeting_location = "" %}}
-        {{% endcomment %}}
-    ''').strip()
-
-
-def get_meetup_remote_state():
-    with open(f'homepage/{MEETUP_FILE_PATH}') as f:
-        return f.read()
-
-
 def maybe_update_dues(db, git_env):
     local_state, last_updated_local = get_local_state_dues(db)
     remote_state, suffix, last_updated_remote = get_remote_state_dues()
@@ -154,19 +134,10 @@ def maybe_update_dues(db, git_env):
         update_remote_state(f'homepage/{DUES_FILE_PATH}', new_state, git_env)
 
 
-def maybe_update_meetup(git_env):
-    actual_state = get_meetup_actual_state()
-    remote_state = get_meetup_remote_state()
-    if remote_state != actual_state:
-        fpath = f'homepage/{MEETUP_FILE_PATH}'
-        update_remote_state(fpath, actual_state, git_env)
-
-
 def maybe_update(db, deploy_key_path):
     time.sleep(600.0)
     with git_cloned(deploy_key_path) as git_env:
         maybe_update_dues(db, git_env)
-        maybe_update_meetup(git_env)
 
 
 def main():
