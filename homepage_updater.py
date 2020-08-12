@@ -50,6 +50,8 @@ def get_local_state_dues(db):
     num_subscribers = 1
     last_updated = None
     total_ever = 0
+    observed_acc_numbers = set()
+    observed_acc_owners = set()
     first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
     for action in db.list_mbank_actions():
         total_ever += action["amount_pln"]
@@ -57,7 +59,13 @@ def get_local_state_dues(db):
             continue
         elif last_updated is None or action["timestamp"] > last_updated:
             last_updated = action["timestamp"]
-        num_subscribers += 1
+        if (
+            action["in_acc_no"] not in observed_acc_numbers
+            and action["in_person"] not in observed_acc_owners
+        ):
+            num_subscribers += 1
+            observed_acc_numbers.add(action["in_acc_no"])
+            observed_acc_owners.add(action["in_person"])
         total += action["amount_pln"]
     total_ever += sum(
         [
