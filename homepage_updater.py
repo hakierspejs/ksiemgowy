@@ -9,6 +9,7 @@ import subprocess
 import textwrap
 import time
 import socket
+import dateutil.rrule
 
 import schedule
 
@@ -48,13 +49,22 @@ def get_local_state_dues(db):
     total = 200
     num_subscribers = 1
     last_updated = None
+    total_ever = 0
+    first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
     for action in db.list_mbank_actions():
+        total_ever += action['amount_pln']
         if action['timestamp'] < month_ago:
             continue
         elif last_updated is None or action['timestamp'] > last_updated:
             last_updated = action['timestamp']
         num_subscribers += 1
         total += action['amount_pln']
+    total_ever += sum([
+        200 for _ in dateutil.rrule.rrule(
+            dateutil.rrule.MONTHLY,
+            dtstart=first_200pln_d33tah_due_date, until=now
+        )
+    ])
     last_updated_s = last_updated.strftime('%d-%m-%Y')
     h = ('graphite.hs-ldz.pl', 2003)
     upload_to_graphite(h, 'hakierspejs.finanse.total_lastmonth', total)
@@ -65,6 +75,7 @@ def get_local_state_dues(db):
         {{% assign dues_total_lastmonth = {total} %}}
         {{% assign dues_last_updated = "{last_updated_s}" %}}
         {{% assign dues_num_subscribers = {num_subscribers} %}}
+        {{% assign dues_so_far = {total_ever} %}}
     ''').strip(), last_updated
 
 
