@@ -11,6 +11,7 @@ import imaplib
 import os
 import email
 import time
+import smtplib
 import logging
 
 import schedule
@@ -29,6 +30,21 @@ def imap_connect(login, password, server):
     mail = imaplib.IMAP4_SSL(server)
     mail.login(login, password)
     return mail
+
+
+def smtp_login(smtplogin, smtppass):
+    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+    server.ehlo()
+    server.login(smtplogin, smtppass)
+    return server
+
+
+def send_mail(server, fromaddr, toaddr, payload):
+    msg = "From: %s\r\nTo: %s\r\n\r\n%s" % (fromaddr, toaddr, payload)
+
+    server.set_debuglevel(1)
+    server.sendmail(fromaddr, toaddr, msg)
+    server.quit()
 
 
 def gen_unseen_mbank_emails(db, mail):
@@ -69,8 +85,10 @@ def check_for_updates(
             is_acct_watched = action.out_acc_no == ACC_NO
             if action.action_type == 'in_transfer' and is_acct_watched:
                 public_state.add_mbank_action(action.anonymized().asdict())
-                LOGGER.info('added an action')
-    LOGGER.info('check_for_updates: done')
+                server = smtp_login(imap_login, imap_password)
+                send_mail(server, imap_login, imap_login, str(action))
+                LOGGER.info("added an action")
+    LOGGER.info("check_for_updates: done")
 
 
 def build_args():
