@@ -1,0 +1,45 @@
+version: '3.7'
+services:
+    ksiemgowyd:
+        build:
+          context: .
+          dockerfile: Dockerfile-ksiemgowyd
+        env_file:
+            - envfile_secret
+            - envfile_public
+        secrets:
+          - imap_password
+        volumes:
+          - "./db_private:/db_private"
+          - "./db_public:/db_public"
+        restart: unless-stopped
+    ksiemgowy_web:
+        build:
+          context: .
+          dockerfile: Dockerfile-web
+        env_file:
+            - envfile_public
+        volumes:
+          - "./db_public:/db_public"
+        expose:
+         - 5000
+        restart: unless-stopped
+    ksiemgowy_updater:
+        build:
+          context: .
+          dockerfile: Dockerfile-homepage-updater
+        env_file:
+            - envfile_public
+        environment:
+            DEPLOY_KEY_PATH: /run/secrets/deploy_key
+        volumes:
+          - "./db_public:/db_public"
+        secrets:
+          - deploy_key
+        restart: unless-stopped
+
+secrets:
+  imap_password:
+    file: IMAP_PASSWORD
+  deploy_key:
+    file: homepage_deploykey

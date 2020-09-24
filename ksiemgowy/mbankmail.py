@@ -4,18 +4,49 @@
 JSON."""
 
 import re
-import json
 import argparse
-import email
+import dataclasses
+import os
+import pprint
+import copy
+import hashlib
 
 import lxml.html
 
 INCOMING_RE = re.compile(
     '^mBank: Przelew przych. z rach. (?P<in_acc_no>\\d{4}\\.{3}\\d{6})'
     ' na rach\\. (?P<out_acc_no>\\d{8}) '
-    'kwota (?P<amount_pln>\\d+,\\d{2}) PLN od (?P<in_person>.+) U; '
+    'kwota (?P<amount_pln>\\d+,\\d{2}) PLN od (?P<in_person>.+); '
     '(?P<in_desc>.+); Dost\\. (?P<balance>\\d+,\\d{2}) PLN$'
 )
+
+
+MBANK_ANONYMIZATION_KEY = os.environ['MBANK_ANONYMIZATION_KEY'].encode()
+
+
+def anonymize(s):
+    return hashlib.sha256(s.encode() + MBANK_ANONYMIZATION_KEY).hexdigest()
+
+
+@dataclasses.dataclass
+class MbankAction:
+    in_acc_no: str
+    out_acc_no: str
+    amount_pln: str
+    in_person: str
+    in_desc: str
+    balance: str
+    timestamp: str
+    action_type: str
+
+    def anonymized(self):
+        new = copy.copy(self)
+        new.in_acc_no = anonymize(self.in_acc_no)
+        new.in_person = anonymize(self.in_person)
+        new.in_desc = anonymize(self.in_desc)
+        return new
+
+    asdict = dataclasses.asdict
 
 
 def parse_mbank_html(mbank_html):
@@ -34,16 +65,15 @@ def parse_mbank_html(mbank_html):
         if not g:
             continue
         action = g.groupdict()
-        action['type'] = 'in_transfer'
+        action['action_type'] = 'in_transfer'
         action['timestamp'] = f'{date} {time}'
-        actions.append(action)
+        actions.append(MbankAction(**action))
     return {'actions': actions}
 
 
-def parse_mbank_email(msgstr):
+def parse_mbank_email(msg):
     """Finds attachment with mBank account update in an .eml mBank email,
     then behaves like parse_mbank_html."""
-    msg = email.message_from_string(msgstr)
     parsed = {}
     for part in msg.walk():
         params = dict(part.get_params())
@@ -76,7 +106,7 @@ def main(input_fpath, mode):
         result = parse_mbank_email(s)
     else:
         raise RuntimeError('Unexpected mode: %s' % mode)
-    print(json.dumps(result))
+    pprint.pprint(result)
 
 
 if __name__ == '__main__':

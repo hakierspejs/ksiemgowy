@@ -1,0 +1,6 @@
+FROM python
+ADD ./requirements-ksiemgowyd.txt .
+RUN python -m pip install -r requirements-ksiemgowyd.txt
+ADD ./ksiemgowy ksiemgowy
+ADD ./homepage_updater.py .
+ENTRYPOINT ["python", "./homepage_updater.py"]
