@@ -114,7 +114,13 @@ def build_args():
     imap_server = os.environ["IMAP_SERVER"]
     imap_password_path = os.environ["IMAP_PASSWORD_PATH"]
     imap_password = open(imap_password_path).read().strip()
-    return (imap_login, imap_password, imap_server, public_db_uri, private_db_uri)
+    return (
+        imap_login,
+        imap_password,
+        imap_server,
+        public_db_uri,
+        private_db_uri,
+    )
 
 
 @atexit.register
