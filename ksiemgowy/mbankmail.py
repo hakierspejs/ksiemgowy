@@ -98,7 +98,7 @@ def main(input_fpath, mode):
     """Entry point for the submodule, used for diagnostics. Reads data from
     input_fpath, then runs either parse_mbank_html or parse_mbank_email,
     depending on the mode."""
-    with open(input_fpath) as f:
+    with open(input_fpath, encoding='iso8859-2') as f:
         s = f.read()
     if mode == 'html':
         result = parse_mbank_html(s)
