@@ -10,6 +10,9 @@ import atexit
 import imaplib
 import os
 import email
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 import time
 import smtplib
 import logging
@@ -43,8 +46,13 @@ def send_mail(server, fromaddr, toaddr, payload):
     msg = "From: %s\r\nTo: %s\r\n\r\n%s" % (fromaddr, toaddr, payload)
 
     server.set_debuglevel(1)
-    server.sendmail(fromaddr, toaddr, msg)
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = u'ksiemgowyd: update'
+    part1 = MIMEText(payload, "plain", "utf-8")
+    msg.attach(part1)
+    server.sendmail(fromaddr, toaddr, msg.as_string().encode('ascii'))
     server.quit()
+    time.sleep(10)  # HACK: slow down potential self-spam
 
 
 def gen_unseen_mbank_emails(db, mail):
@@ -66,7 +74,7 @@ def gen_unseen_mbank_emails(db, mail):
                 continue
             LOGGER.info("Handling e-mail id: %r", mail_id)
             yield msg
-            db.mark_imap_id_already_handled(mail_key)
+        db.mark_imap_id_already_handled(mail_key)
 
 
 def check_for_updates(
