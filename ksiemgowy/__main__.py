@@ -70,10 +70,10 @@ def gen_unseen_mbank_emails(db, mail):
                 continue
             msg = email.message_from_string(response_part[1].decode())
             mail_key = f'{msg["Date"]}_{n}'
-            if db.was_imap_id_already_handled(mail_key):
-                continue
             LOGGER.info("Handling e-mail id: %r", mail_id)
             yield msg
+        if db.was_imap_id_already_handled(mail_key):
+            continue
         db.mark_imap_id_already_handled(mail_key)
 
 
@@ -88,7 +88,7 @@ def check_for_updates(
     for msg in gen_unseen_mbank_emails(private_state, mail):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
-            LOGGER.info("Observed an action")
+            LOGGER.info("Observed an action: %r", action.anonymized().asdict())
             is_acct_watched = action.out_acc_no == ACC_NO
             if action.action_type == "in_transfer" and is_acct_watched:
                 public_state.add_mbank_action(action.anonymized().asdict())
