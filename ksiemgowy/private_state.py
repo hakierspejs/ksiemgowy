@@ -1,4 +1,8 @@
 import sqlalchemy
+import logging
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class PrivateState:
@@ -20,9 +24,13 @@ class PrivateState:
 
     def was_imap_id_already_handled(self, imap_id):
         for entry in self.observed_email_ids.select().execute().fetchall():
+            LOGGER.info(
+                'was_imap_id_already_handled: %r vs %r', imap_id, entry.imap_id
+            )
             if entry.imap_id == imap_id:
                 return True
         return False
 
     def mark_imap_id_already_handled(self, imap_id):
+        LOGGER.info('mark_imap_id_already_handled(%r)' % imap_id)
         self.observed_email_ids.insert(None).execute(imap_id=imap_id)
