@@ -30,6 +30,7 @@ LOGGER = logging.getLogger("ksiemgowy.__main__")
 
 
 def acc_no_to_email():
+    # FIXME: hack. Actually use the ORM!
     return dict(
         __import__("sqlite3")
         .connect("/db_private/db.sqlite")
@@ -51,13 +52,18 @@ def smtp_login(smtplogin, smtppass):
     return server
 
 
-def send_mail(server, fromaddr, toaddr, payload):
+def send_mail(server, fromaddr, toaddr, mbank_action):
     server.set_debuglevel(1)
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
-    msg["To"] = toaddr
-    msg["Subject"] = "ksiemgowyd: update"
-    msg.attach(MIMEText(payload, "plain", "utf-8"))
+    emails = acc_no_to_email()
+    if mbank_action.in_acc_no in emails:
+        msg["To"] = emails[mbank_action.in_acc_no]
+        msg["Cc"] = toaddr
+    else:
+        msg["To"] = toaddr
+    msg["Subject"] = "ksiemgowyd: zaksiemgowano"
+    msg.attach(MIMEText(str(mbank_action), "plain", "utf-8"))
     server.send_message(msg)
     server.quit()
     time.sleep(10)  # HACK: slow down potential self-spam
@@ -102,7 +108,7 @@ def check_for_updates(
             if action.action_type == "in_transfer" and is_acct_watched:
                 public_state.add_mbank_action(action.anonymized().asdict())
                 server = smtp_login(imap_login, imap_password)
-                send_mail(server, imap_login, imap_login, str(action))
+                send_mail(server, imap_login, imap_login, action)
                 LOGGER.info("added an action")
     LOGGER.info("check_for_updates: done")
 
@@ -131,6 +137,7 @@ def atexit_handler(*_, **__):
 def main():
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
+    emails = acc_no_to_email()
     args = build_args()
     check_for_updates(*args)
     schedule.every().hour.do(check_for_updates, *args)
