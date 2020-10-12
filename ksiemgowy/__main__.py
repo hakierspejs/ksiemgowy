@@ -29,6 +29,15 @@ ACC_NO = "76561893"
 LOGGER = logging.getLogger("ksiemgowy.__main__")
 
 
+def acc_no_to_email():
+    return dict(
+        __import__("sqlite3")
+        .connect("/db_private/db.sqlite")
+        .cursor()
+        .execute("select in_acc_no, email from in_acc_no_to_email")
+    )
+
+
 def imap_connect(login, password, server):
     mail = imaplib.IMAP4_SSL(server)
     mail.login(login, password)
@@ -43,14 +52,13 @@ def smtp_login(smtplogin, smtppass):
 
 
 def send_mail(server, fromaddr, toaddr, payload):
-    msg = "From: %s\r\nTo: %s\r\n\r\n%s" % (fromaddr, toaddr, payload)
-
     server.set_debuglevel(1)
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = u'ksiemgowyd: update'
-    part1 = MIMEText(payload, "plain", "utf-8")
-    msg.attach(part1)
-    server.sendmail(fromaddr, toaddr, msg.as_string().encode('ascii'))
+    msg["From"] = fromaddr
+    msg["To"] = toaddr
+    msg["Subject"] = "ksiemgowyd: update"
+    msg.attach(MIMEText(payload, "plain", "utf-8"))
+    server.send_message(msg)
     server.quit()
     time.sleep(10)  # HACK: slow down potential self-spam
 
