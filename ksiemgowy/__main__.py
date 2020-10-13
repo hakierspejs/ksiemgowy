@@ -57,7 +57,7 @@ def send_mail(server, fromaddr, toaddr, mbank_action):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
     emails = acc_no_to_email()
-    if mbank_action.in_acc_no in emails:
+    if mbank_action.anonymized().in_acc_no in emails:
         msg["To"] = emails[mbank_action.in_acc_no]
         msg["Cc"] = toaddr
     else:
