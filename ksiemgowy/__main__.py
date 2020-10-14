@@ -86,10 +86,9 @@ def gen_unseen_mbank_emails(db, mail):
             mail_key = f'{msg["Date"]}_{n}'
             if db.was_imap_id_already_handled(mail_key):
                 continue
-            db.mark_imap_id_already_handled(mail_key)
-
             LOGGER.info("Handling e-mail id: %r", mail_id)
             yield msg
+            db.mark_imap_id_already_handled(mail_key)
 
 
 def check_for_updates(
