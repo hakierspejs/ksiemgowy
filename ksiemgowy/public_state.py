@@ -2,6 +2,9 @@ import dateutil.parser
 import sqlalchemy
 
 
+import ksiemgowy.mbankmail
+
+
 class PublicState:
     def __init__(self, db_uri):
         self.db = sqlalchemy.create_engine(db_uri)
@@ -23,7 +26,7 @@ class PublicState:
             ret['timestamp'] = dateutil.parser.parse(ret['timestamp'])
             # FIXME: use fractions.fraction instead?
             ret['amount_pln'] = float(ret['amount_pln'].replace(',', '.'))
-            yield ret
+            yield ksiemgowy.mbankmail.MbankAction(**ret)
 
     def add_mbank_action(self, mbank_action):
         self.mbank_actions.insert(None).execute(mbank_action=mbank_action)

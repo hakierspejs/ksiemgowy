@@ -61,7 +61,7 @@ def send_overdue_email(server, fromaddr, toaddr, message_text):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
     msg["To"] = toaddr
-    msg["Subject"] = "ksiemgowyd: liczba zwlekających"
+    msg["Subject"] = "ksiemgowyd: lista zwlekających"
     msg.attach(MIMEText(message_text, "plain", "utf-8"))
     server.send_message(msg)
     time.sleep(10)  # HACK: slow down potential self-spam
@@ -166,21 +166,20 @@ def check_for_overdue(
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
     d = {}
     for x in public_state.list_mbank_actions():
-        if (
-            x["in_acc_no"] not in d
-            or d[x["in_acc_no"]]["timestamp"] < x["timestamp"]
-        ):
-            d[x["in_acc_no"]] = x
+        if x.in_acc_no not in d or d[x.in_acc_no].timestamp < x.timestamp:
+            d[x.in_acc_no] = x
 
     ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
     ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
-    num_overdue = 0
+    overdues = []
+    emails = acc_no_to_email()
     for k in d:
-        if ago_55d < d[k]["timestamp"] < ago_35d:
-            num_overdue += 1
+        if ago_55d < d[k].timestamp < ago_35d:
+            if d[k].in_acc_no in emails:
+                overdues.append(emails[d[k].in_acc_no])
 
     with smtp_login(imap_login, imap_password) as server:
-        send_overdue_email(server, imap_login, imap_login, str(num_overdue))
+        send_overdue_email(server, imap_login, imap_login, ", ".join(overdues))
 
 
 def main():
