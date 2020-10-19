@@ -7,6 +7,7 @@ logic used to generate database entries."""
 # pylint:disable=unsubscriptable-object
 
 import atexit
+import datetime
 import imaplib
 import os
 import email
@@ -16,6 +17,7 @@ from email.mime.text import MIMEText
 import time
 import smtplib
 import logging
+import contextlib
 
 import schedule
 
@@ -45,15 +47,27 @@ def imap_connect(login, password, server):
     return mail
 
 
+@contextlib.contextmanager
 def smtp_login(smtplogin, smtppass):
     server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
     server.ehlo()
     server.login(smtplogin, smtppass)
-    return server
-
-
-def send_mail(server, fromaddr, toaddr, mbank_action):
     server.set_debuglevel(1)
+    yield server
+    server.quit()
+
+
+def send_overdue_email(server, fromaddr, toaddr, message_text):
+    msg = MIMEMultipart("alternative")
+    msg["From"] = fromaddr
+    msg["To"] = toaddr
+    msg["Subject"] = "ksiemgowyd: liczba zwlekających"
+    msg.attach(MIMEText(message_text, "plain", "utf-8"))
+    server.send_message(msg)
+    time.sleep(10)  # HACK: slow down potential self-spam
+
+
+def send_confirmation_mail(server, fromaddr, toaddr, mbank_action):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
     emails = acc_no_to_email()
@@ -62,10 +76,20 @@ def send_mail(server, fromaddr, toaddr, mbank_action):
         msg["Cc"] = toaddr
     else:
         msg["To"] = toaddr
-    msg["Subject"] = "ksiemgowyd: zaksiemgowano"
-    msg.attach(MIMEText(str(mbank_action), "plain", "utf-8"))
+    msg["Subject"] = "ksiemgowyd: zaksiemgowano przelew! :)"
+    message_text = f"""Dziękuję za wspieranie Hakierspejsu! ❤
+
+Twój przelew na kwotę {mbank_action.amount_pln}zł z dnia \
+{mbank_action.timestamp} został pomyślnie zaksięgowany przez Ksiemgowego. \
+Wkrótce strona internetowa Hakierspejsu zostanie zaktualizowana, aby \
+odzwierciedlać aktualny stan konta.
+
+Wiadomość została wygenerowana automatycznie przez program "ksiemgowy", którego
+kod źródłowy dostępny jest tutaj:
+
+https://github.com/hakierspejs/ksiemgowy"""
+    msg.attach(MIMEText(message_text, "plain", "utf-8"))
     server.send_message(msg)
-    server.quit()
     time.sleep(10)  # HACK: slow down potential self-spam
 
 
@@ -106,8 +130,10 @@ def check_for_updates(
             is_acct_watched = action.out_acc_no == ACC_NO
             if action.action_type == "in_transfer" and is_acct_watched:
                 public_state.add_mbank_action(action.anonymized().asdict())
-                server = smtp_login(imap_login, imap_password)
-                send_mail(server, imap_login, imap_login, action)
+                with smtp_login(imap_login, imap_password) as server:
+                    send_confirmation_mail(
+                        server, imap_login, imap_login, action
+                    )
                 LOGGER.info("added an action")
     LOGGER.info("check_for_updates: done")
 
@@ -133,13 +159,38 @@ def atexit_handler(*_, **__):
     LOGGER.info("Shutting down")
 
 
+def check_for_overdue(
+    imap_login, imap_password, _imap_server, public_db_uri, _private_db_uri
+):
+    LOGGER.info("check_for_overdue()")
+    public_state = ksiemgowy.public_state.PublicState(public_db_uri)
+    d = {}
+    for x in public_state.list_mbank_actions():
+        if (
+            x["in_acc_no"] not in d
+            or d[x["in_acc_no"]]["timestamp"] < x["timestamp"]
+        ):
+            d[x["in_acc_no"]] = x
+
+    ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
+    ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
+    num_overdue = 0
+    for k in d:
+        if ago_55d < d[k]["timestamp"] < ago_35d:
+            num_overdue += 1
+
+    with smtp_login(imap_login, imap_password) as server:
+        send_overdue_email(server, imap_login, imap_login, str(num_overdue))
+
+
 def main():
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
-    emails = acc_no_to_email()
+    emails = acc_no_to_email()  # noqa
     args = build_args()
     check_for_updates(*args)
     schedule.every().hour.do(check_for_updates, *args)
+    schedule.every(5).days.do(check_for_overdue, *args)
     while True:
         schedule.run_pending()
         time.sleep(1)
