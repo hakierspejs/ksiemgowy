@@ -159,10 +159,10 @@ def atexit_handler(*_, **__):
     LOGGER.info("Shutting down")
 
 
-def check_for_overdue(
+def notify_about_overdues(
     imap_login, imap_password, _imap_server, public_db_uri, _private_db_uri
 ):
-    LOGGER.info("check_for_overdue()")
+    LOGGER.info("notify_about_overdues()")
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
     d = {}
     for x in public_state.list_mbank_actions():
@@ -189,7 +189,8 @@ def main():
     args = build_args()
     check_for_updates(*args)
     schedule.every().hour.do(check_for_updates, *args)
-    schedule.every(5).days.do(check_for_overdue, *args)
+    # the weird schedule is supposed to try to accomodate different lifestyles
+    schedule.every((24 * 5) + 5).hours.do(notify_about_overdues, *args)
     while True:
         schedule.run_pending()
         time.sleep(1)
