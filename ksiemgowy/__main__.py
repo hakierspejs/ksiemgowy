@@ -87,7 +87,11 @@ odzwierciedlać aktualny stan konta.
 Wiadomość została wygenerowana automatycznie przez program "ksiemgowy", którego
 kod źródłowy dostępny jest tutaj:
 
-https://github.com/hakierspejs/ksiemgowy"""
+https://github.com/hakierspejs/ksiemgowy
+
+Jeśli nie chcesz w przyszłości dostawać tego typu wiadomości, daj znać Jackowi
+przez Telegrama, Matriksa albo wyślij oddzielnego maila.
+"""
     msg.attach(MIMEText(message_text, "plain", "utf-8"))
     server.send_message(msg)
     time.sleep(10)  # HACK: slow down potential self-spam
