@@ -57,11 +57,44 @@ def smtp_login(smtplogin, smtppass):
     server.quit()
 
 
-def send_overdue_email(server, fromaddr, toaddr, message_text):
+def send_overdue_email(server, fromaddr, toaddr, overdue_email):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
-    msg["To"] = toaddr
-    msg["Subject"] = "ksiemgowyd: lista zwlekających"
+    msg["To"] = overdue_email
+    msg["Bcc"] = fromaddr
+    msg["Subject"] = "Hej, wszystko ok?"
+
+    message_text = """Hej,
+
+Piszę do Ciebie, gdyż minęło ponad 35 dni od Twojej ostatniej składki
+na rzecz Hakierspejsu. Między innymi stąd też moje pytanie: cześć,
+żyjesz? :) Czy wszystko jest OK? Jeśli tak, przelej proszę składkę - albo
+najlepiej, ustaw comiesięczne zlecenie stałe:
+
+Numer konta: 55 1140 2004 0000 3002 7656 1893
+
+Zalecana składka: 100zł
+
+Tytuł: Hakierspejs - składka
+
+Mam nadzieję, że udział w Hakierspejsie dalej Cię interesuje. Daj
+proszę znać, jeżeli masz jakiekolwiek pytania lub sugestie.
+
+Niezależnie od tego czy uda Ci się przelać kolejną składkę - dziękuję
+za Twój dotychczasowy wkład w działalność HSŁ! Dzięki regularnym
+przelewom możemy zadbać o bezpieczeństwo finansowe naszej organizacji,
+w szczególności regularne opłacanie czynszu oraz gromadzenie środków
+na dalszy rozwój :)
+
+Miłego dnia,
+d33tah
+
+PS. Wiadomość wysłana jest automatycznie co kilka dni przez program
+"ksiemgowy". Więcej szczegółów tutaj:
+
+https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
+"""
+
     msg.attach(MIMEText(message_text, "plain", "utf-8"))
     server.send_message(msg)
     time.sleep(10)  # HACK: slow down potential self-spam
@@ -183,7 +216,8 @@ def notify_about_overdues(
                 overdues.append(emails[d[k].in_acc_no])
 
     with smtp_login(imap_login, imap_password) as server:
-        send_overdue_email(server, imap_login, imap_login, ", ".join(overdues))
+        for overdue in overdues:
+            send_overdue_email(server, imap_login, imap_login, overdue)
 
 
 def main():
@@ -194,7 +228,7 @@ def main():
     check_for_updates(*args)
     schedule.every().hour.do(check_for_updates, *args)
     # the weird schedule is supposed to try to accomodate different lifestyles
-    schedule.every((24 * 5) + 5).hours.do(notify_about_overdues, *args)
+    schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *args)
     while True:
         schedule.run_pending()
         time.sleep(1)
