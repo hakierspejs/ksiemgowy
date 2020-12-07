@@ -10,14 +10,18 @@ import os
 import pprint
 import copy
 import hashlib
+import logging
 
 import lxml.html
 
 INCOMING_RE = re.compile(
-    "^mBank: Przelew przych. z rach. (?P<in_acc_no>\\d{4}\\.{3}\\d{6})"
-    " na rach\\. (?P<out_acc_no>\\d{8}) "
-    "kwota (?P<amount_pln>\\d+,\\d{2}) PLN od (?P<in_person>.+); "
-    "(?P<in_desc>.+); Dost\\. (?P<balance>\\d+,\\d{2}) PLN$"
+    "^mBank: Przelew (?P<action_type>przych|wych)\\."
+    " z rach\\. (?P<in_acc_no>[0-9.]{8,14})"
+    " na rach\\. (?P<out_acc_no>[0-9.]{8,14})"
+    " kwota (?P<amount_pln>\\d+,\\d{2}) PLN"
+    " (od|dla) (?P<in_person>.+); "
+    "(?P<in_desc>.+); "
+    "Dost\\. (?P<balance>\\d+,\\d{2}) PLN$"
 )
 
 
@@ -55,17 +59,25 @@ def parse_mbank_html(mbank_html):
     h = lxml.html.fromstring(mbank_html)
     date = h.xpath("//h5/text()")[0].split(" - ")[0]
     actions = []
-    for row in h.xpath("//tr")[2:]:
+    rows = h.xpath("//tr")[2:]
+    logging.debug("len(rows)=%r", len(rows))
+    for row in rows:
         desc_e = row.xpath(".//td[2]/text()")
         if not desc_e:
+            logging.debug("Missing desc_e, skipping")
             continue
-        desc_s = desc_e[0].strip()
+        desc_s = desc_e[0].strip().replace("\n", "")
+        logging.debug("desc_s=%r", desc_s)
         time = row.xpath(".//td[1]")[0].text_content().strip()
         g = INCOMING_RE.match(desc_s)
         if not g:
+            logging.debug(" -> No regex match, skipping")
             continue
         action = g.groupdict()
-        action["action_type"] = "in_transfer"
+        action["action_type"] = {
+            "przych": "in_transfer",
+            "wych": "out_transfer",
+        }.get(action["action_type"], "other")
         action["timestamp"] = f"{date} {time}"
         actions.append(MbankAction(**action))
     return {"actions": actions}
@@ -90,15 +102,18 @@ def parse_args():
     **kwargs."""
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("-i", "--input-fpath", required=True)
+    parser.add_argument("-e", "--encoding", default="iso8859-2")
+    parser.add_argument("-L", "--loglevel", default="DEBUG")
     parser.add_argument("--mode", choices=["eml", "html"], required=True)
     return parser.parse_args().__dict__
 
 
-def main(input_fpath, mode):
+def main(input_fpath, mode, encoding, loglevel):
     """Entry point for the submodule, used for diagnostics. Reads data from
     input_fpath, then runs either parse_mbank_html or parse_mbank_email,
     depending on the mode."""
-    with open(input_fpath, encoding="iso8859-2") as f:
+    logging.basicConfig(level=loglevel.upper())
+    with open(input_fpath, encoding=encoding) as f:
         s = f.read()
     if mode == "html":
         result = parse_mbank_html(s)
