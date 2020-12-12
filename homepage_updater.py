@@ -6,7 +6,7 @@ import os
 import shutil
 import logging
 import subprocess
-import textwrap
+import json
 import time
 import socket
 import dateutil.rrule
@@ -17,9 +17,8 @@ import ksiemgowy.public_state
 
 LOGGER = logging.getLogger("homepage_updater")
 HOMEPAGE_REPO = "hakierspejs/homepage"
-DUES_FILE_PATH = "_includes/dues.txt"
+DUES_FILE_PATH = "_data/dues.json"
 MEETUP_FILE_PATH = "_includes/next_meeting.txt"
-DUES_SEPARATOR = "\n\n{% comment %} END OF AUTOUPDATED PART {% endcomment %}"
 
 
 def upload_to_graphite(h, metric, value):
@@ -36,13 +35,6 @@ def upload_to_graphite(h, metric, value):
     time.sleep(3.0)
 
 
-def parse_last_updated(s):
-    prefix = '{% assign dues_last_updated = "'
-    line = [l for l in s.split("\n") if l.startswith(prefix)][0]
-    date_s = line.split(prefix)[1].split('"')[0]
-    return datetime.datetime.strptime(date_s, "%d-%m-%Y")
-
-
 def get_local_state_dues(db):
     now = datetime.datetime.now()
     month_ago = now - datetime.timedelta(days=31)
@@ -53,6 +45,10 @@ def get_local_state_dues(db):
     observed_acc_numbers = set()
     observed_acc_owners = set()
     first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
+    # manual correction because of various bugs/problems
+    total_expenses = -1279.159
+    for action in db.list_expenses():
+        total_expenses -= action.amount_pln
     for action in db.list_mbank_actions():
         total_ever += action.amount_pln
         if action.timestamp < month_ago:
@@ -71,31 +67,33 @@ def get_local_state_dues(db):
         [
             200
             for _ in dateutil.rrule.rrule(
-                dateutil.rrule.MONTHLY, dtstart=first_200pln_d33tah_due_date, until=now
+                dateutil.rrule.MONTHLY,
+                dtstart=first_200pln_d33tah_due_date,
+                until=now,
             )
         ]
     )
     last_updated_s = last_updated.strftime("%d-%m-%Y")
     h = ("graphite.hs-ldz.pl", 2003)
     upload_to_graphite(h, "hakierspejs.finanse.total_lastmonth", total)
-    upload_to_graphite(h, "hakierspejs.finanse.num_subscribers", num_subscribers)
-    return (
-        textwrap.dedent(
-            f"""
-        {{% assign dues_total_lastmonth = {total} %}}
-        {{% assign dues_last_updated = "{last_updated_s}" %}}
-        {{% assign dues_num_subscribers = {num_subscribers} %}}
-        {{% assign dues_so_far = {total_ever} %}}
-    """
-        ).strip(),
-        last_updated,
+    upload_to_graphite(
+        h, "hakierspejs.finanse.num_subscribers", num_subscribers
     )
+    ret = {
+        "dues_total_lastmonth": total,
+        "dues_last_updated": last_updated_s,
+        "dues_num_subscribers": num_subscribers,
+        "dues_so_far": total_ever,
+        "dues_total_correction": total_expenses,
+    }
+    LOGGER.debug('get_local_state_dues: ret=%r', ret)
+    return ret
 
 
 def get_remote_state_dues():
     with open(f"homepage/{DUES_FILE_PATH}") as f:
-        ret = f.read().split(DUES_SEPARATOR)
-    return ret[0], ret[1], parse_last_updated("".join(ret))
+        ret = json.loads(f.read())
+    return ret
 
 
 def ssh_agent_import_key_and_build_env_and_setup_git(deploy_key_path):
@@ -141,34 +139,56 @@ def git_cloned(deploy_key_path):
 
 def update_remote_state(filepath, new_state, env):
     with open(filepath, "w") as f:
-        f.write(new_state)
+        f.write(json.dumps(new_state))
     subprocess.check_call(
         ["git", "commit", "-am", "dues: autoupdate"], cwd="homepage", env=env
     )
     subprocess.check_call(["git", "push"], cwd="homepage", env=env)
 
 
+def do_states_differ(remote_state, local_state):
+    for k in local_state:
+        if local_state[k] != remote_state[k]:
+            return True
+    return False
+
+
+def is_newer(remote_state, local_state):
+    local_modified = datetime.datetime.strptime(
+        local_state["dues_last_updated"], "%d-%m-%Y"
+    )
+    remote_modified = datetime.datetime.strptime(
+        remote_state["dues_last_updated"], "%d-%m-%Y"
+    )
+    return local_modified > remote_modified
+
+
 def maybe_update_dues(db, git_env):
-    local_state, last_updated_local = get_local_state_dues(db)
-    remote_state, suffix, last_updated_remote = get_remote_state_dues()
-    is_newer = last_updated_local > last_updated_remote
-    if remote_state != local_state and is_newer:
-        new_state = "".join([local_state, DUES_SEPARATOR, suffix])
-        update_remote_state(f"homepage/{DUES_FILE_PATH}", new_state, git_env)
+    local_state = get_local_state_dues(db)
+    remote_state = get_remote_state_dues()
+    has_changed = do_states_differ(remote_state, local_state)
+    if has_changed and is_newer(
+        remote_state, local_state
+    ):
+        remote_state.update(local_state)
+        update_remote_state(
+            f"homepage/{DUES_FILE_PATH}", remote_state, git_env
+        )
 
 
 def maybe_update(db, deploy_key_path):
-    time.sleep(600.0)
     with git_cloned(deploy_key_path) as git_env:
         maybe_update_dues(db, git_env)
 
 
 def main():
+    logging.basicConfig(level="DEBUG")
     PUBLIC_DB_URI = os.environ["PUBLIC_DB_URI"]
     deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
     state = ksiemgowy.public_state.PublicState(PUBLIC_DB_URI)
-    maybe_update(state, deploy_key_path)
     schedule.every().hour.do(maybe_update, state, deploy_key_path)
+    time.sleep(600.0)
+    maybe_update(state, deploy_key_path)
     while True:
         time.sleep(1.0)
         schedule.run_pending()

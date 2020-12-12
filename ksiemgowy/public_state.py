@@ -41,3 +41,11 @@ class PublicState:
 
     def add_expense(self, mbank_action):
         self.expenses.insert(None).execute(mbank_action=mbank_action)
+
+    def list_expenses(self):
+        for entry in self.expenses.select().execute().fetchall():
+            ret = entry.mbank_action
+            ret["timestamp"] = dateutil.parser.parse(ret["timestamp"])
+            # FIXME: use fractions.fraction instead?
+            ret["amount_pln"] = float(ret["amount_pln"].replace(",", "."))
+            yield ksiemgowy.mbankmail.MbankAction(**ret)
