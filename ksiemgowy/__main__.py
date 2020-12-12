@@ -29,6 +29,7 @@ import ksiemgowy.public_state
 IMAP_FILTER = '(SINCE "02-Apr-2020" FROM "kontakt@mbank.pl")'
 ACC_NO = "76561893"
 LOGGER = logging.getLogger("ksiemgowy.__main__")
+SEND_EMAIL = True
 
 
 def acc_no_to_email():
@@ -164,14 +165,23 @@ def check_for_updates(
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
             LOGGER.info("Observed an action: %r", action.anonymized().asdict())
-            is_acct_watched = action.out_acc_no == ACC_NO
-            if action.action_type == "in_transfer" and is_acct_watched:
+            if (
+                action.action_type == "in_transfer"
+                and action.out_acc_no == ACC_NO
+            ):
                 public_state.add_mbank_action(action.anonymized().asdict())
-                with smtp_login(imap_login, imap_password) as server:
-                    send_confirmation_mail(
-                        server, imap_login, imap_login, action
-                    )
+                if SEND_EMAIL:
+                    with smtp_login(imap_login, imap_password) as server:
+                        send_confirmation_mail(
+                            server, imap_login, imap_login, action
+                        )
                 LOGGER.info("added an action")
+            elif (
+                action.action_type == "out_transfer"
+                and action.in_acc_no == ACC_NO
+            ):
+                public_state.add_expense(action.anonymized().asdict())
+                LOGGER.info("added an expense")
     LOGGER.info("check_for_updates: done")
 
 
@@ -215,9 +225,10 @@ def notify_about_overdues(
             if d[k].in_acc_no in emails:
                 overdues.append(emails[d[k].in_acc_no])
 
-    with smtp_login(imap_login, imap_password) as server:
-        for overdue in overdues:
-            send_overdue_email(server, imap_login, imap_login, overdue)
+    if SEND_EMAIL:
+        with smtp_login(imap_login, imap_password) as server:
+            for overdue in overdues:
+                send_overdue_email(server, imap_login, imap_login, overdue)
 
 
 def main():
