@@ -139,7 +139,7 @@ def git_cloned(deploy_key_path):
 
 def update_remote_state(filepath, new_state, env):
     with open(filepath, "w") as f:
-        f.write(json.dumps(new_state))
+        f.write(json.dumps(new_state, indent=2))
     subprocess.check_call(
         ["git", "commit", "-am", "dues: autoupdate"], cwd="homepage", env=env
     )
