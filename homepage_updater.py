@@ -49,6 +49,9 @@ def get_local_state_dues(db):
     total_expenses = -1279.159
     for action in db.list_expenses():
         total_expenses -= action.amount_pln
+        if last_updated is None or action.timestamp > last_updated:
+            last_updated = action.timestamp
+
     for action in db.list_mbank_actions():
         total_ever += action.amount_pln
         if action.timestamp < month_ago:
