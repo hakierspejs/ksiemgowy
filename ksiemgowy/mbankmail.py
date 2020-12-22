@@ -46,6 +46,7 @@ class MbankAction:
     def anonymized(self):
         new = copy.copy(self)
         new.in_acc_no = anonymize(self.in_acc_no)
+        new.out_acc_no = anonymize(self.out_acc_no)
         new.in_person = anonymize(self.in_person)
         new.in_desc = anonymize(self.in_desc)
         return new

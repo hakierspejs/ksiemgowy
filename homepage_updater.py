@@ -76,6 +76,19 @@ def get_local_state_dues(db):
             )
         ]
     )
+
+    extra_monthly_reservations = sum(
+        [
+            200
+            for _ in dateutil.rrule.rrule(
+                dateutil.rrule.MONTHLY,
+                # https://pad.hs-ldz.pl/aPQpWcUbTvWwEdwsxB0ulQ#Kwestia-sk%C5%82adek
+                dtstart=datetime.datetime(year=2020, month=11, day=24),
+                until=now,
+            )
+        ]
+    )
+
     last_updated_s = last_updated.strftime("%d-%m-%Y")
     h = ("graphite.hs-ldz.pl", 2003)
     upload_to_graphite(h, "hakierspejs.finanse.total_lastmonth", total)
@@ -88,6 +101,7 @@ def get_local_state_dues(db):
         "dues_num_subscribers": num_subscribers,
         "dues_so_far": total_ever,
         "dues_total_correction": total_expenses,
+        "extra_monthly_reservations": extra_monthly_reservations,
     }
     LOGGER.debug('get_local_state_dues: ret=%r', ret)
     return ret
@@ -151,7 +165,7 @@ def update_remote_state(filepath, new_state, env):
 
 def do_states_differ(remote_state, local_state):
     for k in local_state:
-        if local_state[k] != remote_state[k]:
+        if local_state.get(k) != remote_state.get(k):
             return True
     return False
 
