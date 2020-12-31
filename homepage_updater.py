@@ -30,7 +30,7 @@ def upload_to_graphite(h, metric, value):
         LOGGER.info("Sending %r to %r", buf, h)
         s.send(buf)
         s.close()
-    except (ConnectionRefusedError, socket.timeout) as e:
+    except (ConnectionRefusedError, socket.timeout, TimeoutError) as e:
         LOGGER.exception(e)
     time.sleep(3.0)
 
