@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 
+import argparse
 import contextlib
 import datetime
+import dateutil.rrule
+import json
+import logging
 import os
 import shutil
-import logging
-import subprocess
-import json
-import time
 import socket
-import dateutil.rrule
+import subprocess
+import sys
+import time
 
 import schedule
 
@@ -21,7 +23,7 @@ DUES_FILE_PATH = "_data/dues.json"
 MEETUP_FILE_PATH = "_includes/next_meeting.txt"
 
 
-def upload_to_graphite(h, metric, value):
+def upload_value_to_graphite(h, metric, value):
     s = socket.socket()
     try:
         s.connect(h)
@@ -33,6 +35,16 @@ def upload_to_graphite(h, metric, value):
     except (ConnectionRefusedError, socket.timeout, TimeoutError) as e:
         LOGGER.exception(e)
     time.sleep(3.0)
+
+
+def upload_to_graphite(d):
+    h = ("graphite.hs-ldz.pl", 2003)
+    upload_to_graphite(
+        h, "hakierspejs.finanse.total_lastmonth", d["dues_total_lastmonth"]
+    )
+    upload_to_graphite(
+        h, "hakierspejs.finanse.num_subscribers", d["dues_num_subscribers"]
+    )
 
 
 def get_local_state_dues(db):
@@ -66,16 +78,13 @@ def get_local_state_dues(db):
             observed_acc_numbers.add(action.in_acc_no)
             observed_acc_owners.add(action.in_person)
         total += action.amount_pln
-    total_ever += sum(
-        [
-            200
-            for _ in dateutil.rrule.rrule(
-                dateutil.rrule.MONTHLY,
-                dtstart=first_200pln_d33tah_due_date,
-                until=now,
-            )
-        ]
-    )
+
+    for timestamp in dateutil.rrule.rrule(
+        dateutil.rrule.MONTHLY,
+        dtstart=first_200pln_d33tah_due_date,
+        until=now,
+    ):
+        total += 200
 
     extra_monthly_reservations = sum(
         [
@@ -90,11 +99,6 @@ def get_local_state_dues(db):
     )
 
     last_updated_s = last_updated.strftime("%d-%m-%Y")
-    h = ("graphite.hs-ldz.pl", 2003)
-    upload_to_graphite(h, "hakierspejs.finanse.total_lastmonth", total)
-    upload_to_graphite(
-        h, "hakierspejs.finanse.num_subscribers", num_subscribers
-    )
     ret = {
         "dues_total_lastmonth": total,
         "dues_last_updated": last_updated_s,
@@ -103,7 +107,7 @@ def get_local_state_dues(db):
         "dues_total_correction": total_expenses,
         "extra_monthly_reservations": extra_monthly_reservations,
     }
-    LOGGER.debug('get_local_state_dues: ret=%r', ret)
+    LOGGER.debug("get_local_state_dues: ret=%r", ret)
     return ret
 
 
@@ -182,11 +186,10 @@ def is_newer(remote_state, local_state):
 
 def maybe_update_dues(db, git_env):
     local_state = get_local_state_dues(db)
+    upload_to_graphite(local_state)
     remote_state = get_remote_state_dues()
     has_changed = do_states_differ(remote_state, local_state)
-    if has_changed and is_newer(
-        remote_state, local_state
-    ):
+    if has_changed and is_newer(remote_state, local_state):
         remote_state.update(local_state)
         update_remote_state(
             f"homepage/{DUES_FILE_PATH}", remote_state, git_env
@@ -198,18 +201,32 @@ def maybe_update(db, deploy_key_path):
         maybe_update_dues(db, git_env)
 
 
-def main():
-    logging.basicConfig(level="DEBUG")
-    PUBLIC_DB_URI = os.environ["PUBLIC_DB_URI"]
+def main(state):
     deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
-    state = ksiemgowy.public_state.PublicState(PUBLIC_DB_URI)
     schedule.every().hour.do(maybe_update, state, deploy_key_path)
-    time.sleep(600.0)
+    time.sleep(6.0)
     maybe_update(state, deploy_key_path)
     while True:
         time.sleep(1.0)
         schedule.run_pending()
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", default="continuous")
+    parser.add_argument("--loglevel", default="INFO")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    logging.basicConfig(level=args.loglevel.upper())
+    PUBLIC_DB_URI = os.environ["PUBLIC_DB_URI"]
+    state = ksiemgowy.public_state.PublicState(PUBLIC_DB_URI)
+    if args.mode == "continuous":
+        main(state)
+    elif args.mode == "get_local_state_dues":
+        new_state = get_local_state_dues(state)
+        print(json.dumps(new_state, indent=2))
+    else:
+        sys.exit("ERROR: unknown mode: %s" % args.mode)
