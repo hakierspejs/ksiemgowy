@@ -95,7 +95,7 @@ def get_local_state_dues(db):
     ):
         month = f'{timestamp.year}-{timestamp.month}'
         monthly_income[month]['Misc'] += 200
-        total += 200
+        total_ever += 200
 
     extra_monthly_reservations = sum(
         [
