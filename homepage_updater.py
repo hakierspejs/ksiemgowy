@@ -40,10 +40,10 @@ def upload_value_to_graphite(h, metric, value):
 
 def upload_to_graphite(d):
     h = ("graphite.hs-ldz.pl", 2003)
-    upload_to_graphite(
+    upload_value_to_graphite(
         h, "hakierspejs.finanse.total_lastmonth", d["dues_total_lastmonth"]
     )
-    upload_to_graphite(
+    upload_value_to_graphite(
         h, "hakierspejs.finanse.num_subscribers", d["dues_num_subscribers"]
     )
 
