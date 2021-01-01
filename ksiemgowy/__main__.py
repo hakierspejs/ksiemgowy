@@ -157,7 +157,6 @@ def check_for_updates(
     imap_login, imap_password, imap_server, public_db_uri, private_db_uri
 ):
     """Program's entry point."""
-    LOGGER.info("check_for_updates()")
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
     private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
     mail = imap_connect(imap_login, imap_password, imap_server)
