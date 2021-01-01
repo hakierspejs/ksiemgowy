@@ -93,7 +93,7 @@ def get_local_state_dues(db):
         dtstart=first_200pln_d33tah_due_date,
         until=now,
     ):
-        month = f'{action.timestamp.year}-{action.timestamp.month}'
+        month = f'{timestamp.year}-{timestamp.month}'
         monthly_income[month]['Misc'] += 200
         total += 200
 
