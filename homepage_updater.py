@@ -65,30 +65,47 @@ def upload_to_graphite(d):
 
 
 def get_local_state_dues(db):
+
+    last_updated = None
+    observed_acc_numbers = set()
+    observed_acc_owners = set()
+
+    # manual correction because of various bugs/problems
+    total_expenses = -1279.159
+    monthly_expenses = collections.defaultdict(
+        lambda: collections.defaultdict(float)
+    )
+    for action in db.list_expenses():
+        total_expenses -= action.amount_pln
+        month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
+        kategoria = "Pozostałe"
+        if (
+            action.in_desc == "09564e96eabee7aadd8ee3"
+            "c4518ad9878cedb09ac31c2b7dc11ffe23ca3be4bb"
+        ):
+            kategoria = "Czynsz"
+        if (
+            action.out_acc_no == "62eb7121a7ba81754aa746762dbc364e9ed961b"
+            "8d1cf61a94d6531c92c81e56f"
+        ):
+            kategoria = "Internet"
+        monthly_expenses[month][kategoria] += action.amount_pln
+        if last_updated is None or action.timestamp > last_updated:
+            last_updated = action.timestamp
+
     now = datetime.datetime.now()
     month_ago = now - datetime.timedelta(days=31)
     total = 200
     num_subscribers = 1
-    last_updated = None
     total_ever = 0
-    observed_acc_numbers = set()
-    observed_acc_owners = set()
-    first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
-    # manual correction because of various bugs/problems
-    total_expenses = -1279.159
-    monthly_expenses = collections.defaultdict(lambda: collections.defaultdict(float))
-    for action in db.list_expenses():
-        total_expenses -= action.amount_pln
-        month = f'{action.timestamp.year}-{action.timestamp.month}'
-        monthly_expenses[month]['Misc'] += action.amount_pln
-        if last_updated is None or action.timestamp > last_updated:
-            last_updated = action.timestamp
 
-    monthly_income = collections.defaultdict(lambda: collections.defaultdict(float))
+    monthly_income = collections.defaultdict(
+        lambda: collections.defaultdict(float)
+    )
     for action in db.list_mbank_actions():
 
-        month = f'{action.timestamp.year}-{action.timestamp.month}'
-        monthly_income[month]['Misc'] += action.amount_pln
+        month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
+        monthly_income[month]["Suma"] += action.amount_pln
 
         total_ever += action.amount_pln
         if action.timestamp < month_ago:
@@ -104,13 +121,14 @@ def get_local_state_dues(db):
             observed_acc_owners.add(action.in_person)
         total += action.amount_pln
 
+    first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
     for timestamp in dateutil.rrule.rrule(
         dateutil.rrule.MONTHLY,
         dtstart=first_200pln_d33tah_due_date,
         until=now,
     ):
-        month = f'{timestamp.year}-{timestamp.month}'
-        monthly_income[month]['Misc'] += 200
+        month = f"{timestamp.year}-{timestamp.month:02d}"
+        monthly_income[month]["Suma"] += 200
         total_ever += 200
 
     extra_monthly_reservations = sum(
