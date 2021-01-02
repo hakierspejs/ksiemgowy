@@ -13,15 +13,31 @@ import socket
 import subprocess
 import sys
 import time
+import yaml
 
 import schedule
 
 import ksiemgowy.public_state
 
+from yaml.representer import Representer
+
+yaml.add_representer(collections.defaultdict, Representer.represent_dict)
+
+
 LOGGER = logging.getLogger("homepage_updater")
 HOMEPAGE_REPO = "hakierspejs/homepage"
-DUES_FILE_PATH = "_data/dues.json"
+DUES_FILE_PATH = "_data/dues.yml"
 MEETUP_FILE_PATH = "_includes/next_meeting.txt"
+
+
+def serialize(d):
+    # return json.dumps(d, indent=2)
+    return yaml.dump(d)
+
+
+def deserialize(d):
+    # return json.loads(d)
+    return yaml.safe_load(d)
 
 
 def upload_value_to_graphite(h, metric, value):
@@ -117,20 +133,19 @@ def get_local_state_dues(db):
         "dues_so_far": total_ever,
         "dues_total_correction": total_expenses,
         "extra_monthly_reservations": extra_monthly_reservations,
-        "monthly":
-        {
-            "expenses": monthly_expenses,
-            "income": monthly_income,
-        }
+        "monthly": {"Wydatki": monthly_expenses, "Przychody": monthly_income,},
     }
     LOGGER.debug("get_local_state_dues: ret=%r", ret)
     return ret
 
 
 def get_remote_state_dues():
-    with open(f"homepage/{DUES_FILE_PATH}") as f:
-        ret = json.loads(f.read())
-    return ret
+    try:
+        with open(f"homepage/{DUES_FILE_PATH}") as f:
+            ret = deserialize(f.read())
+        return ret
+    except FileNotFoundError:
+        return {}
 
 
 def ssh_agent_import_key_and_build_env_and_setup_git(deploy_key_path):
@@ -176,7 +191,7 @@ def git_cloned(deploy_key_path):
 
 def update_remote_state(filepath, new_state, env):
     with open(filepath, "w") as f:
-        f.write(json.dumps(new_state, indent=2))
+        f.write(serialize(new_state))
     subprocess.check_call(
         ["git", "commit", "-am", "dues: autoupdate"], cwd="homepage", env=env
     )
@@ -243,6 +258,6 @@ if __name__ == "__main__":
         main(state)
     elif args.mode == "get_local_state_dues":
         new_state = get_local_state_dues(state)
-        print(json.dumps(new_state, indent=2))
+        print(serialize(new_state))
     else:
         sys.exit("ERROR: unknown mode: %s" % args.mode)
