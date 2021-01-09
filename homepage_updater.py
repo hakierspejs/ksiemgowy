@@ -143,6 +143,34 @@ def get_local_state_dues(db):
         ]
     )
 
+    monthly_expenses['2020-08']['Meetup'] += 294.36
+    monthly_expenses['2020-10']['Remont'] += 1145
+    monthly_expenses['2020-11']['Pozostałe'] += 139.80
+    monthly_income['2020-04']['Suma'] += 200
+    monthly_income['2020-05']['Suma'] += 100
+
+    months = set(monthly_income.keys()).union(
+            set(monthly_expenses.keys())
+    )
+
+    monthly_balance = {
+        month: {
+            "Suma": sum(x for x in monthly_income.get(month, {}).values())
+            - sum(x for x in monthly_expenses.get(month, {}).values())
+        }
+        for month in months
+    }
+
+    balance_so_far = 0
+    monthly_final_balance = collections.defaultdict(
+        lambda: collections.defaultdict(float)
+    )
+    for month in sorted(months):
+        _monthly_income = sum(monthly_income.get(month, {}).values())
+        _monthly_expenses = sum(monthly_expenses.get(month, {}).values())
+        balance_so_far += _monthly_income - _monthly_expenses
+        monthly_final_balance[month]['Suma'] = balance_so_far
+
     last_updated_s = last_updated.strftime("%d-%m-%Y")
     ret = {
         "dues_total_lastmonth": total,
@@ -151,7 +179,12 @@ def get_local_state_dues(db):
         "dues_so_far": total_ever,
         "dues_total_correction": total_expenses,
         "extra_monthly_reservations": extra_monthly_reservations,
-        "monthly": {"Wydatki": monthly_expenses, "Przychody": monthly_income,},
+        "monthly": {
+            "Wydatki": monthly_expenses,
+            "Przychody": monthly_income,
+            "Bilans": monthly_balance,
+            "Saldo": monthly_final_balance,
+        },
     }
     LOGGER.debug("get_local_state_dues: ret=%r", ret)
     return ret
