@@ -71,7 +71,7 @@ def get_local_state_dues(db):
     observed_acc_owners = set()
 
     # manual correction because of various bugs/problems
-    total_expenses = -1279.159
+    total_expenses = -1593.159
     monthly_expenses = collections.defaultdict(
         lambda: collections.defaultdict(float)
     )
@@ -146,6 +146,7 @@ def get_local_state_dues(db):
     monthly_expenses['2020-08']['Meetup'] += 294.36
     monthly_expenses['2020-10']['Remont'] += 1145
     monthly_expenses['2020-11']['Pozostałe'] += 139.80
+    monthly_expenses['2021-01']['Drukarka HP'] += 314.00
     monthly_income['2020-04']['Suma'] += 200
     monthly_income['2020-05']['Suma'] += 100
 
