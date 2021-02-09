@@ -148,16 +148,15 @@ def get_local_state_dues(db):
         ]
     )
 
-    monthly_expenses['2020-08']['Meetup'] += 294.36
-    monthly_expenses['2020-10']['Remont'] += 1145
-    monthly_expenses['2020-11']['Pozostałe'] += 139.80
-    monthly_expenses['2021-01']['Drukarka HP'] += 314.00
-    monthly_income['2020-04']['Suma'] += 200
-    monthly_income['2020-05']['Suma'] += 100
+    monthly_expenses["2020-08"]["Meetup"] += 294.36
+    monthly_expenses["2020-10"]["Remont"] += 1145
+    monthly_expenses["2020-11"]["Pozostałe"] += 139.80
+    monthly_expenses["2021-01"]["Drukarka HP"] += 314.00
+    monthly_expenses["2021-01"]["Meetup (za 6 mies.)"] += 285.43
+    monthly_income["2020-04"]["Suma"] += 200
+    monthly_income["2020-05"]["Suma"] += 100
 
-    months = set(monthly_income.keys()).union(
-            set(monthly_expenses.keys())
-    )
+    months = set(monthly_income.keys()).union(set(monthly_expenses.keys()))
 
     monthly_balance = {
         month: {
@@ -175,7 +174,7 @@ def get_local_state_dues(db):
         _monthly_income = sum(monthly_income.get(month, {}).values())
         _monthly_expenses = sum(monthly_expenses.get(month, {}).values())
         balance_so_far += _monthly_income - _monthly_expenses
-        monthly_final_balance[month]['Suma'] = balance_so_far
+        monthly_final_balance[month]["Suma"] = balance_so_far
 
     last_updated_s = last_updated.strftime("%d-%m-%Y")
     ret = {
