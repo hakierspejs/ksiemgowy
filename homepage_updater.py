@@ -80,10 +80,15 @@ def get_local_state_dues(db):
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
         kategoria = "Pozostałe"
         if (
-            action.in_desc == "09564e96eabee7aadd8ee3"
-            "c4518ad9878cedb09ac31c2b7dc11ffe23ca3be4bb"
+            action.out_acc_no == "5c0de18baddf47952"
+            "002df587685dea519f06b639051ea3e4749ef058f6782bf"
         ):
-            kategoria = "Czynsz"
+            if int(action.amount_pln) == 800:
+                kategoria = "Czynsz"
+            else:
+                kategoria = (
+                    "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
+                )
         if (
             action.out_acc_no == "62eb7121a7ba81754aa746762dbc364e9ed961b"
             "8d1cf61a94d6531c92c81e56f"
