@@ -83,7 +83,7 @@ def parse_mbank_html(mbank_html):
             if not g:
                 logging.debug(" -> No regex match, skipping")
                 continue
-            action['action_type'] = 'out_transfer'
+            action['action_type'] = 'wych'
             action['in_person'] = action['in_desc'] = 'Obciazenie'
         action.update(g.groupdict())
         action["action_type"] = {
