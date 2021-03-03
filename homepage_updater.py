@@ -71,12 +71,10 @@ def get_local_state_dues(db):
     observed_acc_owners = set()
 
     # manual correction because of various bugs/problems
-    total_expenses = -1593.159
     monthly_expenses = collections.defaultdict(
         lambda: collections.defaultdict(float)
     )
     for action in db.list_expenses():
-        total_expenses -= action.amount_pln
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
         kategoria = "Pozostałe"
         if (
@@ -102,7 +100,6 @@ def get_local_state_dues(db):
     month_ago = now - datetime.timedelta(days=31)
     total = 200
     num_subscribers = 1
-    total_ever = 0
 
     monthly_income = collections.defaultdict(
         lambda: collections.defaultdict(float)
@@ -112,7 +109,6 @@ def get_local_state_dues(db):
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
         monthly_income[month]["Suma"] += action.amount_pln
 
-        total_ever += action.amount_pln
         if action.timestamp < month_ago:
             continue
         elif last_updated is None or action.timestamp > last_updated:
@@ -134,7 +130,6 @@ def get_local_state_dues(db):
     ):
         month = f"{timestamp.year}-{timestamp.month:02d}"
         monthly_income[month]["Suma"] += 200
-        total_ever += 200
 
     extra_monthly_reservations = sum(
         [
@@ -182,9 +177,8 @@ def get_local_state_dues(db):
         "dues_total_lastmonth": total,
         "dues_last_updated": last_updated_s,
         "dues_num_subscribers": num_subscribers,
-        "dues_so_far": total_ever,
-        "dues_total_correction": total_expenses,
         "extra_monthly_reservations": extra_monthly_reservations,
+        "balance_so_far": balance_so_far,
         "monthly": {
             "Wydatki": monthly_expenses,
             "Przychody": monthly_income,
