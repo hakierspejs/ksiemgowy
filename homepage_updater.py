@@ -153,6 +153,7 @@ def get_local_state_dues(db):
     monthly_expenses["2020-11"]["Pozostałe"] += 139.80
     monthly_expenses["2021-01"]["Drukarka HP"] += 314.00
     monthly_expenses["2021-01"]["Meetup (za 6 mies.)"] += 285.43
+    monthly_expenses["2021-02"]["Domena"] += 55.34
     monthly_income["2020-04"]["Suma"] += 200
     monthly_income["2020-05"]["Suma"] += 100
 
