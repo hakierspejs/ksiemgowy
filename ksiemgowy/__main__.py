@@ -27,7 +27,7 @@ import ksiemgowy.public_state
 
 
 IMAP_FILTER = '(SINCE "02-Apr-2020" FROM "kontakt@mbank.pl")'
-ACC_NO = "76561893"
+ACC_NUMBERS = ["76561893", "81089394"]
 LOGGER = logging.getLogger("ksiemgowy.__main__")
 SEND_EMAIL = True
 
@@ -166,7 +166,7 @@ def check_for_updates(
             LOGGER.info("Observed an action: %r", action.anonymized().asdict())
             if (
                 action.action_type == "in_transfer"
-                and action.out_acc_no == ACC_NO
+                and action.out_acc_no in ACC_NUMBERS
             ):
                 public_state.add_mbank_action(action.anonymized().asdict())
                 if SEND_EMAIL:
@@ -177,7 +177,7 @@ def check_for_updates(
                 LOGGER.info("added an action")
             elif (
                 action.action_type == "out_transfer"
-                and action.in_acc_no == ACC_NO
+                and action.in_acc_no in ACC_NUMBERS
             ):
                 public_state.add_expense(action.anonymized().asdict())
                 LOGGER.info("added an expense")
