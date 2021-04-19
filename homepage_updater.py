@@ -28,6 +28,17 @@ LOGGER = logging.getLogger("homepage_updater")
 HOMEPAGE_REPO = "hakierspejs/homepage"
 DUES_FILE_PATH = "_data/dues.yml"
 MEETUP_FILE_PATH = "_includes/next_meeting.txt"
+ACCOUNT_LABELS = {
+    (
+        "76561893"
+    ): "Konto Jacka",
+    (
+        "1f328d38b05ea11998bac3ee0a4a2c6c9595e6848d22f66a47aa4a68f3b781ed"
+    ): "Konto Jacka",
+    (
+        "d66afcd5d08d61a5678dd3dd3fbb6b2f84985c5add8306e6b3a1c2df0e85f840"
+    ): "Konto stowarzyszenia",
+}
 
 
 def serialize(d):
@@ -74,7 +85,9 @@ def get_local_state_dues(db):
     monthly_expenses = collections.defaultdict(
         lambda: collections.defaultdict(float)
     )
+    expenses_by_out_account = collections.defaultdict(float)
     for action in db.list_expenses():
+        expenses_by_out_account[action.in_acc_no] += action.amount_pln
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
         kategoria = "Pozostałe"
         if (
@@ -104,7 +117,9 @@ def get_local_state_dues(db):
     monthly_income = collections.defaultdict(
         lambda: collections.defaultdict(float)
     )
+    income_by_out_account = collections.defaultdict(float)
     for action in db.list_mbank_actions():
+        income_by_out_account[action.out_acc_no] += action.amount_pln
 
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
         monthly_income[month]["Suma"] += action.amount_pln
@@ -172,6 +187,19 @@ def get_local_state_dues(db):
         balance_so_far += _monthly_income - _monthly_expenses
         monthly_final_balance[month]["Suma"] = balance_so_far
 
+    balances_by_account_labels = collections.defaultdict(float)
+    for acc_no, balance in income_by_out_account.items():
+        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] += balance
+    for acc_no, balance in expenses_by_out_account.items():
+        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] -= balance
+
+    # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
+    # związanych z przelewami własnymi:
+    balances_by_account_labels['Konto Jacka'] += 266.07
+    balances_by_account_labels['Konto stowarzyszenia'] += 0.01
+
+    balances_by_account_labels = dict(balances_by_account_labels)
+
     last_updated_s = last_updated.strftime("%d-%m-%Y")
     ret = {
         "dues_total_lastmonth": total,
@@ -179,6 +207,7 @@ def get_local_state_dues(db):
         "dues_num_subscribers": num_subscribers,
         "extra_monthly_reservations": extra_monthly_reservations,
         "balance_so_far": balance_so_far,
+        "balances_by_account_labels": balances_by_account_labels,
         "monthly": {
             "Wydatki": monthly_expenses,
             "Przychody": monthly_income,
@@ -187,6 +216,15 @@ def get_local_state_dues(db):
         },
     }
     LOGGER.debug("get_local_state_dues: ret=%r", ret)
+    LOGGER.debug(
+        "get_local_state_dues: "
+        "balances_by_account_labels=%r"
+        "income_by_out_account=%r"
+        "expenses_by_out_account=%r",
+        balances_by_account_labels,
+        income_by_out_account,
+        expenses_by_out_account,
+    )
     return ret
 
 
@@ -276,6 +314,9 @@ def maybe_update_dues(db, git_env):
         update_remote_state(
             f"homepage/{DUES_FILE_PATH}", remote_state, git_env
         )
+    else:
+        LOGGER.debug("maybe_update_dues: not updating")
+
 
 
 def maybe_update(db, deploy_key_path):
