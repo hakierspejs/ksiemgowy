@@ -32,13 +32,20 @@ LOGGER = logging.getLogger("ksiemgowy.__main__")
 SEND_EMAIL = True
 
 
-def acc_no_to_email():
+def acc_no_to_email(notification_type):
     # FIXME: hack. Actually use the ORM!
+    if not notification_type.isalnum():
+        raise ValueError(
+            "(notification_type=%r).isalnum() == False" % notification_type
+        )
     return dict(
         __import__("sqlite3")
         .connect("/db_private/db.sqlite")
         .cursor()
-        .execute("select in_acc_no, email from in_acc_no_to_email")
+        .execute(
+            "select in_acc_no, email from in_acc_no_to_email where"
+            " notify_%s='y'" % notification_type
+        )
     )
 
 
@@ -104,7 +111,7 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
 def send_confirmation_mail(server, fromaddr, toaddr, mbank_action):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
-    emails = acc_no_to_email()
+    emails = acc_no_to_email('arrived')
     if mbank_action.anonymized().in_acc_no in emails:
         msg["To"] = emails[mbank_action.anonymized().in_acc_no]
         msg["Cc"] = toaddr
@@ -218,7 +225,7 @@ def notify_about_overdues(
     ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
     ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
     overdues = []
-    emails = acc_no_to_email()
+    emails = acc_no_to_email('overdue')
     for k in d:
         if ago_55d < d[k].timestamp < ago_35d:
             if d[k].in_acc_no in emails:
@@ -231,9 +238,9 @@ def notify_about_overdues(
 
 
 def main():
-    logging.basicConfig(level="INFO")
+    logging.basicConfig(level="DEBUG")
     LOGGER.info("ksiemgowyd started")
-    emails = acc_no_to_email()  # noqa
+    emails = acc_no_to_email('arrived')  # noqa
     args = build_args()
     check_for_updates(*args)
     schedule.every().hour.do(check_for_updates, *args)
