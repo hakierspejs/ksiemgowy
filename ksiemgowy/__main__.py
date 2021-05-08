@@ -61,7 +61,6 @@ def smtp_login(smtplogin, smtppass):
     server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
     server.ehlo()
     server.login(smtplogin, smtppass)
-    server.set_debuglevel(1)
     yield server
     server.quit()
 
