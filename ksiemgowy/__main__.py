@@ -28,7 +28,6 @@ import ksiemgowy.public_state
 
 
 IMAP_FILTER = '(SINCE "02-Apr-2020" FROM "kontakt@mbank.pl")'
-ACC_NUMBERS = ["76561893", "81089394"]
 LOGGER = logging.getLogger("ksiemgowy.__main__")
 SEND_EMAIL = True
 
@@ -180,10 +179,9 @@ def check_for_updates(
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
             LOGGER.info("Observed an action: %r", action.anonymized().asdict())
-            if (
-                action.action_type == "in_transfer"
-                and action.out_acc_no == acc_number
-            ):
+            if action.action_type == "in_transfer" and str(
+                action.out_acc_no
+            ) == str(acc_number):
                 public_state.add_mbank_action(action.anonymized().asdict())
                 if SEND_EMAIL:
                     with smtp_login(imap_login, imap_password) as server:
@@ -195,12 +193,13 @@ def check_for_updates(
                             private_db_uri,
                         )
                 LOGGER.info("added an action")
-            elif (
-                action.action_type == "out_transfer"
-                and action.in_acc_no == acc_number
-            ):
+            elif action.action_type == "out_transfer" and str(
+                action.in_acc_no
+            ) == str(acc_number):
                 public_state.add_expense(action.anonymized().asdict())
                 LOGGER.info("added an expense")
+            else:
+                LOGGER.info("Skipping an action due to criteria not matched.")
     LOGGER.info("check_for_updates: done")
 
 
