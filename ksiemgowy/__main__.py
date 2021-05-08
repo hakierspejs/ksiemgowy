@@ -20,6 +20,7 @@ import logging
 import contextlib
 
 import schedule
+import yaml
 
 import ksiemgowy.mbankmail
 import ksiemgowy.private_state
@@ -32,15 +33,16 @@ LOGGER = logging.getLogger("ksiemgowy.__main__")
 SEND_EMAIL = True
 
 
-def acc_no_to_email(notification_type):
+def acc_no_to_email(private_db_uri, notification_type):
     # FIXME: hack. Actually use the ORM!
     if not notification_type.isalnum():
         raise ValueError(
             "(notification_type=%r).isalnum() == False" % notification_type
         )
+    db_path = private_db_uri.split("sqlite://")[-1]
     return dict(
         __import__("sqlite3")
-        .connect("/db_private/db.sqlite")
+        .connect(db_path)
         .cursor()
         .execute(
             "select in_acc_no, email from in_acc_no_to_email where"
@@ -108,10 +110,12 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
     time.sleep(10)  # HACK: slow down potential self-spam
 
 
-def send_confirmation_mail(server, fromaddr, toaddr, mbank_action):
+def send_confirmation_mail(
+    server, fromaddr, toaddr, mbank_action, private_db_uri
+):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
-    emails = acc_no_to_email('arrived')
+    emails = acc_no_to_email(private_db_uri, "arrived")
     if mbank_action.anonymized().in_acc_no in emails:
         msg["To"] = emails[mbank_action.anonymized().in_acc_no]
         msg["Cc"] = toaddr
@@ -179,7 +183,11 @@ def check_for_updates(
                 if SEND_EMAIL:
                     with smtp_login(imap_login, imap_password) as server:
                         send_confirmation_mail(
-                            server, imap_login, imap_login, action
+                            server,
+                            imap_login,
+                            imap_login,
+                            action,
+                            private_db_uri,
                         )
                 LOGGER.info("added an action")
             elif (
@@ -192,12 +200,20 @@ def check_for_updates(
 
 
 def build_args():
-    public_db_uri = os.environ["PUBLIC_DB_URI"]
-    private_db_uri = os.environ["PRIVATE_DB_URI"]
-    imap_login = os.environ["IMAP_LOGIN"]
-    imap_server = os.environ["IMAP_SERVER"]
-    imap_password_path = os.environ["IMAP_PASSWORD_PATH"]
-    imap_password = open(imap_password_path).read().strip()
+    config = yaml.load(
+        open(
+            os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml")
+        )
+    )
+    public_db_uri = config["PUBLIC_DB_URI"]
+    private_db_uri = config["PRIVATE_DB_URI"]
+    imap_login = config["IMAP_LOGIN"]
+    imap_server = config["IMAP_SERVER"]
+    if "IMAP_PASSWORD_PATH" in config:
+        imap_password_path = config["IMAP_PASSWORD_PATH"]
+        imap_password = open(imap_password_path).read().strip()
+    else:
+        imap_password = config["IMAP_PASSWORD"]
     return (
         imap_login,
         imap_password,
@@ -213,7 +229,7 @@ def atexit_handler(*_, **__):
 
 
 def notify_about_overdues(
-    imap_login, imap_password, _imap_server, public_db_uri, _private_db_uri
+    imap_login, imap_password, _imap_server, public_db_uri, private_db_uri
 ):
     LOGGER.info("notify_about_overdues()")
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
@@ -225,7 +241,7 @@ def notify_about_overdues(
     ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
     ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
     overdues = []
-    emails = acc_no_to_email('overdue')
+    emails = acc_no_to_email(private_db_uri, "overdue")
     for k in d:
         if ago_55d < d[k].timestamp < ago_35d:
             if d[k].in_acc_no in emails:
@@ -238,10 +254,11 @@ def notify_about_overdues(
 
 
 def main():
-    logging.basicConfig(level="DEBUG")
+    logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
-    emails = acc_no_to_email('arrived')  # noqa
     args = build_args()
+    private_db_uri = args[-1]
+    emails = acc_no_to_email(private_db_uri, "arrived")  # noqa
     check_for_updates(*args)
     schedule.every().hour.do(check_for_updates, *args)
     # the weird schedule is supposed to try to accomodate different lifestyles

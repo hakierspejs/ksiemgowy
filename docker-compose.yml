@@ -7,8 +7,6 @@ services:
         env_file:
             - envfile_secret
             - envfile_public
-        secrets:
-          - imap_password
         volumes:
           - "./db_private:/db_private"
           - "./db_public:/db_public"
@@ -39,7 +37,5 @@ services:
         restart: unless-stopped
 
 secrets:
-  imap_password:
-    file: IMAP_PASSWORD
   deploy_key:
     file: homepage_deploykey
