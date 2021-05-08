@@ -265,11 +265,13 @@ def main():
     args = build_args()
     private_db_uri = args[0][-1]
     emails = acc_no_to_email(private_db_uri, "arrived")  # noqa
-    schedule.every().hour.do(check_for_updates, *args)
     # the weird schedule is supposed to try to accomodate different lifestyles
     for account in args:
         check_for_updates(*account)
-        schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *account)
+        schedule.every().hour.do(check_for_updates, *account)
+
+    # use the last specified account for overdue notifications:
+    schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, args[-1])
     while True:
         schedule.run_pending()
         time.sleep(1)
