@@ -165,7 +165,12 @@ def gen_unseen_mbank_emails(db, mail):
 
 
 def check_for_updates(
-    imap_login, imap_password, imap_server, public_db_uri, private_db_uri
+    imap_login,
+    imap_password,
+    imap_server,
+    acc_number,
+    public_db_uri,
+    private_db_uri,
 ):
     """Program's entry point."""
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
@@ -177,7 +182,7 @@ def check_for_updates(
             LOGGER.info("Observed an action: %r", action.anonymized().asdict())
             if (
                 action.action_type == "in_transfer"
-                and action.out_acc_no in ACC_NUMBERS
+                and action.out_acc_no == acc_number
             ):
                 public_state.add_mbank_action(action.anonymized().asdict())
                 if SEND_EMAIL:
@@ -192,7 +197,7 @@ def check_for_updates(
                 LOGGER.info("added an action")
             elif (
                 action.action_type == "out_transfer"
-                and action.in_acc_no in ACC_NUMBERS
+                and action.in_acc_no == acc_number
             ):
                 public_state.add_expense(action.anonymized().asdict())
                 LOGGER.info("added an expense")
@@ -205,22 +210,25 @@ def build_args():
             os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml")
         )
     )
+    ret = []
     public_db_uri = config["PUBLIC_DB_URI"]
     private_db_uri = config["PRIVATE_DB_URI"]
-    imap_login = config["IMAP_LOGIN"]
-    imap_server = config["IMAP_SERVER"]
-    if "IMAP_PASSWORD_PATH" in config:
-        imap_password_path = config["IMAP_PASSWORD_PATH"]
-        imap_password = open(imap_password_path).read().strip()
-    else:
-        imap_password = config["IMAP_PASSWORD"]
-    return (
-        imap_login,
-        imap_password,
-        imap_server,
-        public_db_uri,
-        private_db_uri,
-    )
+    for account in config["ACCOUNTS"]:
+        imap_login = account["IMAP_LOGIN"]
+        imap_server = account["IMAP_SERVER"]
+        imap_password = account["IMAP_PASSWORD"]
+        acc_no = account["ACC_NO"]
+        ret.append(
+            [
+                imap_login,
+                imap_password,
+                imap_server,
+                acc_no,
+                public_db_uri,
+                private_db_uri,
+            ]
+        )
+    return ret
 
 
 @atexit.register
@@ -257,12 +265,13 @@ def main():
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
     args = build_args()
-    private_db_uri = args[-1]
+    private_db_uri = args[0][-1]
     emails = acc_no_to_email(private_db_uri, "arrived")  # noqa
-    check_for_updates(*args)
     schedule.every().hour.do(check_for_updates, *args)
     # the weird schedule is supposed to try to accomodate different lifestyles
-    schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *args)
+    for account in args:
+        check_for_updates(*account)
+        schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *account)
     while True:
         schedule.run_pending()
         time.sleep(1)
