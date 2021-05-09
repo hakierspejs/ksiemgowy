@@ -109,8 +109,8 @@ def get_local_state_dues(db):
 
     now = datetime.datetime.now()
     month_ago = now - datetime.timedelta(days=31)
-    total = 200
-    num_subscribers = 1
+    total = 0
+    num_subscribers = 0
 
     monthly_income = collections.defaultdict(
         lambda: collections.defaultdict(float)
