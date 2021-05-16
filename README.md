@@ -27,7 +27,7 @@ TODO
 
 ## Znane bugi/wady projektu/brakująca funkcjonalność
 
-1. aktualnie brakuje obsługi przelewów wychodzących oraz wewnętrznych
+1. aktualnie brakuje obsługi przelewów wewnętrznych
 
 ## Powiązane systemy
 
