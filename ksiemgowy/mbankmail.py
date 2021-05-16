@@ -26,8 +26,10 @@ INCOMING_RE = re.compile(
 
 
 BLIK_RE = re.compile(
-    "^mBank: Obciazenie rach\\. (?P<in_acc_no>[0-9.]{8,14}) na kwote (?P<amount_pln>\\d+,\\d{2})"
-    " PLN tytulem: (?P<out_acc_no>[^;]+); Dost\\. (?P<balance>\\d+,\\d{2}) PLN$"
+    "^mBank: Obciazenie rach\\. (?P<in_acc_no>[0-9.]{8,14}) "
+    "na kwote (?P<amount_pln>\\d+,\\d{2})"
+    " PLN tytulem: (?P<out_acc_no>[^;]+);"
+    " Dost\\. (?P<balance>\\d+,\\d{2}) PLN$"
 )
 
 
@@ -83,8 +85,8 @@ def parse_mbank_html(mbank_html):
             if not g:
                 logging.debug(" -> No regex match, skipping")
                 continue
-            action['action_type'] = 'wych'
-            action['in_person'] = action['in_desc'] = 'Obciazenie'
+            action["action_type"] = "wych"
+            action["in_person"] = action["in_desc"] = "Obciazenie"
         action.update(g.groupdict())
         action["action_type"] = {
             "przych": "in_transfer",
