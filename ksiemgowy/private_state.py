@@ -17,7 +17,6 @@ class PrivateState:
             sqlalchemy.Column("in_acc_no", sqlalchemy.String,
                               primary_key=True),
             sqlalchemy.Column("email", sqlalchemy.String),
-            # TODO: make those column types sane
             sqlalchemy.Column("notify_arrived",
                               sqlalchemy.String, default='y'),
             sqlalchemy.Column("notify_overdue",

@@ -42,7 +42,6 @@ class PublicState:
         for entry in self.mbank_actions.select().execute().fetchall():
             ret = entry.mbank_action
             ret["timestamp"] = dateutil.parser.parse(ret["timestamp"])
-            # FIXME: use fractions.fraction instead?
             ret["amount_pln"] = float(ret["amount_pln"].replace(",", "."))
             yield ksiemgowy.mbankmail.MbankAction(**ret)
 
