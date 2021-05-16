@@ -47,7 +47,7 @@ def smtp_login(smtplogin, smtppass):
     server.quit()
 
 
-def send_overdue_email(server, fromaddr, toaddr, overdue_email):
+def send_overdue_email(server, fromaddr, overdue_email):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
     msg["To"] = overdue_email
@@ -144,7 +144,7 @@ def gen_unseen_mbank_emails(db, mail):
             db.mark_imap_id_already_handled(mail_key)
 
 
-def check_for_updates(
+def check_for_updates(  # pylint: disable=too-many-arguments
     imap_login,
     imap_password,
     imap_server,
@@ -239,7 +239,7 @@ def notify_about_overdues(
     if SEND_EMAIL:
         with smtp_login(imap_login, imap_password) as server:
             for overdue in overdues:
-                send_overdue_email(server, imap_login, imap_login, overdue)
+                send_overdue_email(server, imap_login, overdue)
 
 
 def main():
@@ -248,7 +248,7 @@ def main():
     args = build_args()
     private_db_uri = args[0][-1]
     private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
-    emails = private_state.acc_no_to_email("arrived")  # noqa
+    emails = private_state.acc_no_to_email("arrived")  # noqa  # pylint: disable=unused-variable
     # the weird schedule is supposed to try to accomodate different lifestyles
     for account in args:
         check_for_updates(*account)
