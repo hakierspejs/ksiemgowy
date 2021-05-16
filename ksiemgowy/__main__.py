@@ -32,24 +32,6 @@ LOGGER = logging.getLogger("ksiemgowy.__main__")
 SEND_EMAIL = True
 
 
-def acc_no_to_email(private_db_uri, notification_type):
-    # FIXME: hack. Actually use the ORM!
-    if not notification_type.isalnum():
-        raise ValueError(
-            "(notification_type=%r).isalnum() == False" % notification_type
-        )
-    db_path = private_db_uri.split("sqlite://")[-1]
-    return dict(
-        __import__("sqlite3")
-        .connect(db_path)
-        .cursor()
-        .execute(
-            "select in_acc_no, email from in_acc_no_to_email where"
-            " notify_%s='y'" % notification_type
-        )
-    )
-
-
 def imap_connect(login, password, server):
     mail = imaplib.IMAP4_SSL(server)
     mail.login(login, password)
@@ -109,11 +91,11 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
 
 
 def send_confirmation_mail(
-    server, fromaddr, toaddr, mbank_action, private_db_uri
+    server, fromaddr, toaddr, mbank_action, private_state
 ):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
-    emails = acc_no_to_email(private_db_uri, "arrived")
+    emails = private_state.acc_no_to_email("arrived")
     if mbank_action.anonymized().in_acc_no in emails:
         msg["To"] = emails[mbank_action.anonymized().in_acc_no]
         msg["Cc"] = toaddr
@@ -189,7 +171,7 @@ def check_for_updates(
                             imap_login,
                             imap_login,
                             action,
-                            private_db_uri,
+                            private_state,
                         )
                 LOGGER.info("added an action")
             elif action.action_type == "out_transfer" and str(
@@ -239,6 +221,7 @@ def notify_about_overdues(
 ):
     LOGGER.info("notify_about_overdues()")
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
+    private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
     d = {}
     for x in public_state.list_mbank_actions():
         if x.in_acc_no not in d or d[x.in_acc_no].timestamp < x.timestamp:
@@ -247,7 +230,7 @@ def notify_about_overdues(
     ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
     ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
     overdues = []
-    emails = acc_no_to_email(private_db_uri, "overdue")
+    emails = private_state.acc_no_to_email("overdue")
     for k in d:
         if ago_55d < d[k].timestamp < ago_35d:
             if d[k].in_acc_no in emails:
@@ -264,7 +247,8 @@ def main():
     LOGGER.info("ksiemgowyd started")
     args = build_args()
     private_db_uri = args[0][-1]
-    emails = acc_no_to_email(private_db_uri, "arrived")  # noqa
+    private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
+    emails = private_state.acc_no_to_email("arrived")  # noqa
     # the weird schedule is supposed to try to accomodate different lifestyles
     for account in args:
         check_for_updates(*account)

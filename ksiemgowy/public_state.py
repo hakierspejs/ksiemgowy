@@ -14,18 +14,28 @@ class PublicState:
             "mbank_actions",
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("mbank_action", sqlalchemy.JSON, unique=True),
+            sqlalchemy.Column("mbank_action", sqlalchemy.JSON),
         )
 
         self.expenses = sqlalchemy.Table(
             "expenses",
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("mbank_action", sqlalchemy.JSON, unique=True),
+            sqlalchemy.Column("mbank_action", sqlalchemy.JSON),
         )
+
+        try:
+            self.mbank_actions.create()
+        except (
+            sqlalchemy.exc.OperationalError, sqlalchemy.exc.ProgrammingError
+        ):
+            pass
+
         try:
             self.expenses.create()
-        except sqlalchemy.exc.OperationalError:
+        except (
+            sqlalchemy.exc.OperationalError, sqlalchemy.exc.ProgrammingError
+        ):
             pass
 
     def list_mbank_actions(self):
