@@ -23,7 +23,6 @@ import schedule
 import yaml
 
 import ksiemgowy.mbankmail
-import ksiemgowy.private_state
 import ksiemgowy.public_state
 import ksiemgowy.homepage_updater
 
@@ -95,11 +94,11 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
 
 
 def send_confirmation_mail(
-    server, fromaddr, toaddr, mbank_action, private_state
+    server, fromaddr, toaddr, mbank_action, public_state
 ):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
-    emails = private_state.acc_no_to_email("arrived")
+    emails = public_state.acc_no_to_email("arrived")
     if mbank_action.anonymized().in_acc_no in emails:
         msg["To"] = emails[mbank_action.anonymized().in_acc_no]
         msg["Cc"] = toaddr
@@ -154,14 +153,12 @@ def check_for_updates(  # pylint: disable=too-many-arguments
     imap_server,
     acc_number,
     public_db_uri,
-    private_db_uri,
 ):
     """Program's entry point."""
     LOGGER.info("checking for updates...")
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
-    private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
     mail = imap_connect(imap_login, imap_password, imap_server)
-    for msg in gen_unseen_mbank_emails(private_state, mail):
+    for msg in gen_unseen_mbank_emails(public_state, mail):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
             LOGGER.info("Observed an action: %r", action.anonymized().asdict())
@@ -176,7 +173,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
                             imap_login,
                             imap_login,
                             action,
-                            private_state,
+                            public_state,
                         )
                 LOGGER.info("added an action")
             elif action.action_type == "out_transfer" and str(
@@ -197,7 +194,6 @@ def build_args():
     )
     ret = []
     public_db_uri = config["PUBLIC_DB_URI"]
-    private_db_uri = config["PRIVATE_DB_URI"]
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
         imap_server = account["IMAP_SERVER"]
@@ -210,7 +206,6 @@ def build_args():
                 imap_server,
                 acc_no,
                 public_db_uri,
-                private_db_uri,
             ]
         )
     return ret
@@ -222,16 +217,10 @@ def atexit_handler(*_, **__):
 
 
 def notify_about_overdues(
-    imap_login,
-    imap_password,
-    _imap_server,
-    _acc_no,
-    public_db_uri,
-    private_db_uri,
+    imap_login, imap_password, _imap_server, public_db_uri
 ):
     LOGGER.info("notify_about_overdues()")
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
-    private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
     d = {}
     for x in public_state.list_mbank_actions():
         if x.in_acc_no not in d or d[x.in_acc_no].timestamp < x.timestamp:
@@ -240,7 +229,7 @@ def notify_about_overdues(
     ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
     ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
     overdues = []
-    emails = private_state.acc_no_to_email("overdue")
+    emails = public_state.acc_no_to_email("overdue")
     for k in d:
         if ago_55d < d[k].timestamp < ago_35d:
             if d[k].in_acc_no in emails:
@@ -258,9 +247,9 @@ def main():
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
     args = build_args()
-    private_db_uri = args[0][-1]
-    private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
-    emails = private_state.acc_no_to_email(  # pylint: disable=unused-variable
+    public_db_uri = args[0][-1]
+    public_state = ksiemgowy.public_state.PublicState(public_db_uri)
+    emails = public_state.acc_no_to_email(  # pylint: disable=unused-variable
         "arrived"
     )  # noqa
     # the weird schedule is supposed to try to accomodate different lifestyles
@@ -273,7 +262,7 @@ def main():
 
     deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
     public_db_uri = args[0][-2]
-    public_state = ksiemgowy.private_state.PrivateState(public_db_uri)
+    public_state = ksiemgowy.public_state.PublicState(public_db_uri)
     schedule.every().hour.do(
         ksiemgowy.homepage_updater.maybe_update, public_state, deploy_key_path
     )
