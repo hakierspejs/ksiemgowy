@@ -4,8 +4,6 @@ import argparse
 import collections
 import contextlib
 import datetime
-import dateutil.rrule
-import json
 import logging
 import os
 import shutil
@@ -14,6 +12,8 @@ import subprocess
 import sys
 import time
 import yaml
+
+import dateutil.rrule
 
 import schedule
 

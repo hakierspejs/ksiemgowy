@@ -25,6 +25,7 @@ import yaml
 import ksiemgowy.mbankmail
 import ksiemgowy.private_state
 import ksiemgowy.public_state
+import ksiemgowy.homepage_updater
 
 
 IMAP_FILTER = '(SINCE "02-Apr-2020" FROM "kontakt@mbank.pl")'
@@ -93,9 +94,7 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
     time.sleep(10)  # HACK: slow down potential self-spam
 
 
-def send_confirmation_mail(
-    server, fromaddr, toaddr, mbank_action, private_state
-):
+def send_confirmation_mail(server, fromaddr, toaddr, mbank_action, private_state):
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
     emails = private_state.acc_no_to_email("arrived")
@@ -148,12 +147,7 @@ def gen_unseen_mbank_emails(db, mail):
 
 
 def check_for_updates(  # pylint: disable=too-many-arguments
-    imap_login,
-    imap_password,
-    imap_server,
-    acc_number,
-    public_db_uri,
-    private_db_uri,
+    imap_login, imap_password, imap_server, acc_number, public_db_uri, private_db_uri,
 ):
     """Program's entry point."""
     LOGGER.info("checking for updates...")
@@ -164,23 +158,19 @@ def check_for_updates(  # pylint: disable=too-many-arguments
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
             LOGGER.info("Observed an action: %r", action.anonymized().asdict())
-            if action.action_type == "in_transfer" and str(
-                action.out_acc_no
-            ) == str(acc_number):
+            if action.action_type == "in_transfer" and str(action.out_acc_no) == str(
+                acc_number
+            ):
                 public_state.add_mbank_action(action.anonymized().asdict())
                 if SEND_EMAIL:
                     with smtp_login(imap_login, imap_password) as server:
                         send_confirmation_mail(
-                            server,
-                            imap_login,
-                            imap_login,
-                            action,
-                            private_state,
+                            server, imap_login, imap_login, action, private_state,
                         )
                 LOGGER.info("added an action")
-            elif action.action_type == "out_transfer" and str(
-                action.in_acc_no
-            ) == str(acc_number):
+            elif action.action_type == "out_transfer" and str(action.in_acc_no) == str(
+                acc_number
+            ):
                 public_state.add_expense(action.anonymized().asdict())
                 LOGGER.info("added an expense")
             else:
@@ -190,9 +180,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
 
 def build_args():
     config = yaml.load(
-        open(
-            os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml")
-        )
+        open(os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"))
     )
     ret = []
     public_db_uri = config["PUBLIC_DB_URI"]
@@ -269,6 +257,15 @@ def main():
 
     # use the last specified account for overdue notifications:
     schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *args[-1])
+
+    deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
+    public_db_uri = args[0][-2]
+    public_state = ksiemgowy.private_state.PrivateState(public_db_uri)
+    schedule.every().hour.do(
+        ksiemgowy.homepage_updater.maybe_update, public_state, deploy_key_path
+    )
+    ksiemgowy.homepage_updater.maybe_update(public_state, deploy_key_path)
+
     while True:
         schedule.run_pending()
         time.sleep(1)

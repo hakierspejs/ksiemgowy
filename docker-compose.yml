@@ -1,41 +1,20 @@
-version: '3.7'
+version: "3.7"
 services:
     ksiemgowyd:
         build:
-          context: .
-          dockerfile: Dockerfile-ksiemgowyd
+            context: .
+            dockerfile: Dockerfile-ksiemgowyd
         env_file:
             - envfile_secret
-            - envfile_public
-        volumes:
-          - "./db_private:/db_private"
-          - "./db_public:/db_public"
-        restart: unless-stopped
-    ksiemgowy_web:
-        build:
-          context: .
-          dockerfile: Dockerfile-web
-        env_file:
-            - envfile_public
-        volumes:
-          - "./db_public:/db_public"
-        expose:
-         - 5000
-        restart: unless-stopped
-    ksiemgowy_updater:
-        build:
-          context: .
-          dockerfile: Dockerfile-homepage-updater
-        env_file:
             - envfile_public
         environment:
             DEPLOY_KEY_PATH: /run/secrets/deploy_key
         volumes:
-          - "./db_public:/db_public"
-        secrets:
-          - deploy_key
+            - "./db_private:/db_private"
+            - "./db_public:/db_public"
         restart: unless-stopped
-
+        secrets:
+            - deploy_key
 secrets:
-  deploy_key:
-    file: homepage_deploykey
+    deploy_key:
+        file: homepage_deploykey
