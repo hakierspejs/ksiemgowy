@@ -1,6 +1,6 @@
+import logging
 import dateutil.parser
 import sqlalchemy
-import logging
 
 
 import ksiemgowy.mbankmail
