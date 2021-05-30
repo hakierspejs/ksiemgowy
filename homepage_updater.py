@@ -29,9 +29,7 @@ HOMEPAGE_REPO = "hakierspejs/homepage"
 DUES_FILE_PATH = "_data/dues.yml"
 MEETUP_FILE_PATH = "_includes/next_meeting.txt"
 ACCOUNT_LABELS = {
-    (
-        "76561893"
-    ): "Konto Jacka",
+    ("76561893"): "Konto Jacka",
     (
         "1f328d38b05ea11998bac3ee0a4a2c6c9595e6848d22f66a47aa4a68f3b781ed"
     ): "Konto Jacka",
@@ -111,8 +109,8 @@ def get_local_state_dues(db):
 
     now = datetime.datetime.now()
     month_ago = now - datetime.timedelta(days=31)
-    total = 200
-    num_subscribers = 1
+    total = 0
+    num_subscribers = 0
 
     monthly_income = collections.defaultdict(
         lambda: collections.defaultdict(float)
@@ -138,10 +136,12 @@ def get_local_state_dues(db):
         total += action.amount_pln
 
     first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
+    # After this day, this hack isn't requried anymore:
+    last_200pln_d33tah_due_date = datetime.datetime(year=2021, month=5, day=5)
     for timestamp in dateutil.rrule.rrule(
         dateutil.rrule.MONTHLY,
         dtstart=first_200pln_d33tah_due_date,
-        until=now,
+        until=last_200pln_d33tah_due_date,
     ):
         month = f"{timestamp.year}-{timestamp.month:02d}"
         monthly_income[month]["Suma"] += 200
@@ -196,8 +196,8 @@ def get_local_state_dues(db):
 
     # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
     # związanych z przelewami własnymi:
-    balances_by_account_labels['Konto Jacka'] += 66.07
-    balances_by_account_labels['Konto stowarzyszenia'] += 0.01
+    balances_by_account_labels["Konto Jacka"] += 66.07
+    balances_by_account_labels["Konto stowarzyszenia"] += 0.01
 
     balances_by_account_labels = dict(balances_by_account_labels)
 
@@ -317,7 +317,6 @@ def maybe_update_dues(db, git_env):
         )
     else:
         LOGGER.debug("maybe_update_dues: not updating")
-
 
 
 def maybe_update(db, deploy_key_path):

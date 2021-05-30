@@ -2,3 +2,4 @@ lxml
 sqlalchemy
 schedule
 python-dateutil
+pyyaml
