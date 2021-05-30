@@ -1,25 +1,19 @@
 #!/usr/bin/env python
 
-import argparse
 import collections
 import contextlib
 import datetime
 import logging
-import os
 import shutil
 import socket
 import subprocess
-import sys
 import time
 import yaml
 
+from yaml.representer import Representer
+
 import dateutil.rrule
 
-import schedule
-
-import ksiemgowy.public_state
-
-from yaml.representer import Representer
 
 yaml.add_representer(collections.defaultdict, Representer.represent_dict)
 
@@ -129,7 +123,7 @@ def get_local_state_dues(db):
 
         if action.timestamp < month_ago:
             continue
-        elif last_updated is None or action.timestamp > last_updated:
+        if last_updated is None or action.timestamp > last_updated:
             last_updated = action.timestamp
         if (
             action.in_acc_no not in observed_acc_numbers
@@ -329,34 +323,3 @@ def maybe_update_dues(db, git_env):
 def maybe_update(db, deploy_key_path):
     with git_cloned(deploy_key_path) as git_env:
         maybe_update_dues(db, git_env)
-
-
-def main(state):
-    deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
-    schedule.every().hour.do(maybe_update, state, deploy_key_path)
-    time.sleep(6.0)
-    maybe_update(state, deploy_key_path)
-    while True:
-        time.sleep(1.0)
-        schedule.run_pending()
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", default="continuous")
-    parser.add_argument("--loglevel", default="INFO")
-    return parser.parse_args()
-
-
-if __name__ == "__main__":
-    args = parse_args()
-    logging.basicConfig(level=args.loglevel.upper())
-    PUBLIC_DB_URI = os.environ["PUBLIC_DB_URI"]
-    state = ksiemgowy.public_state.PublicState(PUBLIC_DB_URI)
-    if args.mode == "continuous":
-        main(state)
-    elif args.mode == "get_local_state_dues":
-        new_state = get_local_state_dues(state)
-        print(serialize(new_state))
-    else:
-        sys.exit("ERROR: unknown mode: %s" % args.mode)
