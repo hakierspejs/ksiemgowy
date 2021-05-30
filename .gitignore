@@ -4,3 +4,4 @@ __pycache__
 envfile*
 *.sqlite
 db
+config.yaml
