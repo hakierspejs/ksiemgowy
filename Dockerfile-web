@@ -1,8 +1,0 @@
-FROM python:3.7
-ADD ./requirements-ksiemgowyd.txt .
-ADD ./requirements-web.txt .
-RUN python -m pip install -r requirements-ksiemgowyd.txt
-RUN python -m pip install -r requirements-web.txt
-ADD ./ksiemgowy ksiemgowy
-ADD ./ksiemgowy-web.py .
-ENTRYPOINT ["python", "ksiemgowy-web.py"]
