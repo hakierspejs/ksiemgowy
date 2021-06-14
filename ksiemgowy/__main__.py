@@ -217,7 +217,12 @@ def atexit_handler(*_, **__):
 
 
 def notify_about_overdues(
-    imap_login, imap_password, _imap_server, public_db_uri, private_db_uri
+    imap_login,
+    imap_password,
+    _imap_server,
+    _acc_no,
+    public_db_uri,
+    private_db_uri,
 ):
     LOGGER.info("notify_about_overdues()")
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
@@ -241,6 +246,8 @@ def notify_about_overdues(
             for overdue in overdues:
                 send_overdue_email(server, imap_login, overdue)
 
+    LOGGER.info("done notify_about_overdues()")
+
 
 def main():
     logging.basicConfig(level="INFO")
@@ -248,7 +255,9 @@ def main():
     args = build_args()
     private_db_uri = args[0][-1]
     private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
-    emails = private_state.acc_no_to_email("arrived")  # noqa  # pylint: disable=unused-variable
+    emails = private_state.acc_no_to_email(
+        "arrived"
+    )  # noqa  # pylint: disable=unused-variable
     # the weird schedule is supposed to try to accomodate different lifestyles
     for account in args:
         check_for_updates(*account)
