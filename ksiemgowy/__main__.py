@@ -63,7 +63,7 @@ najlepiej, ustaw comiesięczne zlecenie stałe:
 
 Numer konta: 55 1140 2004 0000 3002 7656 1893
 
-Zalecana składka: 100zł
+Zalecana składka: 100 zł
 
 Tytuł: Hakierspejs - składka
 
@@ -104,7 +104,7 @@ def send_confirmation_mail(
     msg["Subject"] = "ksiemgowyd: zaksiemgowano przelew! :)"
     message_text = f"""Dziękuję za wspieranie Hakierspejsu! ❤
 
-Twój przelew na kwotę {mbank_action.amount_pln}zł z dnia \
+Twój przelew na kwotę {mbank_action.amount_pln} zł z dnia \
 {mbank_action.timestamp} został pomyślnie zaksięgowany przez Ksiemgowego. \
 Wkrótce strona internetowa Hakierspejsu zostanie zaktualizowana, aby \
 odzwierciedlać aktualny stan konta.
@@ -153,6 +153,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
     private_db_uri,
 ):
     """Program's entry point."""
+    LOGGER.info("checking for updates...")
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
     private_state = ksiemgowy.private_state.PrivateState(private_db_uri)
     mail = imap_connect(imap_login, imap_password, imap_server)
@@ -264,7 +265,7 @@ def main():
         schedule.every().hour.do(check_for_updates, *account)
 
     # use the last specified account for overdue notifications:
-    schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, args[-1])
+    schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *args[-1])
     while True:
         schedule.run_pending()
         time.sleep(1)
