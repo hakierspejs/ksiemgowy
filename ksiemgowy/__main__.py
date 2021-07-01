@@ -251,7 +251,7 @@ def main():
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
     emails = public_state.acc_no_to_email(  # pylint: disable=unused-variable
         "arrived"
-    )  # noqa
+    )  # noqa  # pylint: disable=unused-variable
     # the weird schedule is supposed to try to accomodate different lifestyles
     for account in args:
         check_for_updates(*account)
