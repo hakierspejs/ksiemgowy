@@ -251,7 +251,7 @@ def main():
     schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *args[-1])
 
     deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
-    public_db_uri = args[0][-2]
+    public_db_uri = args[0][-1]
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
     schedule.every().hour.do(
         ksiemgowy.homepage_updater.maybe_update, public_state, deploy_key_path
