@@ -312,12 +312,12 @@ def maybe_update_dues(db, git_env):
     remote_state = get_remote_state_dues()
     has_changed = do_states_differ(remote_state, local_state)
     if has_changed and is_newer(remote_state, local_state):
+        LOGGER.info("maybe_update_dues: updating dues")
         remote_state.update(local_state)
         update_remote_state(
             f"homepage/{DUES_FILE_PATH}", remote_state, git_env
         )
-    else:
-        LOGGER.debug("maybe_update_dues: not updating")
+    LOGGER.info("maybe_update_dues: done")
 
 
 def maybe_update(db, deploy_key_path):
