@@ -148,11 +148,7 @@ def gen_unseen_mbank_emails(db, mail):
 
 
 def check_for_updates(  # pylint: disable=too-many-arguments
-    imap_login,
-    imap_password,
-    imap_server,
-    acc_number,
-    public_db_uri,
+    imap_login, imap_password, imap_server, acc_number, public_db_uri,
 ):
     """Program's entry point."""
     LOGGER.info("checking for updates...")
@@ -200,13 +196,7 @@ def build_args():
         imap_password = account["IMAP_PASSWORD"]
         acc_no = account["ACC_NO"]
         ret.append(
-            [
-                imap_login,
-                imap_password,
-                imap_server,
-                acc_no,
-                public_db_uri,
-            ]
+            [imap_login, imap_password, imap_server, acc_no, public_db_uri,]
         )
     return ret
 
