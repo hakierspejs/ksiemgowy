@@ -61,11 +61,14 @@ na rzecz Hakierspejsu. Między innymi stąd też moje pytanie: cześć,
 żyjesz? :) Czy wszystko jest OK? Jeśli tak, przelej proszę składkę - albo
 najlepiej, ustaw comiesięczne zlecenie stałe:
 
-Numer konta: 55 1140 2004 0000 3002 7656 1893
+Numer konta: 56 1140 2004 0000 3902 8108 9394
 
 Zalecana składka: 100 zł
 
-Tytuł: Hakierspejs - składka
+Tytuł: darowizna na cele statutowe
+
+(jeżeli jesteś członkiem Hakierspejsu, w tytule napisz zamiast tego "składka
+członkowska - 1mies - pełna miesięczna" oraz Twój nick lub imię i nazwisko)
 
 Mam nadzieję, że udział w Hakierspejsie dalej Cię interesuje. Daj
 proszę znać, jeżeli masz jakiekolwiek pytania lub sugestie.
