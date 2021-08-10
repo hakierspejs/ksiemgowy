@@ -196,7 +196,7 @@ def build_args():
         imap_password = account["IMAP_PASSWORD"]
         acc_no = account["ACC_NO"]
         ret.append(
-            [imap_login, imap_password, imap_server, acc_no, public_db_uri,]
+            [imap_login, imap_password, imap_server, acc_no, public_db_uri]
         )
     return ret
 
@@ -239,9 +239,8 @@ def main():
     args = build_args()
     public_db_uri = args[0][-1]
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
-    emails = public_state.acc_no_to_email(  # pylint: disable=unused-variable
-        "arrived"
-    )  # noqa  # pylint: disable=unused-variable
+    # pylint:disable=unused-variable
+    emails = public_state.acc_no_to_email("arrived")  # noqa
     for account in args:
         check_for_updates(*account)
         schedule.every().hour.do(check_for_updates, *account)
