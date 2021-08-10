@@ -252,11 +252,11 @@ def main():
     emails = public_state.acc_no_to_email(  # pylint: disable=unused-variable
         "arrived"
     )  # noqa  # pylint: disable=unused-variable
-    # the weird schedule is supposed to try to accomodate different lifestyles
     for account in args:
         check_for_updates(*account)
         schedule.every().hour.do(check_for_updates, *account)
 
+    # the weird schedule is supposed to try to accomodate different lifestyles
     # use the last specified account for overdue notifications:
     schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *args[-1])
 
