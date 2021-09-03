@@ -11,6 +11,8 @@ import subprocess
 import time
 import yaml
 import os
+import pickle
+import sys
 
 from yaml.representer import Representer
 
@@ -69,6 +71,10 @@ def upload_to_graphite(d):
     )
 
 
+def get_empty_float_defaultdict():
+    return collections.defaultdict(float)
+
+
 def get_local_state_dues(expenses, mbank_actions):
 
     last_updated = None
@@ -77,7 +83,7 @@ def get_local_state_dues(expenses, mbank_actions):
 
     # manual correction because of various bugs/problems
     monthly_expenses = collections.defaultdict(
-        lambda: collections.defaultdict(float)
+        get_empty_float_defaultdict
     )
     expenses_by_out_account = collections.defaultdict(float)
     for action in expenses:
@@ -114,7 +120,7 @@ def get_local_state_dues(expenses, mbank_actions):
     num_subscribers = 0
 
     monthly_income = collections.defaultdict(
-        lambda: collections.defaultdict(float)
+        get_empty_float_defaultdict
     )
     income_by_out_account = collections.defaultdict(float)
     for action in mbank_actions:
@@ -183,7 +189,7 @@ def get_local_state_dues(expenses, mbank_actions):
 
     balance_so_far = 0
     monthly_final_balance = collections.defaultdict(
-        lambda: collections.defaultdict(float)
+        get_empty_float_defaultdict
     )
     for month in sorted(months):
         _monthly_income = sum(monthly_income.get(month, {}).values())
@@ -355,6 +361,28 @@ def build_args():
 
 
 if __name__ == "__main__":
-    args = build_args()
-    public_db_uri = args[0][-1]
-    public_state = ksiemgowy.public_state.PublicState(public_db_uri)
+    try:
+        with open("testdata/input.pickle", "rb") as f:
+            expenses = pickle.load(f)
+            mbank_actions = pickle.load(f)
+    except FileNotFoundError:
+        args = build_args()
+        public_db_uri = args[0][-1]
+        db = ksiemgowy.public_state.PublicState(public_db_uri)
+        expenses = list(db.list_expenses())
+        mbank_actions = list(db.list_mbank_actions())
+        with open("testdata/input.pickle", "wb") as f:
+            pickle.dump(expenses, f)
+            pickle.dump(mbank_actions, f)
+    try:
+        with open("testdata/expected_output.pickle", "rb") as f:
+            expected_output = pickle.load(f)
+            local_state = get_local_state_dues(expenses, mbank_actions)
+            if local_state == expected_output:
+                print('Test passed')
+            else:
+                sys.exit('ERROR: test not passed.')
+    except FileNotFoundError:
+        local_state = get_local_state_dues(expenses, mbank_actions)
+        with open("testdata/expected_output.pickle", "wb") as f:
+            pickle.dump(local_state, f)
