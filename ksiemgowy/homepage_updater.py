@@ -13,6 +13,8 @@ import yaml
 import os
 import pickle
 import sys
+import difflib
+import pprint
 
 from yaml.representer import Representer
 
@@ -34,6 +36,12 @@ ACCOUNT_LABELS = {
     (
         "d66afcd5d08d61a5678dd3dd3fbb6b2f84985c5add8306e6b3a1c2df0e85f840"
     ): "Konto stowarzyszenia",
+}
+
+ACCOUNT_CORRECTIONS = {"Konto Jacka": -347.53, "Konto stowarzyszenia": -727.53}
+MONTHLY_INCOME_CORRECTIONS = {
+    "2020-04": {"Suma": 200},
+    "2020-05": {"Suma": 100},
 }
 
 
@@ -169,8 +177,10 @@ def get_local_state_dues(now, expenses, mbank_actions):
     monthly_expenses["2021-05"]["Pozostałe"] += 200.0
     monthly_expenses["2021-07"]["Meetup (za 6 mies.)"] += 301.07
     monthly_expenses["2021-08"]["Zakupy"] += 840.04
-    monthly_income["2020-04"]["Suma"] += 200
-    monthly_income["2020-05"]["Suma"] += 100
+
+    for month in MONTHLY_INCOME_CORRECTIONS:
+        for label, value in MONTHLY_INCOME_CORRECTIONS[month].items():
+            monthly_income[month][label] += value
 
     months = set(monthly_income.keys()).union(set(monthly_expenses.keys()))
 
@@ -200,8 +210,12 @@ def get_local_state_dues(now, expenses, mbank_actions):
 
     # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
     # związanych z przelewami własnymi:
-    balances_by_account_labels["Konto Jacka"] += -347.53
-    balances_by_account_labels["Konto stowarzyszenia"] += -727.53
+    for account_name, value in ACCOUNT_CORRECTIONS.items():
+        if account_name not in balances_by_account_labels:
+            raise RuntimeError(
+                "%r not in balances_by_account_labels" % account_name
+            )
+        balances_by_account_labels[account_name] += value
 
     balances_by_account_labels = dict(balances_by_account_labels)
 
@@ -356,6 +370,14 @@ def build_args():
     return ret
 
 
+def compare_dicts(d1, d2):
+    return "\n" + "\n".join(
+        difflib.ndiff(
+            pprint.pformat(d1).splitlines(), pprint.pformat(d2).splitlines()
+        )
+    )
+
+
 if __name__ == "__main__":
     try:
         with open("testdata/input.pickle", "rb") as f:
@@ -380,6 +402,7 @@ if __name__ == "__main__":
             if local_state == expected_output:
                 print("Test passed")
             else:
+                print(compare_dicts(local_state, expected_output))
                 sys.exit("ERROR: test not passed.")
     except FileNotFoundError:
         local_state = get_local_state_dues(now, expenses, mbank_actions)
