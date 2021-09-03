@@ -7,9 +7,6 @@ import logging
 
 
 LOGGER = logging.getLogger("homepage_updater")
-HOMEPAGE_REPO = "hakierspejs/homepage"
-DUES_FILE_PATH = "_data/dues.yml"
-MEETUP_FILE_PATH = "_includes/next_meeting.txt"
 ACCOUNT_LABELS = {
     ("76561893"): "Konto Jacka",
     (
@@ -69,28 +66,27 @@ def apply_corrections(
 
 
 def determine_category(action):
-    kategoria = "Pozostałe"
     if (
         action.out_acc_no == "5c0de18baddf47952"
         "002df587685dea519f06b639051ea3e4749ef058f6782bf"
     ):
         if int(action.amount_pln) == 800:
-            kategoria = "Czynsz"
+            return "Czynsz"
         else:
-            kategoria = (
+            return (
                 "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
             )
     if (
         action.out_acc_no == "62eb7121a7ba81754aa746762dbc364e9ed961b"
         "8d1cf61a94d6531c92c81e56f"
     ):
-        kategoria = "Internet"
+        return "Internet"
     if (
         action.out_acc_no == "8f8340d7434997c052cc56f0191ed23d12a16ab1"
         "f2cba091c433539c13b7049c"
     ):
-        kategoria = "Księgowość"
-    return kategoria
+        return "Księgowość"
+    return "Pozostałe"
 
 
 def apply_d33tah_dues(monthly_income):
