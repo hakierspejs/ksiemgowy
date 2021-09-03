@@ -120,6 +120,44 @@ def apply_corrections(
             monthly_expenses[month][label] += value
 
 
+def determine_category(action):
+    kategoria = "Pozostałe"
+    if (
+        action.out_acc_no == "5c0de18baddf47952"
+        "002df587685dea519f06b639051ea3e4749ef058f6782bf"
+    ):
+        if int(action.amount_pln) == 800:
+            kategoria = "Czynsz"
+        else:
+            kategoria = (
+                "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
+            )
+    if (
+        action.out_acc_no == "62eb7121a7ba81754aa746762dbc364e9ed961b"
+        "8d1cf61a94d6531c92c81e56f"
+    ):
+        kategoria = "Internet"
+    if (
+        action.out_acc_no == "8f8340d7434997c052cc56f0191ed23d12a16ab1"
+        "f2cba091c433539c13b7049c"
+    ):
+        kategoria = "Księgowość"
+    return kategoria
+
+
+def apply_d33tah_dues(monthly_income):
+    first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
+    # After this day, this hack isn't requried anymore:
+    last_200pln_d33tah_due_date = datetime.datetime(year=2021, month=5, day=5)
+    for timestamp in dateutil.rrule.rrule(
+        dateutil.rrule.MONTHLY,
+        dtstart=first_200pln_d33tah_due_date,
+        until=last_200pln_d33tah_due_date,
+    ):
+        month = f"{timestamp.year}-{timestamp.month:02d}"
+        monthly_income[month]["Suma"] += 200
+
+
 def get_local_state_dues(now, expenses, mbank_actions):
 
     last_updated = None
@@ -132,28 +170,8 @@ def get_local_state_dues(now, expenses, mbank_actions):
     for action in expenses:
         expenses_by_out_account[action.in_acc_no] += action.amount_pln
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
-        kategoria = "Pozostałe"
-        if (
-            action.out_acc_no == "5c0de18baddf47952"
-            "002df587685dea519f06b639051ea3e4749ef058f6782bf"
-        ):
-            if int(action.amount_pln) == 800:
-                kategoria = "Czynsz"
-            else:
-                kategoria = (
-                    "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
-                )
-        if (
-            action.out_acc_no == "62eb7121a7ba81754aa746762dbc364e9ed961b"
-            "8d1cf61a94d6531c92c81e56f"
-        ):
-            kategoria = "Internet"
-        if (
-            action.out_acc_no == "8f8340d7434997c052cc56f0191ed23d12a16ab1"
-            "f2cba091c433539c13b7049c"
-        ):
-            kategoria = "Księgowość"
-        monthly_expenses[month][kategoria] += action.amount_pln
+        category = determine_category(action)
+        monthly_expenses[month][category] += action.amount_pln
         if last_updated is None or action.timestamp > last_updated:
             last_updated = action.timestamp
 
@@ -182,16 +200,7 @@ def get_local_state_dues(now, expenses, mbank_actions):
             observed_acc_owners.add(action.in_person)
         total += action.amount_pln
 
-    first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
-    # After this day, this hack isn't requried anymore:
-    last_200pln_d33tah_due_date = datetime.datetime(year=2021, month=5, day=5)
-    for timestamp in dateutil.rrule.rrule(
-        dateutil.rrule.MONTHLY,
-        dtstart=first_200pln_d33tah_due_date,
-        until=last_200pln_d33tah_due_date,
-    ):
-        month = f"{timestamp.year}-{timestamp.month:02d}"
-        monthly_income[month]["Suma"] += 200
+    apply_d33tah_dues(monthly_income)
 
     extra_monthly_reservations = sum(
         [
