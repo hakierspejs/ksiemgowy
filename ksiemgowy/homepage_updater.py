@@ -4,17 +4,17 @@ import collections
 import contextlib
 import datetime
 import dateutil.rrule
+import difflib
 import logging
+import os
+import pickle
+import pprint
 import shutil
 import socket
 import subprocess
+import sys
 import time
 import yaml
-import os
-import pickle
-import sys
-import difflib
-import pprint
 
 from yaml.representer import Representer
 
