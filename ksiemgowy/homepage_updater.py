@@ -165,7 +165,7 @@ def get_local_state_dues(db):
     monthly_expenses["2021-02"]["Domena"] += 55.34
     monthly_expenses["2021-05"]["Pozostałe"] += 200.0
     monthly_expenses["2021-07"]["Meetup (za 6 mies.)"] += 301.07
-    monthly_expenses["2021-08"]["Zakupy"] += 538.61
+    monthly_expenses["2021-08"]["Zakupy"] += 840.04
     monthly_income["2020-04"]["Suma"] += 200
     monthly_income["2020-05"]["Suma"] += 100
 
@@ -197,8 +197,8 @@ def get_local_state_dues(db):
 
     # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
     # związanych z przelewami własnymi:
-    balances_by_account_labels["Konto Jacka"] += -135.00
-    balances_by_account_labels["Konto stowarzyszenia"] += -538.62
+    balances_by_account_labels["Konto Jacka"] += -347.53
+    balances_by_account_labels["Konto stowarzyszenia"] += -727.53
 
     balances_by_account_labels = dict(balances_by_account_labels)
 
