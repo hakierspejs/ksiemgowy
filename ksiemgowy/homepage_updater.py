@@ -97,6 +97,29 @@ def get_empty_float_defaultdict():
     return collections.defaultdict(float)
 
 
+def apply_corrections(
+    balances_by_account_labels, monthly_income, monthly_expenses
+):
+    # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
+    # związanych z przelewami własnymi:
+    for account_name, value in ACCOUNT_CORRECTIONS.items():
+        if account_name not in balances_by_account_labels:
+            raise RuntimeError(
+                "%r not in balances_by_account_labels" % account_name
+            )
+        balances_by_account_labels[account_name] += value
+
+    balances_by_account_labels = dict(balances_by_account_labels)
+
+    for month in MONTHLY_INCOME_CORRECTIONS:
+        for label, value in MONTHLY_INCOME_CORRECTIONS[month].items():
+            monthly_income[month][label] += value
+
+    for month in MONTHLY_EXPENSE_CORRECTIONS:
+        for label, value in MONTHLY_EXPENSE_CORRECTIONS[month].items():
+            monthly_expenses[month][label] += value
+
+
 def get_local_state_dues(now, expenses, mbank_actions):
 
     last_updated = None
@@ -182,13 +205,15 @@ def get_local_state_dues(now, expenses, mbank_actions):
         ]
     )
 
-    for month in MONTHLY_INCOME_CORRECTIONS:
-        for label, value in MONTHLY_INCOME_CORRECTIONS[month].items():
-            monthly_income[month][label] += value
+    balances_by_account_labels = collections.defaultdict(float)
+    for acc_no, balance in income_by_out_account.items():
+        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] += balance
+    for acc_no, balance in expenses_by_out_account.items():
+        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] -= balance
 
-    for month in MONTHLY_EXPENSE_CORRECTIONS:
-        for label, value in MONTHLY_EXPENSE_CORRECTIONS[month].items():
-            monthly_expenses[month][label] += value
+    apply_corrections(
+        balances_by_account_labels, monthly_income, monthly_expenses
+    )
 
     months = set(monthly_income.keys()).union(set(monthly_expenses.keys()))
 
@@ -209,23 +234,6 @@ def get_local_state_dues(now, expenses, mbank_actions):
         _monthly_expenses = sum(monthly_expenses.get(month, {}).values())
         balance_so_far += _monthly_income - _monthly_expenses
         monthly_final_balance[month]["Suma"] = balance_so_far
-
-    balances_by_account_labels = collections.defaultdict(float)
-    for acc_no, balance in income_by_out_account.items():
-        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] += balance
-    for acc_no, balance in expenses_by_out_account.items():
-        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] -= balance
-
-    # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
-    # związanych z przelewami własnymi:
-    for account_name, value in ACCOUNT_CORRECTIONS.items():
-        if account_name not in balances_by_account_labels:
-            raise RuntimeError(
-                "%r not in balances_by_account_labels" % account_name
-            )
-        balances_by_account_labels[account_name] += value
-
-    balances_by_account_labels = dict(balances_by_account_labels)
 
     last_updated_s = last_updated.strftime("%d-%m-%Y")
     ret = {
@@ -415,4 +423,5 @@ if __name__ == "__main__":
     except FileNotFoundError:
         local_state = get_local_state_dues(now, expenses, mbank_actions)
         with open("testdata/expected_output.pickle", "wb") as f:
+            pickle.dump(local_state, f)
             pickle.dump(local_state, f)
