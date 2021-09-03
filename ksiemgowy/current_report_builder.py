@@ -221,8 +221,6 @@ def get_current_report(now, expenses, mbank_actions):
         monthly_income,
     ) = apply_positive_transfers(now, last_updated, mbank_actions)
 
-    extra_monthly_reservations = build_extra_monthly_reservations(now)
-
     balances_by_account_labels = build_balances_by_account_labels(
         income_by_out_account, expenses_by_out_account
     )
@@ -241,7 +239,7 @@ def get_current_report(now, expenses, mbank_actions):
         "dues_total_lastmonth": total,
         "dues_last_updated": last_updated.strftime("%d-%m-%Y"),
         "dues_num_subscribers": num_subscribers,
-        "extra_monthly_reservations": extra_monthly_reservations,
+        "extra_monthly_reservations": build_extra_monthly_reservations(now),
         "balance_so_far": balance_so_far,
         "balances_by_account_labels": balances_by_account_labels,
         "monthly": {
