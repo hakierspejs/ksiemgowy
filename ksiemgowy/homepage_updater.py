@@ -3,21 +3,15 @@
 import collections
 import contextlib
 import datetime
-import difflib
 import logging
-import os
-import pickle
-import pprint
 import shutil
 import socket
 import subprocess
-import sys
 import time
 import yaml
 
 from yaml.representer import Representer
 
-import ksiemgowy.public_state
 import ksiemgowy.current_report_builder
 
 
@@ -28,10 +22,6 @@ LOGGER = logging.getLogger("homepage_updater")
 HOMEPAGE_REPO = "hakierspejs/homepage"
 DUES_FILE_PATH = "_data/dues.yml"
 MEETUP_FILE_PATH = "_includes/next_meeting.txt"
-
-
-def get_empty_float_defaultdict():
-    return collections.defaultdict(float)
 
 
 def serialize(d):
@@ -164,74 +154,3 @@ def maybe_update_dues(db, git_env):
 def maybe_update(db, deploy_key_path):
     with git_cloned(deploy_key_path) as git_env:
         maybe_update_dues(db, git_env)
-
-
-def build_args():
-    config = yaml.load(
-        open(
-            os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml")
-        )
-    )
-    ret = []
-    public_db_uri = config["PUBLIC_DB_URI"]
-    for account in config["ACCOUNTS"]:
-        imap_login = account["IMAP_LOGIN"]
-        imap_server = account["IMAP_SERVER"]
-        imap_password = account["IMAP_PASSWORD"]
-        acc_no = account["ACC_NO"]
-        ret.append(
-            [
-                imap_login,
-                imap_password,
-                imap_server,
-                acc_no,
-                public_db_uri,
-            ]
-        )
-    return ret
-
-
-def compare_dicts(d1, d2):
-    return "\n" + "\n".join(
-        difflib.ndiff(
-            pprint.pformat(d1).splitlines(), pprint.pformat(d2).splitlines()
-        )
-    )
-
-
-if __name__ == "__main__":
-    try:
-        with open("testdata/input.pickle", "rb") as f:
-            now = pickle.load(f)
-            expenses = pickle.load(f)
-            mbank_actions = pickle.load(f)
-    except FileNotFoundError:
-        args = build_args()
-        public_db_uri = args[0][-1]
-        db = ksiemgowy.public_state.PublicState(public_db_uri)
-        now = datetime.datetime.now()
-        expenses = list(db.list_expenses())
-        mbank_actions = list(db.list_mbank_actions())
-        with open("testdata/input.pickle", "wb") as f:
-            pickle.dump(now, f)
-            pickle.dump(expenses, f)
-            pickle.dump(mbank_actions, f)
-    try:
-        with open("testdata/expected_output.pickle", "rb") as f:
-            expected_output = pickle.load(f)
-            current_report = (
-                ksiemgowy.current_report_builder.get_current_report(
-                    now, expenses, mbank_actions
-                )
-            )
-            if current_report == expected_output:
-                print("Test passed")
-            else:
-                print(compare_dicts(current_report, expected_output))
-                sys.exit("ERROR: test not passed.")
-    except FileNotFoundError:
-        current_report = ksiemgowy.current_report_builder.get_current_report(
-            now, expenses, mbank_actions
-        )
-        with open("testdata/expected_output.pickle", "wb") as f:
-            pickle.dump(current_report, f)
