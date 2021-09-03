@@ -44,6 +44,20 @@ MONTHLY_INCOME_CORRECTIONS = {
     "2020-05": {"Suma": 100},
 }
 
+MONTHLY_EXPENSE_CORRECTIONS = {
+    "2020-08": {"Meetup": 294.36},
+    "2020-10": {"Remont": 1145},
+    "2020-11": {"Pozostałe": 139.80},
+    "2021-01": {
+        "Drukarka HP": 314.00,
+        "Meetup (za 6 mies.)": 285.43,
+    },
+    "2021-02": {"Domena": 55.34},
+    "2021-05": {"Pozostałe": 200.0},
+    "2021-07": {"Meetup (za 6 mies.)": 301.07},
+    "2021-08": {"Zakupy": 840.04},
+}
+
 
 def serialize(d):
     # return json.dumps(d, indent=2)
@@ -168,19 +182,13 @@ def get_local_state_dues(now, expenses, mbank_actions):
         ]
     )
 
-    monthly_expenses["2020-08"]["Meetup"] += 294.36
-    monthly_expenses["2020-10"]["Remont"] += 1145
-    monthly_expenses["2020-11"]["Pozostałe"] += 139.80
-    monthly_expenses["2021-01"]["Drukarka HP"] += 314.00
-    monthly_expenses["2021-01"]["Meetup (za 6 mies.)"] += 285.43
-    monthly_expenses["2021-02"]["Domena"] += 55.34
-    monthly_expenses["2021-05"]["Pozostałe"] += 200.0
-    monthly_expenses["2021-07"]["Meetup (za 6 mies.)"] += 301.07
-    monthly_expenses["2021-08"]["Zakupy"] += 840.04
-
     for month in MONTHLY_INCOME_CORRECTIONS:
         for label, value in MONTHLY_INCOME_CORRECTIONS[month].items():
             monthly_income[month][label] += value
+
+    for month in MONTHLY_EXPENSE_CORRECTIONS:
+        for label, value in MONTHLY_EXPENSE_CORRECTIONS[month].items():
+            monthly_expenses[month][label] += value
 
     months = set(monthly_income.keys()).union(set(monthly_expenses.keys()))
 
