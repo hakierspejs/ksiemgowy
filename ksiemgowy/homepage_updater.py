@@ -197,10 +197,8 @@ def apply_positive_transfers(now, last_updated):
     )
 
 
-def get_local_state_dues(now, expenses, mbank_actions):
-
+def apply_expenses(expenses):
     last_updated = None
-    # manual correction because of various bugs/problems
     monthly_expenses = collections.defaultdict(get_empty_float_defaultdict)
     expenses_by_out_account = collections.defaultdict(float)
     for action in expenses:
@@ -210,16 +208,45 @@ def get_local_state_dues(now, expenses, mbank_actions):
         monthly_expenses[month][category] += action.amount_pln
         if last_updated is None or action.timestamp > last_updated:
             last_updated = action.timestamp
+    return last_updated, monthly_expenses, expenses_by_out_account
 
-    (
-        total,
-        num_subscribers,
-        last_updated,
-        income_by_out_account,
-        monthly_income,
-    ) = apply_positive_transfers(now, last_updated)
 
-    extra_monthly_reservations = sum(
+def build_balances_by_account_labels(
+    income_by_out_account, expenses_by_out_account
+):
+    balances_by_account_labels = collections.defaultdict(float)
+    for acc_no, balance in income_by_out_account.items():
+        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] += balance
+    for acc_no, balance in expenses_by_out_account.items():
+        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] -= balance
+    return balances_by_account_labels
+
+
+def build_monthly_final_balance(months, monthly_income, monthly_expenses):
+    balance_so_far = 0
+    monthly_final_balance = collections.defaultdict(
+        get_empty_float_defaultdict
+    )
+    for month in sorted(months):
+        _monthly_income = sum(monthly_income.get(month, {}).values())
+        _monthly_expenses = sum(monthly_expenses.get(month, {}).values())
+        balance_so_far += _monthly_income - _monthly_expenses
+        monthly_final_balance[month]["Suma"] = balance_so_far
+    return monthly_final_balance, balance_so_far
+
+
+def build_monthly_balance(months, monthly_income, monthly_expenses):
+    return {
+        month: {
+            "Suma": sum(x for x in monthly_income.get(month, {}).values())
+            - sum(x for x in monthly_expenses.get(month, {}).values())
+        }
+        for month in months
+    }
+
+
+def build_extra_monthly_reservations(now):
+    return sum(
         [
             200
             for _ in dateutil.rrule.rrule(
@@ -231,11 +258,26 @@ def get_local_state_dues(now, expenses, mbank_actions):
         ]
     )
 
-    balances_by_account_labels = collections.defaultdict(float)
-    for acc_no, balance in income_by_out_account.items():
-        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] += balance
-    for acc_no, balance in expenses_by_out_account.items():
-        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] -= balance
+
+def get_local_state_dues(now, expenses, mbank_actions):
+
+    last_updated, monthly_expenses, expenses_by_out_account = apply_expenses(
+        expenses
+    )
+
+    (
+        total,
+        num_subscribers,
+        last_updated,
+        income_by_out_account,
+        monthly_income,
+    ) = apply_positive_transfers(now, last_updated)
+
+    extra_monthly_reservations = build_extra_monthly_reservations(now)
+
+    balances_by_account_labels = build_balances_by_account_labels(
+        income_by_out_account, expenses_by_out_account
+    )
 
     apply_corrections(
         balances_by_account_labels, monthly_income, monthly_expenses
@@ -243,23 +285,13 @@ def get_local_state_dues(now, expenses, mbank_actions):
 
     months = set(monthly_income.keys()).union(set(monthly_expenses.keys()))
 
-    monthly_balance = {
-        month: {
-            "Suma": sum(x for x in monthly_income.get(month, {}).values())
-            - sum(x for x in monthly_expenses.get(month, {}).values())
-        }
-        for month in months
-    }
-
-    balance_so_far = 0
-    monthly_final_balance = collections.defaultdict(
-        get_empty_float_defaultdict
+    monthly_balance = build_monthly_balance(
+        months, monthly_income, monthly_expenses
     )
-    for month in sorted(months):
-        _monthly_income = sum(monthly_income.get(month, {}).values())
-        _monthly_expenses = sum(monthly_expenses.get(month, {}).values())
-        balance_so_far += _monthly_income - _monthly_expenses
-        monthly_final_balance[month]["Suma"] = balance_so_far
+
+    monthly_final_balance, balance_so_far = build_monthly_final_balance(
+        months, monthly_income, monthly_expenses
+    )
 
     last_updated_s = last_updated.strftime("%d-%m-%Y")
     ret = {
