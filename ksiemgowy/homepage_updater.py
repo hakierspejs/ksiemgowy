@@ -75,16 +75,14 @@ def get_empty_float_defaultdict():
     return collections.defaultdict(float)
 
 
-def get_local_state_dues(expenses, mbank_actions):
+def get_local_state_dues(now, expenses, mbank_actions):
 
     last_updated = None
     observed_acc_numbers = set()
     observed_acc_owners = set()
 
     # manual correction because of various bugs/problems
-    monthly_expenses = collections.defaultdict(
-        get_empty_float_defaultdict
-    )
+    monthly_expenses = collections.defaultdict(get_empty_float_defaultdict)
     expenses_by_out_account = collections.defaultdict(float)
     for action in expenses:
         expenses_by_out_account[action.in_acc_no] += action.amount_pln
@@ -114,14 +112,11 @@ def get_local_state_dues(expenses, mbank_actions):
         if last_updated is None or action.timestamp > last_updated:
             last_updated = action.timestamp
 
-    now = datetime.datetime.now()
     month_ago = now - datetime.timedelta(days=31)
     total = 0
     num_subscribers = 0
 
-    monthly_income = collections.defaultdict(
-        get_empty_float_defaultdict
-    )
+    monthly_income = collections.defaultdict(get_empty_float_defaultdict)
     income_by_out_account = collections.defaultdict(float)
     for action in mbank_actions:
         income_by_out_account[action.out_acc_no] += action.amount_pln
@@ -315,8 +310,9 @@ def is_newer(remote_state, local_state):
 
 
 def maybe_update_dues(db, git_env):
+    now = datetime.datetime.now()
     local_state = get_local_state_dues(
-        db.list_expenses(), db.list_mbank_actions()
+        now, db.list_expenses(), db.list_mbank_actions()
     )
     upload_to_graphite(local_state)
     remote_state = get_remote_state_dues()
@@ -363,26 +359,29 @@ def build_args():
 if __name__ == "__main__":
     try:
         with open("testdata/input.pickle", "rb") as f:
+            now = pickle.load(f)
             expenses = pickle.load(f)
             mbank_actions = pickle.load(f)
     except FileNotFoundError:
         args = build_args()
         public_db_uri = args[0][-1]
         db = ksiemgowy.public_state.PublicState(public_db_uri)
+        now = datetime.datetime.now()
         expenses = list(db.list_expenses())
         mbank_actions = list(db.list_mbank_actions())
         with open("testdata/input.pickle", "wb") as f:
+            pickle.dump(now, f)
             pickle.dump(expenses, f)
             pickle.dump(mbank_actions, f)
     try:
         with open("testdata/expected_output.pickle", "rb") as f:
             expected_output = pickle.load(f)
-            local_state = get_local_state_dues(expenses, mbank_actions)
+            local_state = get_local_state_dues(now, expenses, mbank_actions)
             if local_state == expected_output:
-                print('Test passed')
+                print("Test passed")
             else:
-                sys.exit('ERROR: test not passed.')
+                sys.exit("ERROR: test not passed.")
     except FileNotFoundError:
-        local_state = get_local_state_dues(expenses, mbank_actions)
+        local_state = get_local_state_dues(now, expenses, mbank_actions)
         with open("testdata/expected_output.pickle", "wb") as f:
             pickle.dump(local_state, f)
