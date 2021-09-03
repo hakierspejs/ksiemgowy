@@ -285,18 +285,13 @@ def get_local_state_dues(now, expenses, mbank_actions):
 
     months = set(monthly_income.keys()).union(set(monthly_expenses.keys()))
 
-    monthly_balance = build_monthly_balance(
-        months, monthly_income, monthly_expenses
-    )
-
     monthly_final_balance, balance_so_far = build_monthly_final_balance(
         months, monthly_income, monthly_expenses
     )
 
-    last_updated_s = last_updated.strftime("%d-%m-%Y")
     ret = {
         "dues_total_lastmonth": total,
-        "dues_last_updated": last_updated_s,
+        "dues_last_updated": last_updated.strftime("%d-%m-%Y"),
         "dues_num_subscribers": num_subscribers,
         "extra_monthly_reservations": extra_monthly_reservations,
         "balance_so_far": balance_so_far,
@@ -304,17 +299,17 @@ def get_local_state_dues(now, expenses, mbank_actions):
         "monthly": {
             "Wydatki": monthly_expenses,
             "Przychody": monthly_income,
-            "Bilans": monthly_balance,
+            "Bilans": build_monthly_balance(
+                months, monthly_income, monthly_expenses
+            ),
             "Saldo": monthly_final_balance,
         },
     }
     LOGGER.debug("get_local_state_dues: ret=%r", ret)
     LOGGER.debug(
         "get_local_state_dues: "
-        "balances_by_account_labels=%r"
         "income_by_out_account=%r"
         "expenses_by_out_account=%r",
-        balances_by_account_labels,
         income_by_out_account,
         expenses_by_out_account,
     )
