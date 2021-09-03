@@ -259,7 +259,7 @@ def build_extra_monthly_reservations(now):
     )
 
 
-def get_local_state_dues(now, expenses, mbank_actions):
+def get_current_report_dues(now, expenses, mbank_actions):
 
     last_updated, monthly_expenses, expenses_by_out_account = apply_expenses(
         expenses
@@ -305,9 +305,9 @@ def get_local_state_dues(now, expenses, mbank_actions):
             "Saldo": monthly_final_balance,
         },
     }
-    LOGGER.debug("get_local_state_dues: ret=%r", ret)
+    LOGGER.debug("get_current_report_dues: ret=%r", ret)
     LOGGER.debug(
-        "get_local_state_dues: "
+        "get_current_report_dues: "
         "income_by_out_account=%r"
         "expenses_by_out_account=%r",
         income_by_out_account,
@@ -375,16 +375,16 @@ def update_remote_state(filepath, new_state, env):
     subprocess.check_call(["git", "push"], cwd="homepage", env=env)
 
 
-def do_states_differ(remote_state, local_state):
-    for k in local_state:
-        if local_state.get(k) != remote_state.get(k):
+def do_states_differ(remote_state, current_report):
+    for k in current_report:
+        if current_report.get(k) != remote_state.get(k):
             return True
     return False
 
 
-def is_newer(remote_state, local_state):
+def is_newer(remote_state, current_report):
     local_modified = datetime.datetime.strptime(
-        local_state["dues_last_updated"], "%d-%m-%Y"
+        current_report["dues_last_updated"], "%d-%m-%Y"
     )
     remote_modified = datetime.datetime.strptime(
         remote_state["dues_last_updated"], "%d-%m-%Y"
@@ -394,15 +394,15 @@ def is_newer(remote_state, local_state):
 
 def maybe_update_dues(db, git_env):
     now = datetime.datetime.now()
-    local_state = get_local_state_dues(
+    current_report = get_current_report_dues(
         now, db.list_expenses(), db.list_mbank_actions()
     )
-    upload_to_graphite(local_state)
+    upload_to_graphite(current_report)
     remote_state = get_remote_state_dues()
-    has_changed = do_states_differ(remote_state, local_state)
-    if has_changed and is_newer(remote_state, local_state):
+    has_changed = do_states_differ(remote_state, current_report)
+    if has_changed and is_newer(remote_state, current_report):
         LOGGER.info("maybe_update_dues: updating dues")
-        remote_state.update(local_state)
+        remote_state.update(current_report)
         update_remote_state(
             f"homepage/{DUES_FILE_PATH}", remote_state, git_env
         )
@@ -467,13 +467,15 @@ if __name__ == "__main__":
     try:
         with open("testdata/expected_output.pickle", "rb") as f:
             expected_output = pickle.load(f)
-            local_state = get_local_state_dues(now, expenses, mbank_actions)
-            if local_state == expected_output:
+            current_report = get_current_report_dues(
+                now, expenses, mbank_actions
+            )
+            if current_report == expected_output:
                 print("Test passed")
             else:
-                print(compare_dicts(local_state, expected_output))
+                print(compare_dicts(current_report, expected_output))
                 sys.exit("ERROR: test not passed.")
     except FileNotFoundError:
-        local_state = get_local_state_dues(now, expenses, mbank_actions)
+        current_report = get_current_report_dues(now, expenses, mbank_actions)
         with open("testdata/expected_output.pickle", "wb") as f:
-            pickle.dump(local_state, f)
+            pickle.dump(current_report, f)
