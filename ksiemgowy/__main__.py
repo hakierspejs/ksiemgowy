@@ -3,8 +3,6 @@
 """ksiemgowy's main submodule, also used as an entry point. Contains the
 logic used to generate database entries."""
 
-# This is here because pylint has generates a false positive:
-# pylint:disable=unsubscriptable-object
 
 import atexit
 import datetime

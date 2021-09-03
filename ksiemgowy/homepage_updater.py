@@ -3,16 +3,18 @@
 import collections
 import contextlib
 import datetime
+import dateutil.rrule
 import logging
 import shutil
 import socket
 import subprocess
 import time
 import yaml
+import os
 
 from yaml.representer import Representer
 
-import dateutil.rrule
+import ksiemgowy.public_state
 
 
 yaml.add_representer(collections.defaultdict, Representer.represent_dict)
@@ -67,7 +69,7 @@ def upload_to_graphite(d):
     )
 
 
-def get_local_state_dues(db):
+def get_local_state_dues(expenses, mbank_actions):
 
     last_updated = None
     observed_acc_numbers = set()
@@ -78,7 +80,7 @@ def get_local_state_dues(db):
         lambda: collections.defaultdict(float)
     )
     expenses_by_out_account = collections.defaultdict(float)
-    for action in db.list_expenses():
+    for action in expenses:
         expenses_by_out_account[action.in_acc_no] += action.amount_pln
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
         kategoria = "Pozostałe"
@@ -115,7 +117,7 @@ def get_local_state_dues(db):
         lambda: collections.defaultdict(float)
     )
     income_by_out_account = collections.defaultdict(float)
-    for action in db.list_mbank_actions():
+    for action in mbank_actions:
         income_by_out_account[action.out_acc_no] += action.amount_pln
 
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
@@ -307,7 +309,9 @@ def is_newer(remote_state, local_state):
 
 
 def maybe_update_dues(db, git_env):
-    local_state = get_local_state_dues(db)
+    local_state = get_local_state_dues(
+        db.list_expenses(), db.list_mbank_actions()
+    )
     upload_to_graphite(local_state)
     remote_state = get_remote_state_dues()
     has_changed = do_states_differ(remote_state, local_state)
@@ -323,3 +327,34 @@ def maybe_update_dues(db, git_env):
 def maybe_update(db, deploy_key_path):
     with git_cloned(deploy_key_path) as git_env:
         maybe_update_dues(db, git_env)
+
+
+def build_args():
+    config = yaml.load(
+        open(
+            os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml")
+        )
+    )
+    ret = []
+    public_db_uri = config["PUBLIC_DB_URI"]
+    for account in config["ACCOUNTS"]:
+        imap_login = account["IMAP_LOGIN"]
+        imap_server = account["IMAP_SERVER"]
+        imap_password = account["IMAP_PASSWORD"]
+        acc_no = account["ACC_NO"]
+        ret.append(
+            [
+                imap_login,
+                imap_password,
+                imap_server,
+                acc_no,
+                public_db_uri,
+            ]
+        )
+    return ret
+
+
+if __name__ == "__main__":
+    args = build_args()
+    public_db_uri = args[0][-1]
+    public_state = ksiemgowy.public_state.PublicState(public_db_uri)
