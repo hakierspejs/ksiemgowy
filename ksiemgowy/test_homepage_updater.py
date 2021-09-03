@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-import pprint
-import sys
+import collections
+import datetime
 import difflib
 import os
 import pickle
-import datetime
+import pprint
+import sys
 import yaml
-import collections
 
 import ksiemgowy.public_state
 
