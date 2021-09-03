@@ -158,29 +158,15 @@ def apply_d33tah_dues(monthly_income):
         monthly_income[month]["Suma"] += 200
 
 
-def get_local_state_dues(now, expenses, mbank_actions):
-
-    last_updated = None
+def apply_positive_transfers(now, last_updated):
+    monthly_income = collections.defaultdict(get_empty_float_defaultdict)
+    income_by_out_account = collections.defaultdict(float)
     observed_acc_numbers = set()
     observed_acc_owners = set()
 
-    # manual correction because of various bugs/problems
-    monthly_expenses = collections.defaultdict(get_empty_float_defaultdict)
-    expenses_by_out_account = collections.defaultdict(float)
-    for action in expenses:
-        expenses_by_out_account[action.in_acc_no] += action.amount_pln
-        month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
-        category = determine_category(action)
-        monthly_expenses[month][category] += action.amount_pln
-        if last_updated is None or action.timestamp > last_updated:
-            last_updated = action.timestamp
-
-    month_ago = now - datetime.timedelta(days=31)
     total = 0
     num_subscribers = 0
-
-    monthly_income = collections.defaultdict(get_empty_float_defaultdict)
-    income_by_out_account = collections.defaultdict(float)
+    month_ago = now - datetime.timedelta(days=31)
     for action in mbank_actions:
         income_by_out_account[action.out_acc_no] += action.amount_pln
 
@@ -201,6 +187,37 @@ def get_local_state_dues(now, expenses, mbank_actions):
         total += action.amount_pln
 
     apply_d33tah_dues(monthly_income)
+
+    return (
+        total,
+        num_subscribers,
+        last_updated,
+        income_by_out_account,
+        monthly_income,
+    )
+
+
+def get_local_state_dues(now, expenses, mbank_actions):
+
+    last_updated = None
+    # manual correction because of various bugs/problems
+    monthly_expenses = collections.defaultdict(get_empty_float_defaultdict)
+    expenses_by_out_account = collections.defaultdict(float)
+    for action in expenses:
+        expenses_by_out_account[action.in_acc_no] += action.amount_pln
+        month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
+        category = determine_category(action)
+        monthly_expenses[month][category] += action.amount_pln
+        if last_updated is None or action.timestamp > last_updated:
+            last_updated = action.timestamp
+
+    (
+        total,
+        num_subscribers,
+        last_updated,
+        income_by_out_account,
+        monthly_income,
+    ) = apply_positive_transfers(now, last_updated)
 
     extra_monthly_reservations = sum(
         [
@@ -432,5 +449,4 @@ if __name__ == "__main__":
     except FileNotFoundError:
         local_state = get_local_state_dues(now, expenses, mbank_actions)
         with open("testdata/expected_output.pickle", "wb") as f:
-            pickle.dump(local_state, f)
             pickle.dump(local_state, f)
