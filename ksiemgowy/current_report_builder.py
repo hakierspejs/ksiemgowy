@@ -42,6 +42,7 @@ def apply_corrections(
 ):
     # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
     # związanych z przelewami własnymi:
+    apply_d33tah_dues(monthly_income)
     for account_name, value in ACCOUNT_CORRECTIONS.items():
         if account_name not in balances_by_account_labels:
             raise RuntimeError(
@@ -71,9 +72,7 @@ def determine_category(action):
         if int(action.amount_pln) == 800:
             return "Czynsz"
         else:
-            return (
-                "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
-            )
+            return "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
     if (
         action.out_acc_no == "62eb7121a7ba81754aa746762dbc364e9ed961b"
         "8d1cf61a94d6531c92c81e56f"
@@ -130,8 +129,6 @@ def apply_positive_transfers(now, last_updated, mbank_actions):
             observed_acc_numbers.add(action.in_acc_no)
             observed_acc_owners.add(action.in_person)
         total += action.amount_pln
-
-    apply_d33tah_dues(monthly_income)
 
     return (
         total,
