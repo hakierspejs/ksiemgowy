@@ -100,7 +100,9 @@ def apply_d33tah_dues(monthly_income):
         monthly_income[month]["Suma"] += 200
 
 
-def apply_positive_transfers(now, last_updated, mbank_actions):
+def apply_positive_transfers(
+    now, last_updated, mbank_actions, balances_by_account_labels
+):
     monthly_income = {}
     income_by_out_account = {}
     observed_acc_numbers = set()
@@ -130,16 +132,19 @@ def apply_positive_transfers(now, last_updated, mbank_actions):
             observed_acc_owners.add(action.in_person)
         total += action.amount_pln
 
+    for acc_no, balance in income_by_out_account.items():
+        balances_by_account_labels.setdefault(ACCOUNT_LABELS[acc_no], 0.0)
+        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] += balance
+
     return (
         total,
         num_subscribers,
         last_updated,
-        income_by_out_account,
         monthly_income,
     )
 
 
-def apply_expenses(expenses):
+def apply_expenses(expenses, balances_by_account_labels):
     last_updated = None
     monthly_expenses = {}
     expenses_by_out_account = {}
@@ -152,20 +157,12 @@ def apply_expenses(expenses):
         monthly_expenses[month][category] += action.amount_pln
         if last_updated is None or action.timestamp > last_updated:
             last_updated = action.timestamp
-    return last_updated, monthly_expenses, expenses_by_out_account
 
-
-def build_balances_by_account_labels(
-    income_by_out_account, expenses_by_out_account
-):
-    balances_by_account_labels = {}
-    for acc_no, balance in income_by_out_account.items():
-        balances_by_account_labels.setdefault(ACCOUNT_LABELS[acc_no], 0.0)
-        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] += balance
     for acc_no, balance in expenses_by_out_account.items():
         balances_by_account_labels.setdefault(ACCOUNT_LABELS[acc_no], 0.0)
         balances_by_account_labels[ACCOUNT_LABELS[acc_no]] -= balance
-    return balances_by_account_labels
+
+    return last_updated, monthly_expenses
 
 
 def build_monthly_final_balance(months, monthly_income, monthly_expenses):
@@ -206,20 +203,20 @@ def build_extra_monthly_reservations(now):
 
 def get_current_report(now, expenses, mbank_actions):
 
-    last_updated, monthly_expenses, expenses_by_out_account = apply_expenses(
-        expenses
+    balances_by_account_labels = {}
+
+    last_updated, monthly_expenses = apply_expenses(
+        expenses,
+        balances_by_account_labels,
     )
 
     (
         total,
         num_subscribers,
         last_updated,
-        income_by_out_account,
         monthly_income,
-    ) = apply_positive_transfers(now, last_updated, mbank_actions)
-
-    balances_by_account_labels = build_balances_by_account_labels(
-        income_by_out_account, expenses_by_out_account
+    ) = apply_positive_transfers(
+        now, last_updated, mbank_actions, balances_by_account_labels
     )
 
     apply_corrections(
@@ -249,11 +246,4 @@ def get_current_report(now, expenses, mbank_actions):
         },
     }
     LOGGER.debug("get_current_report_dues: ret=%r", ret)
-    LOGGER.debug(
-        "get_current_report_dues: "
-        "income_by_out_account=%r"
-        "expenses_by_out_account=%r",
-        income_by_out_account,
-        expenses_by_out_account,
-    )
     return ret
