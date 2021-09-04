@@ -104,7 +104,6 @@ def apply_positive_transfers(
     now, last_updated, mbank_actions, balances_by_account_labels
 ):
     monthly_income = {}
-    income_by_out_account = {}
     observed_acc_numbers = set()
     observed_acc_owners = set()
 
@@ -112,8 +111,12 @@ def apply_positive_transfers(
     num_subscribers = 0
     month_ago = now - datetime.timedelta(days=31)
     for action in mbank_actions:
-        income_by_out_account.setdefault(action.out_acc_no, 0.0)
-        income_by_out_account[action.out_acc_no] += action.amount_pln
+        balances_by_account_labels.setdefault(
+            ACCOUNT_LABELS[action.out_acc_no], 0.0
+        )
+        balances_by_account_labels[
+            ACCOUNT_LABELS[action.out_acc_no]
+        ] += action.amount_pln
 
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
         monthly_income.setdefault(month, {}).setdefault("Suma", 0)
@@ -132,10 +135,6 @@ def apply_positive_transfers(
             observed_acc_owners.add(action.in_person)
         total += action.amount_pln
 
-    for acc_no, balance in income_by_out_account.items():
-        balances_by_account_labels.setdefault(ACCOUNT_LABELS[acc_no], 0.0)
-        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] += balance
-
     return (
         total,
         num_subscribers,
@@ -147,20 +146,19 @@ def apply_positive_transfers(
 def apply_expenses(expenses, balances_by_account_labels):
     last_updated = None
     monthly_expenses = {}
-    expenses_by_out_account = {}
     for action in expenses:
-        expenses_by_out_account.setdefault(action.in_acc_no, 0.0)
-        expenses_by_out_account[action.in_acc_no] += action.amount_pln
+        balances_by_account_labels.setdefault(
+            ACCOUNT_LABELS[action.in_acc_no], 0.0
+        )
+        balances_by_account_labels[
+            ACCOUNT_LABELS[action.in_acc_no]
+        ] -= action.amount_pln
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
         category = determine_category(action)
         monthly_expenses.setdefault(month, {}).setdefault(category, 0)
         monthly_expenses[month][category] += action.amount_pln
         if last_updated is None or action.timestamp > last_updated:
             last_updated = action.timestamp
-
-    for acc_no, balance in expenses_by_out_account.items():
-        balances_by_account_labels.setdefault(ACCOUNT_LABELS[acc_no], 0.0)
-        balances_by_account_labels[ACCOUNT_LABELS[acc_no]] -= balance
 
     return last_updated, monthly_expenses
 
