@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import collections
 import contextlib
 import datetime
 import logging
@@ -10,12 +9,8 @@ import subprocess
 import time
 import yaml
 
-from yaml.representer import Representer
 
 import ksiemgowy.current_report_builder
-
-
-yaml.add_representer(collections.defaultdict, Representer.represent_dict)
 
 
 LOGGER = logging.getLogger("homepage_updater")

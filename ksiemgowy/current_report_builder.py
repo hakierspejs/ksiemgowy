@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import collections
 import datetime
 import dateutil.rrule
 import logging
@@ -38,10 +37,6 @@ MONTHLY_EXPENSE_CORRECTIONS = {
 }
 
 
-def get_empty_float_defaultdict():
-    return collections.defaultdict(float)
-
-
 def apply_corrections(
     balances_by_account_labels, monthly_income, monthly_expenses
 ):
@@ -52,16 +47,19 @@ def apply_corrections(
             raise RuntimeError(
                 "%r not in balances_by_account_labels" % account_name
             )
+        balances_by_account_labels.setdefault(account_name, 0.0)
         balances_by_account_labels[account_name] += value
 
     balances_by_account_labels = dict(balances_by_account_labels)
 
     for month in MONTHLY_INCOME_CORRECTIONS:
         for label, value in MONTHLY_INCOME_CORRECTIONS[month].items():
+            monthly_income.setdefault(month, {}).setdefault(label, 0)
             monthly_income[month][label] += value
 
     for month in MONTHLY_EXPENSE_CORRECTIONS:
         for label, value in MONTHLY_EXPENSE_CORRECTIONS[month].items():
+            monthly_expenses.setdefault(month, {}).setdefault(label, 0)
             monthly_expenses[month][label] += value
 
 
@@ -99,12 +97,13 @@ def apply_d33tah_dues(monthly_income):
         until=last_200pln_d33tah_due_date,
     ):
         month = f"{timestamp.year}-{timestamp.month:02d}"
+        monthly_income.setdefault(month, {}).setdefault("Suma", 0)
         monthly_income[month]["Suma"] += 200
 
 
 def apply_positive_transfers(now, last_updated, mbank_actions):
-    monthly_income = collections.defaultdict(get_empty_float_defaultdict)
-    income_by_out_account = collections.defaultdict(float)
+    monthly_income = {}
+    income_by_out_account = {}
     observed_acc_numbers = set()
     observed_acc_owners = set()
 
@@ -112,9 +111,11 @@ def apply_positive_transfers(now, last_updated, mbank_actions):
     num_subscribers = 0
     month_ago = now - datetime.timedelta(days=31)
     for action in mbank_actions:
+        income_by_out_account.setdefault(action.out_acc_no, 0.0)
         income_by_out_account[action.out_acc_no] += action.amount_pln
 
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
+        monthly_income.setdefault(month, {}).setdefault("Suma", 0)
         monthly_income[month]["Suma"] += action.amount_pln
 
         if action.timestamp < month_ago:
@@ -143,12 +144,14 @@ def apply_positive_transfers(now, last_updated, mbank_actions):
 
 def apply_expenses(expenses):
     last_updated = None
-    monthly_expenses = collections.defaultdict(get_empty_float_defaultdict)
-    expenses_by_out_account = collections.defaultdict(float)
+    monthly_expenses = {}
+    expenses_by_out_account = {}
     for action in expenses:
+        expenses_by_out_account.setdefault(action.in_acc_no, 0.0)
         expenses_by_out_account[action.in_acc_no] += action.amount_pln
         month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
         category = determine_category(action)
+        monthly_expenses.setdefault(month, {}).setdefault(category, 0)
         monthly_expenses[month][category] += action.amount_pln
         if last_updated is None or action.timestamp > last_updated:
             last_updated = action.timestamp
@@ -158,23 +161,24 @@ def apply_expenses(expenses):
 def build_balances_by_account_labels(
     income_by_out_account, expenses_by_out_account
 ):
-    balances_by_account_labels = collections.defaultdict(float)
+    balances_by_account_labels = {}
     for acc_no, balance in income_by_out_account.items():
+        balances_by_account_labels.setdefault(ACCOUNT_LABELS[acc_no], 0.0)
         balances_by_account_labels[ACCOUNT_LABELS[acc_no]] += balance
     for acc_no, balance in expenses_by_out_account.items():
+        balances_by_account_labels.setdefault(ACCOUNT_LABELS[acc_no], 0.0)
         balances_by_account_labels[ACCOUNT_LABELS[acc_no]] -= balance
     return balances_by_account_labels
 
 
 def build_monthly_final_balance(months, monthly_income, monthly_expenses):
     balance_so_far = 0
-    monthly_final_balance = collections.defaultdict(
-        get_empty_float_defaultdict
-    )
+    monthly_final_balance = {}
     for month in sorted(months):
         _monthly_income = sum(monthly_income.get(month, {}).values())
         _monthly_expenses = sum(monthly_expenses.get(month, {}).values())
         balance_so_far += _monthly_income - _monthly_expenses
+        monthly_final_balance.setdefault(month, {}).setdefault("Suma", 0)
         monthly_final_balance[month]["Suma"] = balance_so_far
     return monthly_final_balance, balance_so_far
 

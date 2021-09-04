@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import collections
 import datetime
 import difflib
 import os
@@ -11,12 +10,7 @@ import yaml
 
 import ksiemgowy.public_state
 
-from yaml.representer import Representer
-
 import ksiemgowy.current_report_builder
-
-yaml.add_representer(collections.defaultdict, Representer.represent_dict)
-
 
 def build_args():
     config = yaml.load(
