@@ -146,7 +146,12 @@ def gen_unseen_mbank_emails(db, mail):
 
 
 def check_for_updates(  # pylint: disable=too-many-arguments
-    imap_login, imap_password, imap_server, acc_number, public_db_uri,
+    imap_login,
+    imap_password,
+    imap_server,
+    acc_number,
+    public_db_uri,
+    mbank_anonymization_key,
 ):
     """Program's entry point."""
     LOGGER.info("checking for updates...")
@@ -155,11 +160,16 @@ def check_for_updates(  # pylint: disable=too-many-arguments
     for msg in gen_unseen_mbank_emails(public_state, mail):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
-            LOGGER.info("Observed an action: %r", action.anonymized().asdict())
+            LOGGER.info(
+                "Observed an action: %r",
+                action.anonymized(mbank_anonymization_key).asdict(),
+            )
             if action.action_type == "in_transfer" and str(
                 action.out_acc_no
             ) == str(acc_number):
-                public_state.add_mbank_action(action.anonymized().asdict())
+                public_state.add_mbank_action(
+                    action.anonymized(mbank_anonymization_key).asdict()
+                )
                 if SEND_EMAIL:
                     with smtp_login(imap_login, imap_password) as server:
                         send_confirmation_mail(
@@ -168,12 +178,15 @@ def check_for_updates(  # pylint: disable=too-many-arguments
                             imap_login,
                             action,
                             public_state,
+                            mbank_anonymization_key,
                         )
                 LOGGER.info("added an action")
             elif action.action_type == "out_transfer" and str(
                 action.in_acc_no
             ) == str(acc_number):
-                public_state.add_expense(action.anonymized().asdict())
+                public_state.add_expense(
+                    action.anonymized(mbank_anonymization_key).asdict()
+                )
                 LOGGER.info("added an expense")
             else:
                 LOGGER.info("Skipping an action due to criteria not matched.")
@@ -234,12 +247,14 @@ def notify_about_overdues(
 def main():
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
+    mbank_anonymization_key = os.environ["MBANK_ANONYMIZATION_KEY"].encode()
     args = build_args()
     public_db_uri = args[0][-1]
     public_state = ksiemgowy.public_state.PublicState(public_db_uri)
     # pylint:disable=unused-variable
     emails = public_state.acc_no_to_email("arrived")  # noqa
     for account in args:
+        account = list(account) + [mbank_anonymization_key]
         check_for_updates(*account)
         schedule.every().hour.do(check_for_updates, *account)
 
