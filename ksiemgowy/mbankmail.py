@@ -25,11 +25,8 @@ INCOMING_RE = re.compile(
 )
 
 
-MBANK_ANONYMIZATION_KEY = os.environ["MBANK_ANONYMIZATION_KEY"].encode()
-
-
-def anonymize(s):
-    return hashlib.sha256(s.encode() + MBANK_ANONYMIZATION_KEY).hexdigest()
+def anonymize(s, mbank_anonymization_key):
+    return hashlib.sha256(s.encode() + mbank_anonymization_key).hexdigest()
 
 
 @dataclasses.dataclass
@@ -43,12 +40,12 @@ class MbankAction:
     timestamp: str
     action_type: str
 
-    def anonymized(self):
+    def anonymized(self, mbank_anonymization_key):
         new = copy.copy(self)
-        new.in_acc_no = anonymize(self.in_acc_no)
-        new.out_acc_no = anonymize(self.out_acc_no)
-        new.in_person = anonymize(self.in_person)
-        new.in_desc = anonymize(self.in_desc)
+        new.in_acc_no = anonymize(self.in_acc_no, mbank_anonymization_key)
+        new.out_acc_no = anonymize(self.out_acc_no, mbank_anonymization_key)
+        new.in_person = anonymize(self.in_person, mbank_anonymization_key)
+        new.in_desc = anonymize(self.in_desc, mbank_anonymization_key)
         return new
 
     asdict = dataclasses.asdict
