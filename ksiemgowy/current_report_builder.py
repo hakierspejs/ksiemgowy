@@ -46,7 +46,7 @@ def apply_corrections(
 ):
     # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
     # związanych z przelewami własnymi:
-    apply_d33tah_dues(monthly_income)
+    apply_d33tah_dues(monthly_income, balances_by_account_labels)
     for account_name, value in corrections["ACCOUNT_CORRECTIONS"].items():
         if account_name not in balances_by_account_labels:
             raise RuntimeError(
@@ -94,7 +94,7 @@ def determine_category(action):
     return "Pozostałe"
 
 
-def apply_d33tah_dues(monthly_income):
+def apply_d33tah_dues(monthly_income, balances_by_account_labels):
     first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
     # After this day, this hack isn't requried anymore:
     last_200pln_d33tah_due_date = datetime.datetime(year=2021, month=5, day=5)
@@ -106,6 +106,8 @@ def apply_d33tah_dues(monthly_income):
         month = f"{timestamp.year}-{timestamp.month:02d}"
         monthly_income.setdefault(month, {}).setdefault("Suma", 0)
         monthly_income[month]["Suma"] += 200
+        balances_by_account_labels.setdefault("Konto Jacka", 0.0)
+        balances_by_account_labels["Konto Jacka"] += 200.0
 
 
 def apply_positive_transfers(
