@@ -6,7 +6,6 @@ JSON."""
 import re
 import argparse
 import dataclasses
-import os
 import pprint
 import copy
 import hashlib
