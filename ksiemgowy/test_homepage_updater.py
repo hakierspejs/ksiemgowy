@@ -12,6 +12,7 @@ import ksiemgowy.public_state
 
 import ksiemgowy.current_report_builder
 
+
 def build_args():
     config = yaml.load(
         open(

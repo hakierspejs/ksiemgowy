@@ -16,34 +16,38 @@ ACCOUNT_LABELS = {
     ): "Konto stowarzyszenia",
 }
 
-ACCOUNT_CORRECTIONS = {"Konto Jacka": -347.53, "Konto stowarzyszenia": -727.53}
-MONTHLY_INCOME_CORRECTIONS = {
-    "2020-04": {"Suma": 200},
-    "2020-05": {"Suma": 100},
-}
-
-MONTHLY_EXPENSE_CORRECTIONS = {
-    "2020-08": {"Meetup": 294.36},
-    "2020-10": {"Remont": 1145},
-    "2020-11": {"Pozostałe": 139.80},
-    "2021-01": {
-        "Drukarka HP": 314.00,
-        "Meetup (za 6 mies.)": 285.43,
+CORRECTIONS = {
+    "ACCOUNT_CORRECTIONS": {
+        "Konto Jacka": -347.53,
+        "Konto stowarzyszenia": -727.53,
     },
-    "2021-02": {"Domena": 55.34},
-    "2021-05": {"Pozostałe": 200.0},
-    "2021-07": {"Meetup (za 6 mies.)": 301.07},
-    "2021-08": {"Zakupy": 840.04},
+    "MONTHLY_INCOME_CORRECTIONS": {
+        "2020-04": {"Suma": 200},
+        "2020-05": {"Suma": 100},
+    },
+    "MONTHLY_EXPENSE_CORRECTIONS": {
+        "2020-08": {"Meetup": 294.36},
+        "2020-10": {"Remont": 1145},
+        "2020-11": {"Pozostałe": 139.80},
+        "2021-01": {
+            "Drukarka HP": 314.00,
+            "Meetup (za 6 mies.)": 285.43,
+        },
+        "2021-02": {"Domena": 55.34},
+        "2021-05": {"Pozostałe": 200.0},
+        "2021-07": {"Meetup (za 6 mies.)": 301.07},
+        "2021-08": {"Zakupy": 840.04},
+    },
 }
 
 
 def apply_corrections(
-    balances_by_account_labels, monthly_income, monthly_expenses
+    corrections, balances_by_account_labels, monthly_income, monthly_expenses
 ):
     # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
     # związanych z przelewami własnymi:
     apply_d33tah_dues(monthly_income)
-    for account_name, value in ACCOUNT_CORRECTIONS.items():
+    for account_name, value in corrections["ACCOUNT_CORRECTIONS"].items():
         if account_name not in balances_by_account_labels:
             raise RuntimeError(
                 "%r not in balances_by_account_labels" % account_name
@@ -53,13 +57,17 @@ def apply_corrections(
 
     balances_by_account_labels = dict(balances_by_account_labels)
 
-    for month in MONTHLY_INCOME_CORRECTIONS:
-        for label, value in MONTHLY_INCOME_CORRECTIONS[month].items():
+    for month in corrections["MONTHLY_INCOME_CORRECTIONS"]:
+        for label, value in corrections["MONTHLY_INCOME_CORRECTIONS"][
+            month
+        ].items():
             monthly_income.setdefault(month, {}).setdefault(label, 0)
             monthly_income[month][label] += value
 
-    for month in MONTHLY_EXPENSE_CORRECTIONS:
-        for label, value in MONTHLY_EXPENSE_CORRECTIONS[month].items():
+    for month in corrections["MONTHLY_EXPENSE_CORRECTIONS"]:
+        for label, value in corrections["MONTHLY_EXPENSE_CORRECTIONS"][
+            month
+        ].items():
             monthly_expenses.setdefault(month, {}).setdefault(label, 0)
             monthly_expenses[month][label] += value
 
@@ -199,7 +207,7 @@ def build_extra_monthly_reservations(now):
     )
 
 
-def get_current_report(now, expenses, mbank_actions):
+def get_current_report(now, expenses, mbank_actions, corrections=None):
 
     balances_by_account_labels = {}
 
@@ -217,8 +225,13 @@ def get_current_report(now, expenses, mbank_actions):
         now, last_updated, mbank_actions, balances_by_account_labels
     )
 
+    if corrections is None:
+        corrections = CORRECTIONS
     apply_corrections(
-        balances_by_account_labels, monthly_income, monthly_expenses
+        corrections,
+        balances_by_account_labels,
+        monthly_income,
+        monthly_expenses,
     )
 
     months = set(monthly_income.keys()).union(set(monthly_expenses.keys()))
