@@ -6,6 +6,8 @@
 Welcome to ksiemgowy's documentation!
 =====================================
 
+This is a test message.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
