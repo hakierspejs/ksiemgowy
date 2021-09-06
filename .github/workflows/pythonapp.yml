@@ -52,7 +52,7 @@ jobs:
       with:
         python-version: 3.8
     - name: install deps
-      run: pip install -r requirements.txt
+      run: pip install -r requirements.txt && pip install -r requirements-dev.txt
     - name: regenerage docs
       run: cd docs/_sphinx && make
     - uses: stefanzweifel/git-auto-commit-action@v4.2.0
