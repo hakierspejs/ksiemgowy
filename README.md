@@ -53,6 +53,6 @@ Dane trzymane są także jako zwykły tekst na monitorowanym adresie e-mail, w c
 diagnostycznych. Dzięki temu możliwe jest zrekonstruowanie większości bazy danych
 w przypadku awarii.
 
-Na ten moment nie ma planu usuwania danych. Oczywiście, zgodnie z prawem możliwy jest
-wgląd do danych oraz ich usunięcie na życzenie. Administratorem danych osobowych
-jest Jacek Wielemborek.
+Na ten moment nie ma planu usuwania danych. Oczywiście, zgodnie z prawem możliwy
+jest wgląd do danych oraz ich usunięcie na życzenie. Administratorem danych
+osobowych jest Jacek Wielemborek.
