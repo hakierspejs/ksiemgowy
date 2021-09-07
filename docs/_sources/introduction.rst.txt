@@ -38,7 +38,13 @@ account owner receives daily updates on which transactions took place. Given
 that this includes all incoming and outcoming transfers related to the bank
 account, it is a reasonably reliable way to estimate the current balance and
 detect who transferred the money. The act of viewing the e-mail is not possible
-to observe, which is why this 
+to observe, which means that we are probably at a lower risk of getting our
+account locked.
+
+Another way to think of ksiemgowy is as of a stateful email-to-email bot:
+it reads mail and sends mail. All e-mails relevant to ksiemgowy's operation
+are parsed and logged in a database, which enables it to send notifications
+about overdue payments.
 
 .. _hackerspace: https://en.wikipedia.org/wiki/Hackerspace
 .. _screen scraping: https://en.wikipedia.org/wiki/Screen_scraping
