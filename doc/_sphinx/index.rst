@@ -6,13 +6,11 @@
 Welcome to ksiemgowy's documentation!
 =====================================
 
-This is a test message #2.
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-
+   introduction
 
 Indices and tables
 ==================

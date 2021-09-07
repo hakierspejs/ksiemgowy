@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Introduction &#8212; ksiemgowy  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to ksiemgowy’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-is-ksiemgowy">
+<h2>What is ksiemgowy?<a class="headerlink" href="#what-is-ksiemgowy" title="Permalink to this headline">¶</a></h2>
+<p>Ksiemgowy is a tool used for bookkeeping of membership dues in Hakierspejs,
+a <a class="reference external" href="https://en.wikipedia.org/wiki/Hackerspace">hackerspace</a> in Łódź, Poland. Long story short, one day we decided to start
+collecting dues in order to build up some money that would eventually let us
+rent our headquarters. The person who asked for money also had a secondary
+goals:</p>
+<ul class="simple">
+<li><p>transparency: everyone should have access to current information about the
+status of fundraising,</p></li>
+<li><p>privacy: the information should be reasonably anonymized, e.g. aggregated in
+a way that would make it difficult to de-anonymize,</p></li>
+<li><p>automation: ideally, the person managing the account should be able to take
+some time off on holidays and the system should operate normally,</p></li>
+<li><p>good feedback: the system should notify organization members once they are
+overdue or once a payment has been accounted for.</p></li>
+</ul>
+</div>
+<div class="section" id="how-does-ksiemgowy-work">
+<h2>How does ksiemgowy work?<a class="headerlink" href="#how-does-ksiemgowy-work" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p><em>Every program attempts to expand until it can read mail. Those programs
+which cannot so expand are replaced by ones which can.</em></p>
+<p><em>Jamie Zawinski</em></p>
+</div></blockquote>
+<p>Most hackerspaces solve the problem of bookkeeping with the aid of <a class="reference external" href="https://en.wikipedia.org/wiki/Screen_scraping">screen
+scraping</a>, but the author was worried about raising eyebrows when their
+program automatically logged in using a script. Because of that, it was
+decided to look for passive ways of detecting that a transfer was mode.</p>
+<p>mBank, the bank in which Hakierspejs has an account, has daily billing updates,
+which is a perfect match for this scenario. Should this feature be enabled,
+account owner receives daily updates on which transactions took place. Given
+that this includes all incoming and outcoming transfers related to the bank
+account, it is a reasonably reliable way to estimate the current balance and
+detect who transferred the money. The act of viewing the e-mail is not possible
+to observe, which is why this</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">ksiemgowy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-ksiemgowy">What is ksiemgowy?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-does-ksiemgowy-work">How does ksiemgowy work?</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to ksiemgowy’s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Hakierspejs.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/introduction.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
