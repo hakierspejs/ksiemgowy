@@ -49,7 +49,7 @@ and balances_by_account_labels.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ksiemgowy.current_report_builder.apply_d33tah_dues">
-<span class="sig-prename descclassname"><span class="pre">ksiemgowy.current_report_builder.</span></span><span class="sig-name descname"><span class="pre">apply_d33tah_dues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">monthly_income</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.current_report_builder.apply_d33tah_dues" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ksiemgowy.current_report_builder.</span></span><span class="sig-name descname"><span class="pre">apply_d33tah_dues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">monthly_income</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">balances_by_account_labels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.current_report_builder.apply_d33tah_dues" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies dues paid by d33tah to monthly_income. This is here because
 the banking system didn’t notify about self-transfers, so they needed to
 be added explicitly.</p>
@@ -377,16 +377,8 @@ observed so far.</p>
 </dd></dl>
 
 </section>
-<section id="module-ksiemgowy.test_homepage_updater">
-<span id="ksiemgowy-test-homepage-updater-module"></span><h2>ksiemgowy.test_homepage_updater module<a class="headerlink" href="#module-ksiemgowy.test_homepage_updater" title="Permalink to this headline">¶</a></h2>
-<p>Tests current_report_builder submodule by loading a fixture and comparing
-the result of how it was processed to the desired output.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="ksiemgowy.test_homepage_updater.compare_dicts">
-<span class="sig-prename descclassname"><span class="pre">ksiemgowy.test_homepage_updater.</span></span><span class="sig-name descname"><span class="pre">compare_dicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dict1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.test_homepage_updater.compare_dicts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compares two dictionaries, returning a string in “diff” format.</p>
-</dd></dl>
-
+<section id="ksiemgowy-test-homepage-updater-module">
+<h2>ksiemgowy.test_homepage_updater module<a class="headerlink" href="#ksiemgowy-test-homepage-updater-module" title="Permalink to this headline">¶</a></h2>
 </section>
 <section id="module-ksiemgowy">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ksiemgowy" title="Permalink to this headline">¶</a></h2>
