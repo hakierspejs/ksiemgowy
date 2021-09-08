@@ -20,9 +20,15 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install -r requirements-dev.txt
     - name: Run unit tests
       run: |
-        python -m unittest
+        python -m coverage run --source=. --branch -m unittest -v
+        python -m coverage html
+        mv htmlcov docs
+    - uses: stefanzweifel/git-auto-commit-action@v4.2.0
+      with:
+        commit_message: Autoupdate code coverage stats
 
   flake8:
 
