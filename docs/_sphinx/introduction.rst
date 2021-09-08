@@ -29,8 +29,9 @@ How does ksiemgowy work?
 
 Most hackerspaces solve the problem of bookkeeping with the aid of `screen
 scraping`_, but the author was worried about raising eyebrows when their
-program automatically logged in using a script. Because of that, it was
-decided to look for passive ways of detecting that a transfer was mode.
+program automatically logged in to the bank using a script. Because of that,
+it was decided to look for passive ways of detecting that a transfer was
+mode.
 
 mBank, the bank in which Hakierspejs has an account, has daily billing updates,
 which is a perfect match for this scenario. Should this feature be enabled,

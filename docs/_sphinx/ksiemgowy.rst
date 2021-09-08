@@ -28,10 +28,10 @@ ksiemgowy.mbankmail module
    :undoc-members:
    :show-inheritance:
 
-ksiemgowy.public\_state module
-------------------------------
+ksiemgowy.models module
+-----------------------
 
-.. automodule:: ksiemgowy.public_state
+.. automodule:: ksiemgowy.models
    :members:
    :undoc-members:
    :show-inheritance:
