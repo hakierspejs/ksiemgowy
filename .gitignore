@@ -6,3 +6,4 @@ envfile*
 db
 config.yaml
 docs/.doctrees
+.coverage
