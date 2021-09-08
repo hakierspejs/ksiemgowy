@@ -24,6 +24,7 @@ jobs:
       run: |
         python -m coverage run --source=. --branch -m unittest -v
         python -m coverage html
+        rm -rf docs/htmlcov
         mv htmlcov docs
     - name: regenerage docs
       run: cd docs/_sphinx && make
