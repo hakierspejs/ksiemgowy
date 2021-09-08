@@ -5,3 +5,4 @@ envfile*
 *.sqlite
 db
 config.yaml
+docs/.doctrees

@@ -1,47 +1,26 @@
 #!/usr/bin/env python3
 
+"""Tests current_report_builder submodule by loading a fixture and comparing
+the result of how it was processed to the desired output."""
+
 import datetime
 import difflib
-import os
 import pickle
 import pprint
 import sys
-import yaml
 
-import ksiemgowy.public_state
+import ksiemgowy.models
 
 import ksiemgowy.current_report_builder
+from ksiemgowy.__main__ import parse_config_and_build_args
 
 
-def build_args():
-    config = yaml.load(
-        open(
-            os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml")
-        )
-    )
-    ret = []
-    public_db_uri = config["PUBLIC_DB_URI"]
-    for account in config["ACCOUNTS"]:
-        imap_login = account["IMAP_LOGIN"]
-        imap_server = account["IMAP_SERVER"]
-        imap_password = account["IMAP_PASSWORD"]
-        acc_no = account["ACC_NO"]
-        ret.append(
-            [
-                imap_login,
-                imap_password,
-                imap_server,
-                acc_no,
-                public_db_uri,
-            ]
-        )
-    return ret
-
-
-def compare_dicts(d1, d2):
+def compare_dicts(dict1, dict2):
+    """Compares two dictionaries, returning a string in "diff" format."""
     return "\n" + "\n".join(
         difflib.ndiff(
-            pprint.pformat(d1).splitlines(), pprint.pformat(d2).splitlines()
+            pprint.pformat(dict1).splitlines(),
+            pprint.pformat(dict2).splitlines(),
         )
     )
 
@@ -53,12 +32,12 @@ if __name__ == "__main__":
             expenses = pickle.load(f)
             mbank_actions = pickle.load(f)
     except FileNotFoundError:
-        args = build_args()
+        args = parse_config_and_build_args()
         public_db_uri = args[0][-1]
-        db = ksiemgowy.public_state.PublicState(public_db_uri)
+        db = ksiemgowy.models.KsiemgowyDB(public_db_uri)
         now = datetime.datetime.now()
         expenses = list(db.list_expenses())
-        mbank_actions = list(db.list_mbank_actions())
+        mbank_actions = list(db.list_positive_transfers())
         with open("testdata/input.pickle", "wb") as f:
             pickle.dump(now, f)
             pickle.dump(expenses, f)

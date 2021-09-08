@@ -21,7 +21,7 @@ import schedule
 import yaml
 
 import ksiemgowy.mbankmail
-import ksiemgowy.public_state
+import ksiemgowy.models
 import ksiemgowy.homepage_updater
 
 
@@ -31,6 +31,7 @@ SEND_EMAIL = True
 
 
 def imap_connect(login, password, server):
+    """Logs in to IMAP using given credentials."""
     mail = imaplib.IMAP4_SSL(server)
     mail.login(login, password)
     return mail
@@ -38,6 +39,7 @@ def imap_connect(login, password, server):
 
 @contextlib.contextmanager
 def smtp_login(smtplogin, smtppass):
+    """A context manager that handles SMTP login and logout."""
     server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
     server.ehlo()
     server.login(smtplogin, smtppass)
@@ -46,6 +48,8 @@ def smtp_login(smtplogin, smtppass):
 
 
 def send_overdue_email(server, fromaddr, overdue_email):
+    """Sends an e-mail notifying that a member is overdue with their
+    payments."""
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
     msg["To"] = overdue_email
@@ -73,7 +77,7 @@ proszę znać, jeżeli masz jakiekolwiek pytania lub sugestie.
 
 Niezależnie od tego czy uda Ci się przelać kolejną składkę - dziękuję
 za Twój dotychczasowy wkład w działalność HSŁ! Dzięki regularnym
-przelewom możemy zadbać o bezpieczeństwo finansowe naszej organizacji,
+przelewom możemy zadatabaseać o bezpieczeństwo finansowe naszej organizacji,
 w szczególności regularne opłacanie czynszu oraz gromadzenie środków
 na dalszy rozwój :)
 
@@ -92,13 +96,21 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
 
 
 def send_confirmation_mail(
-    server, fromaddr, toaddr, mbank_action, public_state
+    fromaddr,
+    toaddr,
+    mbank_action,
+    public_state,
+    mbank_anonymization_key,
 ):
+    """Sends an e-mail confirming that a membership due has arrived and was
+    accounted for."""
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
     emails = public_state.acc_no_to_email("arrived")
     if mbank_action.anonymized().in_acc_no in emails:
-        msg["To"] = emails[mbank_action.anonymized().in_acc_no]
+        msg["To"] = emails[
+            mbank_action.anonymized(mbank_anonymization_key).in_acc_no
+        ]
         msg["Cc"] = toaddr
     else:
         msg["To"] = toaddr
@@ -119,11 +131,10 @@ Jeśli nie chcesz w przyszłości dostawać tego typu wiadomości, daj znać Jac
 przez Telegrama, Matriksa albo wyślij oddzielnego maila.
 """
     msg.attach(MIMEText(message_text, "plain", "utf-8"))
-    server.send_message(msg)
-    time.sleep(10)  # HACK: slow down potential self-spam
+    return msg
 
 
-def gen_unseen_mbank_emails(db, mail):
+def gen_unseen_mbank_emails(database, mail):
     """Connects to imap_server using login and password from the arguments,
     then yields a pair (mail_id_as_str, email_as_eml_string) for each of
     e-mails coming from mBank."""
@@ -133,95 +144,117 @@ def gen_unseen_mbank_emails(db, mail):
     id_list = mail_ids.split()
     for mail_id in reversed(id_list):
         _, data = mail.fetch(mail_id, "(RFC822)")
-        for n, response_part in enumerate(data):
+        for mail_number, response_part in enumerate(data):
             if not isinstance(response_part, tuple):
                 continue
             msg = email.message_from_string(response_part[1].decode())
-            mail_key = f'{msg["Date"]}_{n}'
-            if db.was_imap_id_already_handled(mail_key):
+            mail_key = f'{msg["Date"]}_{mail_number}'
+            if database.was_imap_id_already_handled(mail_key):
                 continue
             LOGGER.info("Handling e-mail id: %r", mail_id)
             yield msg
-            db.mark_imap_id_already_handled(mail_key)
+            database.mark_imap_id_already_handled(mail_key)
 
 
 def check_for_updates(  # pylint: disable=too-many-arguments
-    imap_login, imap_password, imap_server, acc_number, public_db_uri,
+    imap_login,
+    imap_password,
+    imap_server,
+    acc_number,
+    public_database_uri,
+    mbank_anonymization_key,
 ):
     """Program's entry point."""
     LOGGER.info("checking for updates...")
-    public_state = ksiemgowy.public_state.PublicState(public_db_uri)
+    public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
     mail = imap_connect(imap_login, imap_password, imap_server)
     for msg in gen_unseen_mbank_emails(public_state, mail):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
-            LOGGER.info("Observed an action: %r", action.anonymized().asdict())
+            LOGGER.info(
+                "Observed an action: %r",
+                action.anonymized(mbank_anonymization_key).asdict(),
+            )
             if action.action_type == "in_transfer" and str(
                 action.out_acc_no
             ) == str(acc_number):
-                public_state.add_mbank_action(action.anonymized().asdict())
+                public_state.add_positive_transfer(
+                    action.anonymized(mbank_anonymization_key).asdict()
+                )
                 if SEND_EMAIL:
                     with smtp_login(imap_login, imap_password) as server:
-                        send_confirmation_mail(
-                            server,
+                        msg = send_confirmation_mail(
                             imap_login,
                             imap_login,
                             action,
                             public_state,
+                            mbank_anonymization_key,
                         )
+                        server.send_message(msg)
+                        time.sleep(10)  # HACK: slow down potential self-spam
+
                 LOGGER.info("added an action")
             elif action.action_type == "out_transfer" and str(
                 action.in_acc_no
             ) == str(acc_number):
-                public_state.add_expense(action.anonymized().asdict())
+                public_state.add_expense(
+                    action.anonymized(mbank_anonymization_key).asdict()
+                )
                 LOGGER.info("added an expense")
             else:
                 LOGGER.info("Skipping an action due to criteria not matched.")
     LOGGER.info("check_for_updates: done")
 
 
-def build_args():
-    config = yaml.load(
-        open(
-            os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml")
-        )
-    )
+def parse_config_and_build_args():
+    """Parses the configuration file and builds arguments for all routines."""
+    with open(
+        os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
+        encoding="utf8",
+    ) as config_file:
+        config = yaml.load(config_file)
     ret = []
-    public_db_uri = config["PUBLIC_DB_URI"]
+    public_database_uri = config["PUBLIC_DB_URI"]
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
         imap_server = account["IMAP_SERVER"]
         imap_password = account["IMAP_PASSWORD"]
         acc_no = account["ACC_NO"]
         ret.append(
-            [imap_login, imap_password, imap_server, acc_no, public_db_uri]
+            [imap_login, imap_password, imap_server, acc_no, public_database_uri]
         )
     return ret
 
 
 @atexit.register
 def atexit_handler(*_, **__):
+    """Handles program termination in a predictable way."""
     LOGGER.info("Shutting down")
 
 
 def notify_about_overdues(
-    imap_login, imap_password, _imap_server, public_db_uri
+    imap_login, imap_password, _imap_server, public_database_uri
 ):
+    """Checks whether any of the organization members is overdue and notifies
+    them about that fact."""
     LOGGER.info("notify_about_overdues()")
-    public_state = ksiemgowy.public_state.PublicState(public_db_uri)
-    d = {}
-    for x in public_state.list_mbank_actions():
-        if x.in_acc_no not in d or d[x.in_acc_no].timestamp < x.timestamp:
-            d[x.in_acc_no] = x
+    public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
+    latest_dues = {}
+    for action in public_state.list_positive_transfers():
+        if (
+            action.in_acc_no not in latest_dues
+            or latest_dues[action.in_acc_no].timestamp < action.timestamp
+        ):
+            latest_dues[action.in_acc_no] = action
 
     ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
     ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
     overdues = []
     emails = public_state.acc_no_to_email("overdue")
-    for k in d:
-        if ago_55d < d[k].timestamp < ago_35d:
-            if d[k].in_acc_no in emails:
-                overdues.append(emails[d[k].in_acc_no])
+    for payment in latest_dues.values():
+        if ago_55d < payment.timestamp < ago_35d:
+            if payment.in_acc_no in emails:
+                overdues.append(emails[payment.in_acc_no])
 
     if SEND_EMAIL:
         with smtp_login(imap_login, imap_password) as server:
@@ -232,14 +265,17 @@ def notify_about_overdues(
 
 
 def main():
+    """Program's entry point. Schedules periodic execution of all routines."""
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
-    args = build_args()
-    public_db_uri = args[0][-1]
-    public_state = ksiemgowy.public_state.PublicState(public_db_uri)
+    mbank_anonymization_key = os.environ["MBANK_ANONYMIZATION_KEY"].encode()
+    args = parse_config_and_build_args()
+    public_database_uri = args[0][-1]
+    public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
     # pylint:disable=unused-variable
     emails = public_state.acc_no_to_email("arrived")  # noqa
     for account in args:
+        account = list(account) + [mbank_anonymization_key]
         check_for_updates(*account)
         schedule.every().hour.do(check_for_updates, *account)
 
@@ -248,8 +284,8 @@ def main():
     schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *args[-1])
 
     deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
-    public_db_uri = args[0][-1]
-    public_state = ksiemgowy.public_state.PublicState(public_db_uri)
+    public_database_uri = args[0][-1]
+    public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
     schedule.every().hour.do(
         ksiemgowy.homepage_updater.maybe_update, public_state, deploy_key_path
     )
