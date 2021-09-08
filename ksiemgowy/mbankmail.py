@@ -1,7 +1,6 @@
 #!/usr/bin/env pyhon
 
-"""Parsuje mail z mBanku, podając info o przelewach przychodzących jako
-JSON."""
+"""Parses mbank daily notification e-mails."""
 
 import re
 import argparse
@@ -24,12 +23,19 @@ INCOMING_RE = re.compile(
 )
 
 
-def anonymize(s, mbank_anonymization_key):
-    return hashlib.sha256(s.encode() + mbank_anonymization_key).hexdigest()
+def anonymize(hashed_string, mbank_anonymization_key):
+    """Anonymizes an input string using mbank_anonymization_key as
+    cryptographic pepper."""
+    return hashlib.sha256(
+        hashed_string.encode() + mbank_anonymization_key
+    ).hexdigest()
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclasses.dataclass
 class MbankAction:
+    """A container for all transfers, positive or negative."""
+
     in_acc_no: str
     out_acc_no: str
     amount_pln: str
@@ -40,6 +46,8 @@ class MbankAction:
     action_type: str
 
     def anonymized(self, mbank_anonymization_key):
+        """Anonymizes all potentially sensitive fields using
+        mbank_anonymization_key as cryptographic pepper."""
         new = copy.copy(self)
         new.in_acc_no = anonymize(self.in_acc_no, mbank_anonymization_key)
         new.out_acc_no = anonymize(self.out_acc_no, mbank_anonymization_key)
@@ -53,10 +61,10 @@ class MbankAction:
 def parse_mbank_html(mbank_html):
     """Parses mBank .htm attachment file and generates a list of actions
     that were derived from it."""
-    h = lxml.html.fromstring(mbank_html)
-    date = h.xpath("//h5/text()")[0].split(" - ")[0]
+    html = lxml.html.fromstring(mbank_html)
+    date = html.xpath("//h5/text()")[0].split(" - ")[0]
     actions = []
-    rows = h.xpath("//tr")[2:]
+    rows = html.xpath("//tr")[2:]
     logging.debug("len(rows)=%r", len(rows))
     for row in rows:
         desc_e = row.xpath(".//td[2]/text()")
@@ -66,11 +74,11 @@ def parse_mbank_html(mbank_html):
         desc_s = desc_e[0].strip().replace("\n", "")
         logging.debug("desc_s=%r", desc_s)
         time = row.xpath(".//td[1]")[0].text_content().strip()
-        g = INCOMING_RE.match(desc_s)
-        if not g:
+        match = INCOMING_RE.match(desc_s)
+        if not match:
             continue
         action = {}
-        action.update(g.groupdict())
+        action.update(match.groupdict())
         action["action_type"] = {
             "przych": "in_transfer",
             "wych": "out_transfer",
@@ -110,12 +118,12 @@ def main(input_fpath, mode, encoding, loglevel):
     input_fpath, then runs either parse_mbank_html or parse_mbank_email,
     depending on the mode."""
     logging.basicConfig(level=loglevel.upper())
-    with open(input_fpath, encoding=encoding) as f:
-        s = f.read()
+    with open(input_fpath, encoding=encoding) as input_file:
+        input_string = input_file.read()
     if mode == "html":
-        result = parse_mbank_html(s)
+        result = parse_mbank_html(input_string)
     elif mode == "eml":
-        result = parse_mbank_email(s)
+        result = parse_mbank_email(input_string)
     else:
         raise RuntimeError("Unexpected mode: %s" % mode)
     pprint.pprint(result)

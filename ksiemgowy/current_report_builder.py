@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
+"""Ksiemgowy's reporting module. Generates a dictionary that details
+information about organization's current financial status."""
+
 import datetime
-import dateutil.rrule
 import logging
+import dateutil.rrule
 
 
 LOGGER = logging.getLogger("homepage_updater")
@@ -44,6 +47,8 @@ CORRECTIONS = {
 def apply_corrections(
     corrections, balances_by_account_labels, monthly_income, monthly_expenses
 ):
+    """Apply a specified set of corrections to monthly_income, monthly_expenses
+    and balances_by_account_labels."""
     # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
     # związanych z przelewami własnymi:
     apply_d33tah_dues(monthly_income, balances_by_account_labels)
@@ -73,14 +78,14 @@ def apply_corrections(
 
 
 def determine_category(action):
+    """Given an incoming action, determine what label to assign to it."""
     if (
         action.out_acc_no == "5c0de18baddf47952"
         "002df587685dea519f06b639051ea3e4749ef058f6782bf"
     ):
         if int(action.amount_pln) == 800:
             return "Czynsz"
-        else:
-            return "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
+        return "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
     if (
         action.out_acc_no == "62eb7121a7ba81754aa746762dbc364e9ed961b"
         "8d1cf61a94d6531c92c81e56f"
@@ -95,6 +100,9 @@ def determine_category(action):
 
 
 def apply_d33tah_dues(monthly_income, balances_by_account_labels):
+    """Applies dues paid by d33tah to monthly_income. This is here because
+    the banking system didn't notify about self-transfers, so they needed to
+    be added explicitly."""
     first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
     # After this day, this hack isn't requried anymore:
     last_200pln_d33tah_due_date = datetime.datetime(year=2021, month=5, day=5)
@@ -113,6 +121,10 @@ def apply_d33tah_dues(monthly_income, balances_by_account_labels):
 def apply_positive_transfers(
     now, last_updated, mbank_actions, balances_by_account_labels
 ):
+    """Apply all positive transfers both to balances_by_account_labels and
+    monthly_income. Returns newly built monthly_expenses, as well as total
+    money raised and current information about the number of members who
+    paid dues and the datestamp of due last paid."""
     monthly_income = {}
     observed_acc_numbers = set()
     observed_acc_owners = set()
@@ -154,6 +166,8 @@ def apply_positive_transfers(
 
 
 def apply_expenses(expenses, balances_by_account_labels):
+    """Apply all expenses both to balances_by_account_labels and
+    monthly_expenses. Returns newly built monthly_expenses."""
     last_updated = None
     monthly_expenses = {}
     for action in expenses:
@@ -174,6 +188,8 @@ def apply_expenses(expenses, balances_by_account_labels):
 
 
 def build_monthly_final_balance(months, monthly_income, monthly_expenses):
+    """Calculates monthly final balances, given all of the actions - an amount
+    that specifies whether we accumulated more than we spent, or otherwise."""
     balance_so_far = 0
     monthly_final_balance = {}
     for month in sorted(months):
@@ -186,6 +202,8 @@ def build_monthly_final_balance(months, monthly_income, monthly_expenses):
 
 
 def build_monthly_balance(months, monthly_income, monthly_expenses):
+    """Calculates balances for each of the months - the final amount of money
+    on all of our accounts at the end of the month."""
     return {
         month: {
             "Suma": sum(x for x in monthly_income.get(month, {}).values())
@@ -196,6 +214,9 @@ def build_monthly_balance(months, monthly_income, monthly_expenses):
 
 
 def build_extra_monthly_reservations(now):
+    """Returns all extra monthly reservations collected until now.
+    On 24 November 2020, we agreed that we'll be continuing to increase our
+    reserves by 200 PLN each month."""
     return sum(
         [
             200
@@ -210,6 +231,8 @@ def build_extra_monthly_reservations(now):
 
 
 def get_current_report(now, expenses, mbank_actions, corrections=None):
+    """Module's entry point. Given time, expenses, income and corrections,
+    generates a monthly summary of actions that happened on the accounts."""
 
     balances_by_account_labels = {}
 
