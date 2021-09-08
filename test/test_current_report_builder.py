@@ -3,7 +3,6 @@
 import datetime
 import unittest
 
-import ksiemgowy.public_state
 from ksiemgowy.mbankmail import MbankAction
 
 import ksiemgowy.current_report_builder
