@@ -221,7 +221,13 @@ def parse_config_and_build_args():
         imap_password = account["IMAP_PASSWORD"]
         acc_no = account["ACC_NO"]
         ret.append(
-            [imap_login, imap_password, imap_server, acc_no, public_database_uri]
+            [
+                imap_login,
+                imap_password,
+                imap_server,
+                acc_no,
+                public_database_uri,
+            ]
         )
     return ret
 
