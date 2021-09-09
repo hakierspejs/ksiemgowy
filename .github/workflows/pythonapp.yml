@@ -1,73 +1,70 @@
 name: ksiemgowy
 
 on:
-  - push
+    - push
 
 jobs:
+    unittest_and_docs:
+        runs-on: ubuntu-latest
 
-  unittest_and_docs:
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Python 3.8
+              uses: actions/setup-python@v1
+              with:
+                  python-version: 3.8
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+                  pip install -r requirements-dev.txt
+            - name: Run unit tests and generate coverage
+              run: |
+                  COVERAGE_PATH=$(python -c 'print(__import__("importlib").util.find_spec("coverage").origin)' | xargs dirname)
+                  find $COVERAGE_PATH -name index.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
+                  find $COVERAGE_PATH -name pyfile.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
+                  python -m coverage run --source=. --branch -m unittest -v
+                  python -m coverage html
+                  rm -rf docs/htmlcov
+                  mv htmlcov docs
+            - name: regenerage docs
+              run: cd docs/_sphinx && make
+            - uses: stefanzweifel/git-auto-commit-action@v4.2.0
+              with:
+                  commit_message: Autoupdate code coverage stats
 
-    runs-on: ubuntu-latest
+    flake8:
+        runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
-    - name: Run unit tests and generate coverage
-      run: |
-        find / -name index.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
-        find / -name pyfile.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
-        python -m coverage run --source=. --branch -m unittest -v
-        python -m coverage html
-        rm -rf docs/htmlcov
-        mv htmlcov docs
-    - name: regenerage docs
-      run: cd docs/_sphinx && make
-    - uses: stefanzweifel/git-auto-commit-action@v4.2.0
-      with:
-        commit_message: Autoupdate code coverage stats
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Python 3.8
+              uses: actions/setup-python@v1
+              with:
+                  python-version: 3.8
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+            - name: Lint with flake8
+              run: |
+                  python -m pip install flake8
+                  flake8 --ignore=W503 ksiemgowy/
 
-  flake8:
+    pylint:
+        runs-on: ubuntu-latest
 
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Lint with flake8
-      run: |
-        python -m pip install flake8
-        flake8 --ignore=W503 ksiemgowy/
-
-  pylint:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Pylint code analysis
-      run: |
-        python -m pip install pylint
-        pylint ksiemgowy/
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Python 3.8
+              uses: actions/setup-python@v1
+              with:
+                  python-version: 3.8
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+            - name: Pylint code analysis
+              run: |
+                  python -m pip install pylint
+                  pylint ksiemgowy/
