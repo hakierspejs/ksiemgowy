@@ -36,14 +36,6 @@ ksiemgowy.models module
    :undoc-members:
    :show-inheritance:
 
-ksiemgowy.test\_homepage\_updater module
-----------------------------------------
-
-.. automodule:: ksiemgowy.test_homepage_updater
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

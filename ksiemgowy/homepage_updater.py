@@ -152,7 +152,7 @@ def do_states_differ(remote_state, current_report):
     return False
 
 
-def is_newer(remote_state, current_report):
+def is_local_state_newer(remote_state, current_report):
     """Compares remote state and current report, using time criteria."""
     local_modified = datetime.datetime.strptime(
         current_report["dues_last_updated"], "%d-%m-%Y"
@@ -174,7 +174,7 @@ def maybe_update_dues(database, git_env):
     remote_state_path = f"homepage/{DUES_FILE_PATH}"
     remote_state = get_remote_state_dues(remote_state_path)
     has_changed = do_states_differ(remote_state, current_report)
-    if has_changed and is_newer(remote_state, current_report):
+    if has_changed and is_local_state_newer(remote_state, current_report):
         LOGGER.info("maybe_update_dues: updating dues")
         remote_state.update(current_report)
         update_git_remote_state(remote_state_path, remote_state, git_env)
