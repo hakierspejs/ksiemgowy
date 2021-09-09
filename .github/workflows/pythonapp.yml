@@ -20,8 +20,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-    - name: Run unit tests
+    - name: Run unit tests and generate coverage
       run: |
+        find -name index.html / | rg htmlfiles | xargs -n1 sed '/created/d' -i
+        find -name pyfile.html / | rg htmlfiles | xargs -n1 sed '/created/d' -i
         python -m coverage run --source=. --branch -m unittest -v
         python -m coverage html
         rm -rf docs/htmlcov
