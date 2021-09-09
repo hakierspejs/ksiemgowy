@@ -95,22 +95,20 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
     time.sleep(10)  # HACK: slow down potential self-spam
 
 
-def send_confirmation_mail(
+def build_confirmation_mail(
     fromaddr,
     toaddr,
     mbank_action,
-    public_state,
+    emails,
     mbank_anonymization_key,
 ):
     """Sends an e-mail confirming that a membership due has arrived and was
     accounted for."""
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
-    emails = public_state.acc_no_to_email("arrived")
-    if mbank_action.anonymized().in_acc_no in emails:
-        msg["To"] = emails[
-            mbank_action.anonymized(mbank_anonymization_key).in_acc_no
-        ]
+    acc_no = mbank_action.anonymized(mbank_anonymization_key).in_acc_no
+    if acc_no in emails:
+        msg["To"] = emails[acc_no]
         msg["Cc"] = toaddr
     else:
         msg["To"] = toaddr
@@ -183,11 +181,12 @@ def check_for_updates(  # pylint: disable=too-many-arguments
                 )
                 if SEND_EMAIL:
                     with smtp_login(imap_login, imap_password) as server:
-                        msg = send_confirmation_mail(
+                        emails = public_state.acc_no_to_email("arrived")
+                        msg = build_confirmation_mail(
                             imap_login,
                             imap_login,
                             action,
-                            public_state,
+                            emails,
                             mbank_anonymization_key,
                         )
                         server.send_message(msg)
