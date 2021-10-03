@@ -11,6 +11,8 @@ import os
 import email
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from dataclasses import dataclass
+import typing as T
 
 import time
 import smtplib
@@ -28,6 +30,12 @@ import ksiemgowy.homepage_updater
 IMAP_FILTER = '(SINCE "02-Apr-2020" FROM "kontakt@mbank.pl")'
 LOGGER = logging.getLogger("ksiemgowy.__main__")
 SEND_EMAIL = True
+
+
+@dataclass(frozen=True)
+class KsiemgowyConfig:
+    args: T.Any
+    mbank_anonymization_key: str
 
 
 def imap_connect(login, password, server):
@@ -269,37 +277,49 @@ def notify_about_overdues(
     LOGGER.info("done notify_about_overdues()")
 
 
-def main():
+def load_config():
+    mbank_anonymization_key = os.environ["MBANK_ANONYMIZATION_KEY"].encode()
+    args = parse_config_and_build_args()
+    return KsiemgowyConfig(args=args,
+                           mbank_anonymization_key=mbank_anonymization_key)
+
+
+def main(config, schedule, should_keep_running):
     """Program's entry point. Schedules periodic execution of all routines."""
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
-    mbank_anonymization_key = os.environ["MBANK_ANONYMIZATION_KEY"].encode()
-    args = parse_config_and_build_args()
-    public_database_uri = args[0][-1]
+
+    public_database_uri = config.args[0][-1]
     public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
     # pylint:disable=unused-variable
     emails = public_state.acc_no_to_email("arrived")  # noqa
-    for account in args:
-        account = list(account) + [mbank_anonymization_key]
+    for account in config.args:
+        account = list(account) + [config. mbank_anonymization_key]
         check_for_updates(*account)
         schedule.every().hour.do(check_for_updates, *account)
 
     # the weird schedule is supposed to try to accomodate different lifestyles
     # use the last specified account for overdue notifications:
-    schedule.every((24 * 3) + 5).hours.do(notify_about_overdues, *args[-1])
+    schedule.every((24 * 3) + 5).hours.do(notify_about_overdues,
+                                          *config.args[-1])
 
     deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
-    public_database_uri = args[0][-1]
+    public_database_uri = config.args[0][-1]
     public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
     schedule.every().hour.do(
         ksiemgowy.homepage_updater.maybe_update, public_state, deploy_key_path
     )
     ksiemgowy.homepage_updater.maybe_update(public_state, deploy_key_path)
 
-    while True:
+    while should_keep_running():
         schedule.run_pending()
         time.sleep(1)
 
 
+def entrypoint():
+    config = load_config()
+    main(config, schedule, lambda: True)
+
+
 if __name__ == "__main__":
-    main()
+    entrypoint()
