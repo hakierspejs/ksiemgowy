@@ -14,12 +14,13 @@ from email.mime.text import MIMEText
 from dataclasses import dataclass
 import typing as T
 
+
 import time
 import smtplib
 import logging
 import contextlib
 
-import schedule
+import schedule as schedule_module
 import yaml
 
 import ksiemgowy.mbankmail
@@ -259,10 +260,8 @@ def atexit_handler(*_, **__):
 
 
 def notify_about_overdues(
-    mbank_anonymization_key,
     database,
     mail_config,
-    acc_number,
 ):
     """Checks whether any of the organization members is overdue and notifies
     them about that fact."""
@@ -321,8 +320,10 @@ def main(config, database, homepage_update, schedule, should_keep_running):
     # the weird schedule is supposed to try to accomodate different lifestyles
     # use the last specified account for overdue notifications:
     overdue_account = config.get_account_for_overdue_notifications()
+    overdue_args = {'database':  database,
+                    "mail_config": overdue_account.mail_config}
     schedule.every((24 * 3) + 5).hours.do(notify_about_overdues,
-                                          **overdue_account.__dict__)
+                                          **overdue_args)
 
     schedule.every().hour.do(
         homepage_update, database, config.deploy_key_path
@@ -338,7 +339,7 @@ def entrypoint():
     config = load_config()
     database = get_database(config)
     main(config, database, ksiemgowy.homepage_updater.maybe_update,
-         schedule, lambda: True)
+         schedule_module, lambda: True)
 
 
 if __name__ == "__main__":
