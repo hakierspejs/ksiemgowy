@@ -1,0 +1,393 @@
+Delivered-To: finanse@hakierspejs.pl
+Received: by 2002:a05:622a:1703:0:0:0:0 with SMTP id h3csp1195547qtk;
+        Fri, 7 May 2021 22:58:25 -0700 (PDT)
+X-Received: by 2002:aa7:c914:: with SMTP id b20mr16703360edt.199.1620453505724;
+        Fri, 07 May 2021 22:58:25 -0700 (PDT)
+ARC-Seal: i=3; a=rsa-sha256; t=1620453505; cv=pass;
+        d=google.com; s=arc-20160816;
+        b=Lg0D6qj7FSTvp+9KQSvk2QOqdLOnTXAgCL9DqC8CrbRT9abSApYPL0Hmmsi0v8EuSf
+         TqujlEKejtfflJ/2yNCVib56j4mbmGbSHir1FryhkM9P2mCsHKRM04IzuFvoUMWkxDhf
+         dv+iwKZUWZ4aVmdkiw/TAKvgw9kzeyONQ65N2c87Q9v6OQd603jjYxhHNL6B040Kx+Z7
+         pp6bH4vv3DQLwfWfsj130cqKzMqjoCP0KP+1Rh2oViuT8o6QxHalMG/p3foUW8fT2t2i
+         Et8qg/t2x/5viV/LFOoNvjCEC9oepTTzZ+WmgFQIPtY2KdsF6IKL4334rBQ55F7lrAen
+         8ZdA==
+ARC-Message-Signature: i=3; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=to:errors-to:reply-to:from:subject:date:mime-version:message-id
+         :delivered-to:delivered-to;
+        bh=qIismBuCo7xNa6E2BFRPMdHIotzZ0lXChbknXRTlv4k=;
+        b=CbamvtsTunmIIuxoBQR1kcznluVfKKcJM5GU3fcVmA3ceihXkQ65aQKBv+j/fBh3b/
+         eqM7ypca6T0+GPq+F7R+3KpL65nAd8EWUN94Ry5gVv0MUUDbVxsxCxOZJ3sADtqKhhY3
+         v/gyhxwF73BA3ddFrpcnwAUKLRV0sX55EqJnVoqNMd5mQV6iNPjOnY0blrTNLTMCO2vE
+         OyWibZ+kQt6AuL/AbEf5hG5mE+pPqsdQZJTnolJE++1C/PFJLgUaQZ+3JA/vWZN6RS9V
+         gYdxpPxTrwKuPYOq3phqsMlNaKarENd/y2ocyFs8c7gtHIMpqqqyK9Fch+K02A22AkhG
+         Z5rg==
+ARC-Authentication-Results: i=3; mx.google.com;
+       arc=pass (i=2 spf=pass spfdomain=gmail.com);
+       spf=pass (google.com: domain of kontakt+caf_=finanse=hakierspejs.pl@hakierspejs.pl designates 209.85.220.41 as permitted sender) smtp.mailfrom="kontakt+caf_=finanse=hakierspejs.pl@hakierspejs.pl";
+       dmarc=fail (p=NONE sp=NONE dis=NONE arc=pass) header.from=mbank.pl
+Return-Path: <kontakt+caf_=finanse=hakierspejs.pl@hakierspejs.pl>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id w12sor7747610edc.26.2021.05.07.22.58.25
+        for <finanse@hakierspejs.pl>
+        (Google Transport Security);
+        Fri, 07 May 2021 22:58:25 -0700 (PDT)
+Received-SPF: pass (google.com: domain of kontakt+caf_=finanse=hakierspejs.pl@hakierspejs.pl designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       arc=pass (i=2 spf=pass spfdomain=gmail.com);
+       spf=pass (google.com: domain of kontakt+caf_=finanse=hakierspejs.pl@hakierspejs.pl designates 209.85.220.41 as permitted sender) smtp.mailfrom="kontakt+caf_=finanse=hakierspejs.pl@hakierspejs.pl";
+       dmarc=fail (p=NONE sp=NONE dis=NONE arc=pass) header.from=mbank.pl
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:delivered-to:x-original-authentication-results
+         :delivered-to:message-id:mime-version:date:subject:from:reply-to
+         :errors-to:to;
+        bh=qIismBuCo7xNa6E2BFRPMdHIotzZ0lXChbknXRTlv4k=;
+        b=Wf4gUJT/oupF1HLZNrgvhUFapfE7lX3emCbvWVM/lzMqFAdEJz/ylvfodj1Vyj39Wl
+         8Of48eK28f6ZD6RePaaxtonj4wpy30iiGF1rcA3xceOJRC6fCl+YaWhWxutVd5YBTxKR
+         FIbo2/rfFOhujursXCKh2H8bFR52WpNCM5ddGCT1c6l3g5kfCQC3b1B9gBhkWpB7X4WO
+         JNsN31Wi7xw1i4P6O1VNFoGcPHVKsIWKxU3/hzXRXTfg/EzUYKVNAz9nvIBrfER1rXS7
+         6Bri7/LUsOONyoTrPTS7ytxWtV6kTBUfzUonriUaWGC5+YOg0DP+wc+kdxW8M+PYvnFr
+         TFgQ==
+X-Gm-Message-State: AOAM5313c/71wwAorfjBp4HtKuVeqz2hxd3+qSCeaqjhFSwPkbRqsJgP
+	tvGGRIZPp6KszlhFQ65Ty2IFlRAZiDHyFzWAT4F7heyGzrS/ZwbjrXUv3vVK/w==
+X-Received: by 2002:aa7:c610:: with SMTP id h16mr15939940edq.202.1620453505184;
+        Fri, 07 May 2021 22:58:25 -0700 (PDT)
+X-Forwarded-To: hakierspejs@d33.pl, finanse@hakierspejs.pl
+X-Forwarded-For: kontakt@hakierspejs.pl hakierspejs@d33.pl, finanse@hakierspejs.pl
+Delivered-To: kontakt@hakierspejs.pl
+Received: by 2002:a17:906:b194:0:0:0:0 with SMTP id w20csp1351660ejy;
+        Fri, 7 May 2021 22:58:23 -0700 (PDT)
+X-Received: by 2002:a1f:d002:: with SMTP id h2mr11247580vkg.24.1620453503122;
+        Fri, 07 May 2021 22:58:23 -0700 (PDT)
+ARC-Seal: i=2; a=rsa-sha256; t=1620453503; cv=pass;
+        d=google.com; s=arc-20160816;
+        b=WfbE24AgaQ5h4VhH48L3ZiUmlpVdILIJ0XVQ2JQy4kuAacFNz8t21CDxKlUeSNpBml
+         qrAH1SpcaaQGP1VFShLYW0BunzaMN7S8J4+Q7uUynuvT01IB9mneHsIPQBtq9ZMAGjTu
+         O98I/6oSShHjgx62KD+hobyISgcAbS5J0cqpvxZJDocGblEtvn4eZ5PEDdDyffbaEUYA
+         oKDuTPgPjvCBeur0y5jdmK+cR9Cz3ckM9crQUSmTnzN2Bfl1P/uovot5/do75ITzRTmL
+         RFSsCCKClng8sS7KnUFGd+ipbvZTumrgkevi00uPF/0yjCl/LtpXzeQACvYuqxEU2yAO
+         iwrQ==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=to:errors-to:reply-to:from:subject:date:mime-version:message-id
+         :delivered-to;
+        bh=qIismBuCo7xNa6E2BFRPMdHIotzZ0lXChbknXRTlv4k=;
+        b=MIvCfhlaIadjLrqFLVZ+RCxca6jTzjVa0OqnYPNHC9cg5IU4Df0j4F2DNwVWToRKPG
+         9LbcxdcNhWxx4FYuVy6uwUJY8lh5mdzvP58g+aUZT5ox2V8aREQZcZN8uURufLA/6fz+
+         Re9MdOgDwDrYVwn7LphWXrMX4MAxlCG4Of08oOzwnl0HEWAvmzMPAFIzq3D+rQaYcUa3
+         kLslat166rpp4uQLZz6G8dyfNsJdNgpszcxBw2Mel7n08LLUMx6A6Ig1EJ20t5YV6aAr
+         cdoDTTQXZznh1eO60jadiPhLEW/Rv6vYd69MyFMzFrltbto6G89UNLUekAfsdHAzzDHG
+         vsRg==
+ARC-Authentication-Results: i=2; mx.google.com;
+       arc=pass (i=1 spf=pass spfdomain=mbank.pl dmarc=pass fromdomain=mbank.pl);
+       spf=pass (google.com: domain of 595611a8a8b9d478a4d88278a645a75a+caf_=kontakt=hakierspejs.pl@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom="595611a8a8b9d478a4d88278a645a75a+caf_=kontakt=hakierspejs.pl@gmail.com";
+       dmarc=fail (p=NONE sp=NONE dis=NONE arc=pass) header.from=mbank.pl
+Return-Path: <595611a8a8b9d478a4d88278a645a75a+caf_=kontakt=hakierspejs.pl@gmail.com>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id x12sor89026vsq.78.2021.05.07.22.58.22
+        for <kontakt@hakierspejs.pl>
+        (Google Transport Security);
+        Fri, 07 May 2021 22:58:23 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 595611a8a8b9d478a4d88278a645a75a+caf_=kontakt=hakierspejs.pl@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+X-Original-Authentication-Results: mx.google.com;       spf=pass (google.com: domain of kontakt@mbank.pl designates 213.180.147.179 as permitted sender) smtp.mailfrom=kontakt@mbank.pl;       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=mbank.pl
+X-Received: by 2002:a67:1082:: with SMTP id 124mr11969500vsq.14.1620453502568;
+        Fri, 07 May 2021 22:58:22 -0700 (PDT)
+X-Forwarded-To: kontakt@hakierspejs.pl
+X-X-Forwarded-For: 595611a8a8b9d478a4d88278a645a75a@gmail.com kontakt@hakierspejs.pl
+Delivered-To: 595611a8a8b9d478a4d88278a645a75a@gmail.com
+Received: by 2002:a9f:25a8:0:0:0:0:0 with SMTP id 37csp1172677uaf;
+        Fri, 7 May 2021 22:58:20 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJwmELsbeAL9O9nKrmMZL3kPGhH+lFBFqaLHR3J+8UGqGA0NBclUkuX0/W1e6b/v3kQWes3Z
+X-Received: by 2002:a2e:7a12:: with SMTP id v18mr10930448ljc.379.1620453500117;
+        Fri, 07 May 2021 22:58:20 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1620453500; cv=none;
+        d=google.com; s=arc-20160816;
+        b=d0CBrScsL3nF7stabYLQV1Vkr7MOgTU7XlyOqdCs8TNBCJQ5lNuqpHrPF7R+nFxsOn
+         hDETQYqFxLz2GtDBwK+X43I1AZsWJTw/qS5I62Xck7Jyhbj8kWwywBXbZsqHwkZLoULM
+         YB6T3OQwSh8LPRVM2Hymvl7WdoFkn7NHXqV+EjZbuCte3v/3LvPSV8y03Qnd4LnkeGmu
+         oJLvSTYsmhlMN74Lu9dvSBXkAhUsbRzkJdVYLId/itsxPYy2hr4HieaKBzc5HHU7kvDy
+         YZXyK3WlfydJHaOFJ3w9P8q6IMMoQpPrqHcpatNXbW5upKHY6IL46XHBylwAEWtP27vH
+         RJtg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=to:errors-to:reply-to:from:subject:date:mime-version:message-id;
+        bh=qIismBuCo7xNa6E2BFRPMdHIotzZ0lXChbknXRTlv4k=;
+        b=KiJTrK3VbYhM0sKRhLLzMmT4o2ZM5HEWu2o+0q1Slby7fSp5SGHUHYvereYHPQTlG2
+         QB52MBo9aOAhaMRrjoGwsG0tQEO9evy07C73ZPnT/1PMbmf1dp21YrPc910iIPfs8EGh
+         B1hKqzIyqWgIuddjEMfndXYIKIUph3oqdflIIohU+Pv87AYAAaC3k1fbOmX0B918lifG
+         PJWOHImg9/sSkwWmMGhlg01rgej+HNRIR9sd4wVKbbXp3vhxgJB1z6EROYlrl5V4dkx4
+         Mn8yS4FLqErFBzidRBMKfQJiZt8yBewlzBuA03+M5+Rip1JVkm+R/zibc9arfgbIvExK
+         kD+w==
+ARC-Authentication-Results: i=1; mx.google.com;
+       spf=pass (google.com: domain of kontakt@mbank.pl designates 213.180.147.179 as permitted sender) smtp.mailfrom=kontakt@mbank.pl;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=mbank.pl
+Return-Path: <kontakt@mbank.pl>
+Received: from mx4.p2.mail.mbank.pl (mx4.p2.mail.mbank.pl. [213.180.147.179])
+        by mx.google.com with ESMTPS id y7si9102159lfg.443.2021.05.07.22.58.19
+        for <595611a8a8b9d478a4d88278a645a75a@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 07 May 2021 22:58:20 -0700 (PDT)
+Received-SPF: pass (google.com: domain of kontakt@mbank.pl designates 213.180.147.179 as permitted sender) client-ip=213.180.147.179;
+Message-ID: <6096287c.1c69fb81.1079c.7d69SMTPIN_ADDED_BROKEN@mx.google.com>
+X-Google-Original-Message-ID: bc9676b2b3d64bacb59fc109b7019173@mbank.pl
+MIME-Version: 1.0
+Date: Sat, 08 May 2021 07:45:59 +0200
+Content-Type: multipart/signed; charset=iso-8859-2; boundary="------------050909040207010904090704";
+ protocol="application/pkcs7-signature";
+ micalg=sha256
+X-Priority: 3 (Normal)
+Subject: mBank - powiadomienie e-mail
+X-Mailer: BRE MassMailer
+From: mBank <kontakt@mbank.pl>
+Reply-To: kontakt@mbank.pl
+Errors-To: 
+To: 595611a8a8b9d478a4d88278a645a75a@GMAIL.COM
+X-MS-Has-Attach: yes
+
+--------------050909040207010904090704
+Content-Type: multipart/mixed; boundary="------------050609090100050404010709";
+ micalg=sha256
+
+--------------050609090100050404010709
+Content-Type: multipart/alternative; boundary="------------090509050000000006060709"
+
+--------------090509050000000006060709
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2; format=flowed
+
+
+Witamy,
+=20
+w za=B3=B1czeniu przesy=B3amy dzienny wykaz operacji i zdarze=F1 obj=EAtych=
+ powiadomieniem e-mailowym.
+
+
+
+Pozdrawiamy,
+Zesp=F3=B3 mBanku
+
+mBank S.A. z siedzib=B1 w Warszawie, ul. Prosta 18, 00-850 Warszawa, www.mB=
+ank.pl, e-mail: kontakt@mBank.pl. S=B1d Rejonowy dla m. st. Warszawy XIII W=
+ydzia=B3 Gospodarczy Krajowego Rejestru S=B1dowego, KRS 0000025237, NIP: 52=
+6-021-50-88. Kapita=B3 zak=B3adowy (op=B3acony w ca=B3o=B6ci) wed=B3ug stan=
+u na 01.01.2021 r. wynosi 169.468.160 z=B3otych.
+
+
+  =20
+--------------090509050000000006060709
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=iso-8859-2
+
+<HTML>
+  <HEAD>
+    <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8=
+859-2" />
+    <TITLE>mBank</TITLE>
+  </HEAD>
+  <BODY>
+Witamy,<br /><br />=20
+w za=B3=B1czeniu przesy=B3amy dzienny wykaz operacji i zdarze=F1 obj=EAtych=
+ powiadomieniem e-mailowym. <br /><br /><br />
+Pozdrawiamy,<br />
+Zesp=F3=B3 mBanku
+<br /><br /><font size=3D"-2">
+mBank S.A. z siedzib=B1 w Warszawie, ul. Prosta 18, 00-850 Warszawa, www.mB=
+ank.pl, e-mail: kontakt@mBank.pl. S=B1d Rejonowy dla m. st. Warszawy XIII W=
+ydzia=B3 Gospodarczy Krajowego Rejestru S=B1dowego, KRS 0000025237, NIP: 52=
+6-021-50-88. Kapita=B3 zak=B3adowy (op=B3acony w ca=B3o=B6ci) wed=B3ug stan=
+u na 01.01.2021 r. wynosi 169.468.160 z=B3otych.
+</font></BODY>
+</HTML>
+--------------090509050000000006060709--
+
+--------------050609090100050404010709
+Content-Type: text/html; name="Powiadomienie e-mail z 2021-05-07.htm"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment; filename="Powiadomienie e-mail z 2021-05-07.htm"
+
+<html>
+  <head>
+    <title>Powiadomienie e-mail</title>
+    <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8=
+859-2" />
+    <style type=3D"text/css">
+BODY{font-weight: normal;
+     font-family: Verdana, Arial, Helvetica, sans-serif;
+     font-size: 8pt;}
+TD{font-size: 8pt;}
+=2Eznaki {font-size: 10pt;}
+=2Edata {color: Black;}
+=2Ehead{font-weight: bold;}
+TR.head {background-color: #EDEDED;}
+</style>
+  </head>
+  <body leftmargin=3D"20" rightmargin=3D"0" topmargin=3D"0" bottommargin=3D=
+"0" bgcolor=3D"White">
+    <div align=3D"left">
+      <table cellpadding=3D"0" cellspacing=3D"0" width=3D"600">
+        <tr valign=3D"top">
+          <td>mBank S.A. <br /> Bankowo=B6=E6 Detaliczna<br />Skrytka Poczt=
+owa 2108<br />90-959 =A3=F3d=BC 2<br /><a href=3D"http://www.mbank.pl">www.=
+mBank.pl</a><br />mLinia: 0 801 300 800<br />+48 (42) 6 300 800</td>
+        </tr>
+      </table>
+      <table cellpadding=3D"0" cellspacing=3D"0" width=3D"600">
+        <tr>
+          <td align=3D"right">BENIAMIN HONORIUSZ DUDEK<br />595611a8a8b9d478a4d88278a645a75a@GM=
+AIL.COM</td>
+        </tr>
+      </table>
+      <br />
+      <br />
+      <table cellpadding=3D"0" cellspacing=3D"0" width=3D"600">
+        <tr valign=3D"top" height=3D"60">
+          <td>
+            <h5 align=3D"center" class=3D"znaki">2021-05-07 -=20
+		Powiadomienie e-mail
+			=09
+		</h5>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <h5 align=3D"center" class=3D"znaki">Operacje</h5>
+          </td>
+        </tr>
+        <tr>
+          <td align=3D"left">
+            <table cellpadding=3D"1" cellspacing=3D"0" border=3D"1" align=
+=3D"left" bgcolor=3D"#F9F9F9" bordercolor=3D"#D6D6D6">
+              <tr class=3D"head">
+                <td>
+                  <center>
+                    <nobr>Czas operacji</nobr>
+                    <br />(GG:MM)</center>
+                </td>
+                <td>
+                  <center>Opis operacji</center>
+                </td>
+              </tr>
+              <tr>
+                <td class=3D"data" align=3D"center">
+                  <nobr>01:50</nobr>
+                </td>
+                <td class=3D"data">mBank: Przelew przych. z rach. 3511...07=
+5800 na rach. 81089394 kwota 200,00 PLN od JACEK WIELEMBOREK UL; SK=A3ADKA =
+CZ=A3O...; Dost. 796,03 PLN</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+      <p />
+      <table cellpadding=3D"0" cellspacing=3D"0" width=3D"600">
+        <tr>
+          <td align=3D"left">
+Niniejszy dokument sporz=B1dzono na podstawie art. 7 Ustawy Prawo Bankowe (=
+Dz. U. Nr 140 z 1997 roku, poz.939 z p=F3=BCniejszymi zmianami).<br />
+Nie wymaga podpisu ani stempla.<br />
+W przypadku wyst=B1pienia niezgodno=B6ci w przes=B3anym wykazie w zakresie =
+wykonywanych operacji prosimy o kontakt z mLini=B1 i podanie operatorowi nu=
+meru referencyjnego maila.<br />
+Numer referencyjny maila: L02321595.
+</td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+--------------050609090100050404010709--
+
+--------------050909040207010904090704
+Content-Transfer-Encoding: base64
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Disposition: attachment; filename="smime.p7s"
+
+MIITQwYJKoZIhvcNAQcCoIITNDCCEzACAQExDzANBglghkgBZQMEAgEFADALBgkqhkiG9w0BBwGg
+gg99MIIFbDCCBFSgAwIBAgIQDw3aCeWUFd8bljPk7oMzWjANBgkqhkiG9w0BAQsFADBlMQswCQYD
+VQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29t
+MSQwIgYDVQQDExtEaWdpQ2VydCBTSEEyIEFzc3VyZWQgSUQgQ0EwHhcNMjEwMzE3MDAwMDAwWhcN
+MjIwNDA3MjM1OTU5WjCBkTELMAkGA1UEBhMCUEwxFDASBgNVBAgTC21hem93aWVja2llMREwDwYD
+VQQHEwhXYXJzemF3YTETMBEGA1UEChMKbUJhbmsgUy5BLjEOMAwGA1UECxMFbUJhbmsxEzARBgNV
+BAMTCm1CYW5rIFMuQS4xHzAdBgkqhkiG9w0BCQEWEGtvbnRha3RAbWJhbmsucGwwggEiMA0GCSqG
+SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDzki+RUGOxG4BjVb8990EOsK7X1Ebo68CEX6nVdqx5l1kc
+xkBhf0ijTDTkRkMYaD3jYFMgZaHAVvr4Ng8xr1qA19d91tvkFCs1z3gTugwxNHSh48dEJbb/V05P
+sBaoylBvIkLbJOnws/dBlsAjBWEdJ+QOUTzlAxPb1KK9u468fOvPJFx7vBHn5jeDTDi4ZtMvtqEq
+leJ0VD1wHbFNfOjb9Lt5kcoJZkdX+ZVGwnW8wbemNhGrqoTnHKrxVQAqtmiV+bO63Y4Ufabtkfqs
+mOxnRYoprRTt9p4f8ijx9Ci7QQA1YJHGWYiU/qpokTjZKt/Su3wK4rQGJED9Wxdiy2NZAgMBAAGj
+ggHpMIIB5TAfBgNVHSMEGDAWgBTnAiOAAE/Y17yUC9k/dDlJMjyKeTAdBgNVHQ4EFgQUdOhmM4xa
+uCvJ3CckBm3qvRPL6jYwDAYDVR0TAQH/BAIwADAbBgNVHREEFDASgRBrb250YWt0QG1iYW5rLnBs
+MA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwQwQwYDVR0gBDww
+OjA4BgpghkgBhv1sBAECMCowKAYIKwYBBQUHAgEWHGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9D
+UFMwgYgGA1UdHwSBgDB+MD2gO6A5hjdodHRwOi8vY3JsMy5kaWdpY2VydC5jb20vRGlnaUNlcnRT
+SEEyQXNzdXJlZElEQ0EtZzMuY3JsMD2gO6A5hjdodHRwOi8vY3JsNC5kaWdpY2VydC5jb20vRGln
+aUNlcnRTSEEyQXNzdXJlZElEQ0EtZzMuY3JsMHkGCCsGAQUFBwEBBG0wazAkBggrBgEFBQcwAYYY
+aHR0cDovL29jc3AuZGlnaWNlcnQuY29tMEMGCCsGAQUFBzAChjdodHRwOi8vY2FjZXJ0cy5kaWdp
+Y2VydC5jb20vRGlnaUNlcnRTSEEyQXNzdXJlZElEQ0EuY3J0MA0GCSqGSIb3DQEBCwUAA4IBAQCg
+ojSTpRY+SF4foQcUHxMAGZfv0plam9bEIWWCWHhZa6BenDfEMezhzukXx6nop0ZN2mWAuWmC1UYR
+EDvTUbRI0aC7LH1IljxqwQpfru1MlGs7KWE4PM5SN0W3+5yKIUUeLoC/uIJvpz0dDwqh8LDMZis/
+jAOpxTmq+oAqUbNOncdC753cWtvIN2rmjFtJ+oL7iiud3m7zSUpsBis1GJU7u1tToUO4LB+bGexR
+bwF4E9moglwaIT3tN+rA9i0K0ajHbqaRIBP/Zcc8rB02gVIiUoBj+sManywyza56ynnZ8kr42jmS
+N4/65dPkoOSptSoAsESNrfN92cX5vskbPygQMIIGTjCCBTagAwIBAgIQBK55YGZmkBq5xX+mbFvc
+zTANBgkqhkiG9w0BAQsFADBlMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkw
+FwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMSQwIgYDVQQDExtEaWdpQ2VydCBBc3N1cmVkIElEIFJv
+b3QgQ0EwHhcNMTMxMTA1MTIwMDAwWhcNMjgxMTA1MTIwMDAwWjBlMQswCQYDVQQGEwJVUzEVMBMG
+A1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMSQwIgYDVQQDExtE
+aWdpQ2VydCBTSEEyIEFzc3VyZWQgSUQgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
+AQDc+BEjP2q178AneRstBYeiEEMx3w7UFRtPd6Qizj6McPC+B47dJyq8AR22LArK3WlYH0HtagUf
+2mN4WR4iLCv4un7JNTtW8R98Qn4lsCMZxkU41z1E+SB8YK4csFoYBL6PO/ep8JSapgxjSbZBF1NA
+Mr1P5lB6UB8lRejxia/N/17/UPPwFxH/vcWJ9b1iudj7jkUEhW2ZzcVITf0mqwI2Reo2119q4hqC
+QQrc6dn1kReOxiGtODwT5h5/ZpzVTdlG2vbPUqd9OyTDtMFRNcab69TvfuR7A+FEvXoLN+BPy4KK
+DXEY5KbgiSwb87JzPMGwkp4Yfb2rfcV9CKEswp9zAgMBAAGjggL4MIIC9DASBgNVHRMBAf8ECDAG
+AQH/AgEAMA4GA1UdDwEB/wQEAwIBhjA0BggrBgEFBQcBAQQoMCYwJAYIKwYBBQUHMAGGGGh0dHA6
+Ly9vY3NwLmRpZ2ljZXJ0LmNvbTCBgQYDVR0fBHoweDA6oDigNoY0aHR0cDovL2NybDQuZGlnaWNl
+cnQuY29tL0RpZ2lDZXJ0QXNzdXJlZElEUm9vdENBLmNybDA6oDigNoY0aHR0cDovL2NybDMuZGln
+aWNlcnQuY29tL0RpZ2lDZXJ0QXNzdXJlZElEUm9vdENBLmNybDAdBgNVHSUEFjAUBggrBgEFBQcD
+AgYIKwYBBQUHAwQwggGzBgNVHSAEggGqMIIBpjCCAaIGCmCGSAGG/WwAAgQwggGSMCgGCCsGAQUF
+BwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BTMIIBZAYIKwYBBQUHAgIwggFWHoIBUgBB
+AG4AeQAgAHUAcwBlACAAbwBmACAAdABoAGkAcwAgAEMAZQByAHQAaQBmAGkAYwBhAHQAZQAgAGMA
+bwBuAHMAdABpAHQAdQB0AGUAcwAgAGEAYwBjAGUAcAB0AGEAbgBjAGUAIABvAGYAIAB0AGgAZQAg
+AEQAaQBnAGkAQwBlAHIAdAAgAEMAUAAvAEMAUABTACAAYQBuAGQAIAB0AGgAZQAgAFIAZQBsAHkA
+aQBuAGcAIABQAGEAcgB0AHkAIABBAGcAcgBlAGUAbQBlAG4AdAAgAHcAaABpAGMAaAAgAGwAaQBt
+AGkAdAAgAGwAaQBhAGIAaQBsAGkAdAB5ACAAYQBuAGQAIABhAHIAZQAgAGkAbgBjAG8AcgBwAG8A
+cgBhAHQAZQBkACAAaABlAHIAZQBpAG4AIABiAHkAIAByAGUAZgBlAHIAZQBuAGMAZQAuMB0GA1Ud
+DgQWBBTnAiOAAE/Y17yUC9k/dDlJMjyKeTAfBgNVHSMEGDAWgBRF66Kv9JLLgjEtUYunpyGd823I
+DzANBgkqhkiG9w0BAQsFAAOCAQEATtSJJ7n9HYd3fg8oBZDxCi/JOz69k5yQxq/6kVGHMlRr6MrB
+cVFcmY61+uBiGZmmB5p8Eyfb5QKihBLZFfYKRFfENI9tcx861qABPd7jguRFa7LrJf2AXh05kL5b
+QvbOkWDj+aBWDEgQzjNoe82Tq/Bqy09YD7l7XRsEgZ6nIuJXSSfukpMIvmkIUwI6Ll3IGfRQgE4C
+2bBdkbSTh/mWloFVQI5m7YLYuyhf7Uxh7QZYKBlTEUS8RyApsgRs2IlUmTt122d4LB6SeMZVPVgS
+ETJuvUMMTTTbe8ZC2+y+q5thTAaS447fISpQVwTAYKI11SSeZjcJSc/V+GWz4OJuwjCCA7cwggKf
+oAMCAQICEAzn4OUX2Eb+j+Vg/BvwMDkwDQYJKoZIhvcNAQEFBQAwZTELMAkGA1UEBhMCVVMxFTAT
+BgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcGA1UECxMQd3d3LmRpZ2ljZXJ0LmNvbTEkMCIGA1UEAxMb
+RGlnaUNlcnQgQXNzdXJlZCBJRCBSb290IENBMB4XDTA2MTExMDAwMDAwMFoXDTMxMTExMDAwMDAw
+MFowZTELMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcGA1UECxMQd3d3LmRp
+Z2ljZXJ0LmNvbTEkMCIGA1UEAxMbRGlnaUNlcnQgQXNzdXJlZCBJRCBSb290IENBMIIBIjANBgkq
+hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArQ4VzuRDgFyxh/O3YPlxEqWu3CaUiKr0zvUgOShYYAz4
+gNqpFZUyYTy1sSiEiorcnwoMgxd6j5Csiud5U1wxhCr2D5gyNnbM3t08qKLvavsh8lJh358g1x/i
+sdn+GGTSEltf+VgYNbxHzaE2+Wt/1LA4PsEbw4wz2dgvGP4oD7Ong9bDbkTAYTWWFv5ZnIt2bdfx
+oksNK/8LctqeYNCOkDXGeFWHIKHP5W0KyEl8MZgzbCLph9AyWqK6E4IR7TkXnZk6cqHm+qTZ1Rcx
+da6FfSKuPwFGhvYoecix2uRXF8R+HA6wtJKmVrO9spftqqfwt8WoP5UW0P+hlusIXxh3TwIDAQAB
+o2MwYTAOBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUReuir/SSy4Ix
+LVGLp6chnfNtyA8wHwYDVR0jBBgwFoAUReuir/SSy4IxLVGLp6chnfNtyA8wDQYJKoZIhvcNAQEF
+BQADggEBAKIOvN/i7fDjcnN6ZJS/93Jm2DLkQnVirofr8tXZ3lazn8zOFCi5DZdgXBJMWOTTPYNJ
+RViXNWkaqEfqVsZ5qxLYZ4GE338JPJTmuCYsIL09syiJ91//IuKXhB/pZe+H4N/BZ0mzXeuyCSrr
+Ju14vn0/K/O3JjVtX4kBtklbnwEFm6s9JcHMtn/C8W+GxvpkaOuBLZTrQrf6jB7dYvG+UGe3bL3z
+8R9rDDYHFn83fKlbbXrxEkZgg9cnBL5Lzpe+w2cqaBHfgOcMM2a/Ew0UbvN/H2MQHvqNGyVtbI+l
+t2EBsdKjJqEQcZ2t4sP5w5lRtysHCM4u5lCyp/oKRS+i8PIxggOKMIIDhgIBATB5MGUxCzAJBgNV
+BAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20x
+JDAiBgNVBAMTG0RpZ2lDZXJ0IFNIQTIgQXNzdXJlZCBJRCBDQQIQDw3aCeWUFd8bljPk7oMzWjAN
+BglghkgBZQMEAgEFAKCCAeIwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUx
+DxcNMjEwNTA4MDU1ODE5WjAvBgkqhkiG9w0BCQQxIgQgrqn7QJ3j6jq9qlrxnlJFyqkbkGZpg3/+
+JsoeXPO3nCcwXwYJKoZIhvcNAQkPMVIwUDALBglghkgBZQMEAQIwCgYIKoZIhvcNAwcwDgYIKoZI
+hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGIBgkrBgEE
+AYI3EAQxezB5MGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsT
+EHd3dy5kaWdpY2VydC5jb20xJDAiBgNVBAMTG0RpZ2lDZXJ0IFNIQTIgQXNzdXJlZCBJRCBDQQIQ
+Dw3aCeWUFd8bljPk7oMzWjCBigYLKoZIhvcNAQkQAgsxe6B5MGUxCzAJBgNVBAYTAlVTMRUwEwYD
+VQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNVBAMTG0Rp
+Z2lDZXJ0IFNIQTIgQXNzdXJlZCBJRCBDQQIQDw3aCeWUFd8bljPk7oMzWjANBgkqhkiG9w0BAQsF
+AASCAQDa4xuY9YqeSrtxJWC4TjJTdGNB8qhhnlFwaW4Niel2xZSBoFFt91mx1F9ABUVqc4Uii9qC
+LEjL8DdR3fdc+pooNSih8pNfla4alXLZ7Uc/HyYWO8Uv2X8hpwnh2EA713RKswZivaPWqDA/bgkT
+FawpD92/8c8SoblBzQd7d3mJQHbulZ0FIRTzkPPD+VQ0xqT5HUy0kwPd9MhKTv9V+Pyzks7BHXlZ
+q5tb5MqQ6Pdj+o0JYH/ag8mws34YbilB+gebT+PkyaaPRY0ij7mfmOjNNqggnqVfRSBLHabgJ/ai
+HBBprpVQbTIPvqCAwEd/l4DEiACbpbJIHAS3RNgX8CbV
+
+--------------050909040207010904090704--
+
