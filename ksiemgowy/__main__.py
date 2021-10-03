@@ -47,6 +47,15 @@ class MailConfig:
         mail.login(self.login, self.password)
         return mail
 
+    @contextlib.contextmanager
+    def smtp_login(self):
+        """A context manager that handles SMTP login and logout."""
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        server.ehlo()
+        server.login(self.login, self.password)
+        yield server
+        server.quit()
+
 
 @dataclass(frozen=True)
 class KsiemgowyAccount:
@@ -63,16 +72,6 @@ class KsiemgowyConfig:
 
     def get_account_for_overdue_notifications(self):
         return self.accounts[-1]
-
-
-@contextlib.contextmanager
-def smtp_login(smtplogin, smtppass):
-    """A context manager that handles SMTP login and logout."""
-    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-    server.ehlo()
-    server.login(smtplogin, smtppass)
-    yield server
-    server.quit()
 
 
 def send_overdue_email(server, fromaddr, overdue_email):
@@ -205,7 +204,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
                     action.anonymized(mbank_anonymization_key).asdict()
                 )
                 if SEND_EMAIL:
-                    with smtp_login(mail_config.login, mail_config.login) as server:
+                    with mail_config.smtp_login() as smtp_conn:
                         emails = database.acc_no_to_email("arrived")
                         msg = build_confirmation_mail(
                             mbank_anonymization_key,
@@ -214,7 +213,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
                             action,
                             emails,
                         )
-                        server.send_message(msg)
+                        smtp_conn.send_message(msg)
                         time.sleep(10)  # HACK: slow down potential self-spam
 
                 LOGGER.info("added an action")
@@ -340,23 +339,6 @@ def entrypoint():
     database = get_database(config)
     main(config, database, ksiemgowy.homepage_updater.maybe_update,
          schedule, lambda: True)
-
-
-class EntrypointTestCase(unittest.TestCase):
-    def test_entrypoint_doesnt_crash(self):
-
-        mail_search_mock = mock.Mock()
-        mail_search_mock.search.return_value = [None, ['']]
-        mail_mock = mock.Mock()
-        mail_mock.imap_connect.return_value = mail_search_mock
-        config_mock = KsiemgowyConfig(
-            database_uri='',
-            deploy_key_path='',
-            accounts=[
-                KsiemgowyAccount(
-                    mail_config=mail_mock, acc_number='')
-            ], mbank_anonymization_key='')
-        main(config_mock, mock.Mock(), mock.Mock(), mock.Mock(), lambda: False)
 
 
 if __name__ == "__main__":
