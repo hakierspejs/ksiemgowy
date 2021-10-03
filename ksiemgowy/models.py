@@ -6,6 +6,8 @@ import sqlalchemy
 
 
 import ksiemgowy.mbankmail
+from ksiemgowy.mbankmail import MbankAction
+from typing import Any, Dict, Iterator
 
 LOGGER = logging.getLogger(__name__)
 
@@ -14,7 +16,7 @@ class KsiemgowyDB:
     """A class that groups together all models that describe the state of
     ksiemgowy."""
 
-    def __init__(self, database_uri):
+    def __init__(self, database_uri: str) -> None:
         """Initializes the database, creating tables if they don't exist."""
         self.database = sqlalchemy.create_engine(database_uri)
         metadata = sqlalchemy.MetaData(self.database)
@@ -88,7 +90,7 @@ class KsiemgowyDB:
         ):
             pass
 
-    def was_imap_id_already_handled(self, imap_id):
+    def was_imap_id_already_handled(self, imap_id: str) -> bool:
         """Tells whether a given IMAP ID was already processed by ksiemgowy."""
         for entry in self.observed_email_ids.select().execute().fetchall():
             LOGGER.debug(
@@ -98,12 +100,12 @@ class KsiemgowyDB:
                 return True
         return False
 
-    def mark_imap_id_already_handled(self, imap_id):
+    def mark_imap_id_already_handled(self, imap_id: str) -> None:
         """Marks a given IMAP ID as already processed by ksiemgowy."""
         LOGGER.debug("mark_imap_id_already_handled(%r)", imap_id)
         self.observed_email_ids.insert(None).execute(imap_id=imap_id)
 
-    def acc_no_to_email(self, notification_type):
+    def acc_no_to_email(self, notification_type: str) -> Dict[Any, Any]:
         """Builds a mapping between banking accounts an e-mail addresses for
         people interested in a given type of a notification."""
         ret = {}
@@ -113,7 +115,7 @@ class KsiemgowyDB:
 
         return ret
 
-    def list_positive_transfers(self):
+    def list_positive_transfers(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all positive transfers that were
         observed so far."""
         for entry in self.mbank_actions.select().execute().fetchall():
@@ -122,7 +124,7 @@ class KsiemgowyDB:
             ret["amount_pln"] = float(ret["amount_pln"].replace(",", "."))
             yield ksiemgowy.mbankmail.MbankAction(**ret)
 
-    def add_positive_transfer(self, mbank_action):
+    def add_positive_transfer(self, mbank_action: Dict[str, str]) -> None:
         """Adds a positive transfer to the database."""
         self.mbank_actions.insert(None).execute(mbank_action=mbank_action)
 

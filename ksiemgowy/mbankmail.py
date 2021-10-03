@@ -9,8 +9,11 @@ import pprint
 import copy
 import hashlib
 import logging
+import datetime
 
 import lxml.html
+from email.message import Message
+from typing import Dict, List
 
 INCOMING_RE = re.compile(
     "^mBank: Przelew (?P<action_type>przych|wych)\\."
@@ -23,7 +26,7 @@ INCOMING_RE = re.compile(
 )
 
 
-def anonymize(hashed_string, mbank_anonymization_key):
+def anonymize(hashed_string: str, mbank_anonymization_key: bytes) -> str:
     """Anonymizes an input string using mbank_anonymization_key as
     cryptographic pepper."""
     return hashlib.sha256(
@@ -42,10 +45,10 @@ class MbankAction:
     in_person: str
     in_desc: str
     balance: str
-    timestamp: str
+    timestamp: datetime.datetime
     action_type: str
 
-    def anonymized(self, mbank_anonymization_key):
+    def anonymized(self, mbank_anonymization_key: bytes) -> 'MbankAction':
         """Anonymizes all potentially sensitive fields using
         mbank_anonymization_key as cryptographic pepper."""
         new = copy.copy(self)
@@ -58,7 +61,7 @@ class MbankAction:
     asdict = dataclasses.asdict
 
 
-def parse_mbank_html(mbank_html):
+def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
     """Parses mBank .htm attachment file and generates a list of actions
     that were derived from it."""
     html = lxml.html.fromstring(mbank_html)
@@ -88,7 +91,7 @@ def parse_mbank_html(mbank_html):
     return {"actions": actions}
 
 
-def parse_mbank_email(msg):
+def parse_mbank_email(msg: Message) -> Dict[str, List[MbankAction]]:
     """Finds attachment with mBank account update in an .eml mBank email,
     then behaves like parse_mbank_html."""
     parsed = {}

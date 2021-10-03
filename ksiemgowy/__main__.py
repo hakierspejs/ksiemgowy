@@ -27,6 +27,12 @@ import ksiemgowy.mbankmail
 import ksiemgowy.models
 import ksiemgowy.homepage_updater
 
+# those are for type annotations:
+from email.message import Message
+from ksiemgowy.mbankmail import MbankAction
+from ksiemgowy.models import KsiemgowyDB
+from typing import Any, Dict, Iterator
+
 
 IMAP_FILTER = '(SINCE "02-Apr-2020" FROM "kontakt@mbank.pl")'
 LOGGER = logging.getLogger("ksiemgowy.__main__")
@@ -68,7 +74,7 @@ class KsiemgowyConfig:
     accounts: T.List[KsiemgowyAccount]
     mbank_anonymization_key: str
 
-    def get_account_for_overdue_notifications(self):
+    def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         return self.accounts[-1]
 
 
@@ -121,8 +127,12 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
 
 
 def build_confirmation_mail(
-    mbank_anonymization_key, fromaddr, toaddr, mbank_action, emails,
-):
+    mbank_anonymization_key: bytes,
+    fromaddr: str,
+    toaddr: str,
+    mbank_action: MbankAction,
+    emails: Dict[Any, Any],
+) -> MIMEMultipart:
     """Sends an e-mail confirming that a membership due has arrived and was
     accounted for."""
     msg = MIMEMultipart("alternative")
@@ -153,7 +163,9 @@ przez Telegrama, Matriksa albo wyślij oddzielnego maila.
     return msg
 
 
-def gen_unseen_mbank_emails(database, mail):
+def gen_unseen_mbank_emails(
+    database: KsiemgowyDB, mail: imaplib.IMAP4_SSL
+) -> Iterator[Message]:
     """Connects to imap_server using login and password from the arguments,
     then yields a pair (mail_id_as_str, email_as_eml_string) for each of
     e-mails coming from mBank."""
@@ -176,8 +188,11 @@ def gen_unseen_mbank_emails(database, mail):
 
 
 def check_for_updates(  # pylint: disable=too-many-arguments
-    mbank_anonymization_key, database, mail_config, acc_number,
-):
+    mbank_anonymization_key: bytes,
+    database: KsiemgowyDB,
+    mail_config: MailConfig,
+    acc_number: str,
+) -> None:
     """Program's entry point."""
     LOGGER.info("checking for updates...")
     mail = mail_config.imap_connect()
@@ -227,8 +242,9 @@ def atexit_handler(*_, **__):
 
 
 def notify_about_overdues(
-    database, mail_config,
-):
+    database: KsiemgowyDB,
+    mail_config: MailConfig,
+) -> None:
     """Checks whether any of the organization members is overdue and notifies
     them about that fact."""
     LOGGER.info("notify_about_overdues()")
@@ -257,7 +273,9 @@ def notify_about_overdues(
     LOGGER.info("done notify_about_overdues()")
 
 
-def load_config(config_file, env):
+def load_config(
+    config_file: T.IO[T.Any], env: T.Dict[str, str]
+) -> KsiemgowyConfig:
     """Parses the configuration file and builds arguments for all routines."""
     mbank_anonymization_key = env["MBANK_ANONYMIZATION_KEY"].encode()
     config = yaml.load(config_file)
@@ -270,7 +288,14 @@ def load_config(config_file, env):
         imap_password = account["IMAP_PASSWORD"]
         acc_no = account["ACC_NO"]
         accounts.append(
-            [imap_login, imap_password, imap_server, acc_no,]
+            KsiemgowyAccount(
+                acc_number=acc_no,
+                mail_config=MailConfig(
+                    login=imap_login,
+                    password=imap_password,
+                    server=imap_server,
+                ),
+            )
         )
 
     return KsiemgowyConfig(
@@ -324,7 +349,7 @@ def entrypoint():
         os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
         encoding="utf8",
     ) as config_file:
-        config = load_config(config_file, os.environ)
+        config = load_config(config_file, dict(os.environ))
     database = get_database(config)
     main(
         config,
