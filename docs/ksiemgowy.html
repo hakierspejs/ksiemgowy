@@ -209,7 +209,7 @@ pushing it to the repository.</p>
 <p>Parses mbank daily notification e-mails.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ksiemgowy.mbankmail.MbankAction">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ksiemgowy.mbankmail.</span></span><span class="sig-name descname"><span class="pre">MbankAction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_acc_no</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_acc_no</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amount_pln</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_person</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_desc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">balance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ksiemgowy.mbankmail.</span></span><span class="sig-name descname"><span class="pre">MbankAction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_acc_no</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_acc_no</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amount_pln</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_person</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_desc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">balance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">datetime.datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A container for all transfers, positive or negative.</p>
 <dl class="py attribute">
@@ -224,7 +224,7 @@ pushing it to the repository.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ksiemgowy.mbankmail.MbankAction.anonymized">
-<span class="sig-name descname"><span class="pre">anonymized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mbank_anonymization_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction.anonymized" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">anonymized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mbank_anonymization_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">ksiemgowy.mbankmail.MbankAction</span></a></span></span><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction.anonymized" title="Permalink to this definition">¶</a></dt>
 <dd><p>Anonymizes all potentially sensitive fields using
 mbank_anonymization_key as cryptographic pepper.</p>
 </dd></dl>
@@ -278,14 +278,14 @@ tuples, lists, and dicts.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="ksiemgowy.mbankmail.MbankAction.timestamp">
-<span class="sig-name descname"><span class="pre">timestamp</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction.timestamp" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">timestamp</span></span><em class="property"><span class="pre">:</span> <span class="pre">datetime.datetime</span></em><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction.timestamp" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ksiemgowy.mbankmail.anonymize">
-<span class="sig-prename descclassname"><span class="pre">ksiemgowy.mbankmail.</span></span><span class="sig-name descname"><span class="pre">anonymize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hashed_string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mbank_anonymization_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.mbankmail.anonymize" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ksiemgowy.mbankmail.</span></span><span class="sig-name descname"><span class="pre">anonymize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hashed_string</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mbank_anonymization_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ksiemgowy.mbankmail.anonymize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Anonymizes an input string using mbank_anonymization_key as
 cryptographic pepper.</p>
 </dd></dl>
@@ -307,14 +307,14 @@ depending on the mode.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ksiemgowy.mbankmail.parse_mbank_email">
-<span class="sig-prename descclassname"><span class="pre">ksiemgowy.mbankmail.</span></span><span class="sig-name descname"><span class="pre">parse_mbank_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.mbankmail.parse_mbank_email" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ksiemgowy.mbankmail.</span></span><span class="sig-name descname"><span class="pre">parse_mbank_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">email.message.Message</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">ksiemgowy.mbankmail.MbankAction</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.mbankmail.parse_mbank_email" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds attachment with mBank account update in an .eml mBank email,
 then behaves like parse_mbank_html.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ksiemgowy.mbankmail.parse_mbank_html">
-<span class="sig-prename descclassname"><span class="pre">ksiemgowy.mbankmail.</span></span><span class="sig-name descname"><span class="pre">parse_mbank_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mbank_html</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.mbankmail.parse_mbank_html" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ksiemgowy.mbankmail.</span></span><span class="sig-name descname"><span class="pre">parse_mbank_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mbank_html</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">ksiemgowy.mbankmail.MbankAction</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.mbankmail.parse_mbank_html" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parses mBank .htm attachment file and generates a list of actions
 that were derived from it.</p>
 </dd></dl>
@@ -325,13 +325,13 @@ that were derived from it.</p>
 <p>This module describes data structures used in ksiemgowy.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ksiemgowy.models.</span></span><span class="sig-name descname"><span class="pre">KsiemgowyDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database_uri</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ksiemgowy.models.</span></span><span class="sig-name descname"><span class="pre">KsiemgowyDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database_uri</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A class that groups together all models that describe the state of
 ksiemgowy.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.acc_no_to_email">
-<span class="sig-name descname"><span class="pre">acc_no_to_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">notification_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.acc_no_to_email" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">acc_no_to_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">notification_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.acc_no_to_email" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds a mapping between banking accounts an e-mail addresses for
 people interested in a given type of a notification.</p>
 </dd></dl>
@@ -344,7 +344,7 @@ people interested in a given type of a notification.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.add_positive_transfer">
-<span class="sig-name descname"><span class="pre">add_positive_transfer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mbank_action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.add_positive_transfer" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_positive_transfer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mbank_action</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.add_positive_transfer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a positive transfer to the database.</p>
 </dd></dl>
 
@@ -357,20 +357,20 @@ observed so far.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.list_positive_transfers">
-<span class="sig-name descname"><span class="pre">list_positive_transfers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.list_positive_transfers" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">list_positive_transfers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">ksiemgowy.mbankmail.MbankAction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.list_positive_transfers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a generator that lists all positive transfers that were
 observed so far.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.mark_imap_id_already_handled">
-<span class="sig-name descname"><span class="pre">mark_imap_id_already_handled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imap_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.mark_imap_id_already_handled" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mark_imap_id_already_handled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imap_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.mark_imap_id_already_handled" title="Permalink to this definition">¶</a></dt>
 <dd><p>Marks a given IMAP ID as already processed by ksiemgowy.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.was_imap_id_already_handled">
-<span class="sig-name descname"><span class="pre">was_imap_id_already_handled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imap_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.was_imap_id_already_handled" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">was_imap_id_already_handled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imap_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.was_imap_id_already_handled" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells whether a given IMAP ID was already processed by ksiemgowy.</p>
 </dd></dl>
 
