@@ -14,9 +14,6 @@ from email.mime.text import MIMEText
 from dataclasses import dataclass
 import typing as T
 
-import unittest
-import unittest.mock as mock
-
 import time
 import smtplib
 import logging
@@ -262,7 +259,10 @@ def atexit_handler(*_, **__):
 
 
 def notify_about_overdues(
-    imap_login, imap_password, _imap_server, database
+    mbank_anonymization_key,
+    database,
+    mail_config,
+    acc_number,
 ):
     """Checks whether any of the organization members is overdue and notifies
     them about that fact."""
@@ -285,9 +285,9 @@ def notify_about_overdues(
                 overdues.append(emails[payment.in_acc_no])
 
     if SEND_EMAIL:
-        with smtp_login(imap_login, imap_password) as server:
+        with mail_config.smtp_login() as server:
             for overdue in overdues:
-                send_overdue_email(server, imap_login, overdue)
+                send_overdue_email(server, mail_config.login, overdue)
 
     LOGGER.info("done notify_about_overdues()")
 
@@ -342,5 +342,4 @@ def entrypoint():
 
 
 if __name__ == "__main__":
-    unittest.main()
-    # entrypoint()
+    entrypoint()

@@ -41,6 +41,4 @@ class EntrypointTestCase(unittest.TestCase):
             emails={},
             mbank_anonymization_key=b"ad",
         )
-
-        print(msg)
         self.assertEqual(msg["To"], "to_address")
