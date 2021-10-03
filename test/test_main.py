@@ -1,3 +1,4 @@
+import contextlib
 import email
 
 import unittest
@@ -42,11 +43,16 @@ class EntrypointTestCase(unittest.TestCase):
         mail_mock = mock.Mock()
         mail_mock.imap_connect.return_value = mail_connection_mock
 
-        smtp_login_mock = mock.Mock()
-        smtp_login_mock.__enter__ = mock.Mock()
-        smtp_login_mock.__exit__ = mock.Mock()
+        def send_message_mock(*args, **kwargs):
+            print('message sent.')
 
-        mail_mock.smtp_login.return_value = smtp_login_mock
+        @contextlib.contextmanager
+        def smtp_login_mock(*args, **kwargs):
+            server_mock = mock.Mock()
+            server_mock.send_message.side_effect = send_message_mock
+            yield server_mock
+
+        mail_mock.smtp_login = smtp_login_mock
 
         return mail_mock
 
@@ -58,10 +64,11 @@ class EntrypointTestCase(unittest.TestCase):
             deploy_key_path='',
             accounts=[
                 ksiemgowy_main.KsiemgowyAccount(
-                    mail_config=mail_mock, acc_number='')
+                    mail_config=mail_mock, acc_number='81089394')
             ], mbank_anonymization_key=b'')
         database_mock = mock.Mock()
         database_mock.list_positive_transfers.return_value = []
+        database_mock.acc_no_to_email.return_value = {}
         database_mock.was_imap_id_already_handled.return_value = False
         ksiemgowy_main.main(config_mock, database_mock, mock.Mock(),
                             ScheduleMock(), lambda: False)
