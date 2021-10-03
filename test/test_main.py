@@ -1,10 +1,10 @@
 import contextlib
-import email
 
 import unittest
 import unittest.mock as mock
 
 import ksiemgowy.__main__ as ksiemgowy_main
+import ksiemgowy.models
 from ksiemgowy.mbankmail import MbankAction
 
 
@@ -66,10 +66,7 @@ class EntrypointTestCase(unittest.TestCase):
                 ksiemgowy_main.KsiemgowyAccount(
                     mail_config=mail_mock, acc_number='81089394')
             ], mbank_anonymization_key=b'')
-        database_mock = mock.Mock()
-        database_mock.list_positive_transfers.return_value = []
-        database_mock.acc_no_to_email.return_value = {}
-        database_mock.was_imap_id_already_handled.return_value = False
+        database_mock = ksiemgowy.models.KsiemgowyDB('sqlite://')
         ksiemgowy_main.main(config_mock, database_mock, mock.Mock(),
                             ScheduleMock(), lambda: False)
 
