@@ -14,6 +14,9 @@ from email.mime.text import MIMEText
 from dataclasses import dataclass
 import typing as T
 
+import unittest
+import unittest.mock as mock
+
 import time
 import smtplib
 import logging
@@ -167,14 +170,14 @@ def check_for_updates(  # pylint: disable=too-many-arguments
     imap_password,
     imap_server,
     acc_number,
-    public_database_uri,
+    database_uri,
     mbank_anonymization_key,
 ):
     """Program's entry point."""
     LOGGER.info("checking for updates...")
-    public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
+    database = ksiemgowy.models.KsiemgowyDB(database_uri)
     mail = imap_connect(imap_login, imap_password, imap_server)
-    for msg in gen_unseen_mbank_emails(public_state, mail):
+    for msg in gen_unseen_mbank_emails(database, mail):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
             LOGGER.info(
@@ -184,12 +187,12 @@ def check_for_updates(  # pylint: disable=too-many-arguments
             if action.action_type == "in_transfer" and str(
                 action.out_acc_no
             ) == str(acc_number):
-                public_state.add_positive_transfer(
+                database.add_positive_transfer(
                     action.anonymized(mbank_anonymization_key).asdict()
                 )
                 if SEND_EMAIL:
                     with smtp_login(imap_login, imap_password) as server:
-                        emails = public_state.acc_no_to_email("arrived")
+                        emails = database.acc_no_to_email("arrived")
                         msg = build_confirmation_mail(
                             imap_login,
                             imap_login,
@@ -204,7 +207,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
             elif action.action_type == "out_transfer" and str(
                 action.in_acc_no
             ) == str(acc_number):
-                public_state.add_expense(
+                database.add_expense(
                     action.anonymized(mbank_anonymization_key).asdict()
                 )
                 LOGGER.info("added an expense")
@@ -221,7 +224,7 @@ def parse_config_and_build_args():
     ) as config_file:
         config = yaml.load(config_file)
     ret = []
-    public_database_uri = config["PUBLIC_DB_URI"]
+    database_uri = config["PUBLIC_DB_URI"]
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
         imap_server = account["IMAP_SERVER"]
@@ -233,7 +236,7 @@ def parse_config_and_build_args():
                 imap_password,
                 imap_server,
                 acc_no,
-                public_database_uri,
+                database_uri,
             ]
         )
     return ret
@@ -246,14 +249,14 @@ def atexit_handler(*_, **__):
 
 
 def notify_about_overdues(
-    imap_login, imap_password, _imap_server, public_database_uri
+    imap_login, imap_password, _imap_server, database_uri
 ):
     """Checks whether any of the organization members is overdue and notifies
     them about that fact."""
     LOGGER.info("notify_about_overdues()")
-    public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
+    database = ksiemgowy.models.KsiemgowyDB(database_uri)
     latest_dues = {}
-    for action in public_state.list_positive_transfers():
+    for action in database.list_positive_transfers():
         if (
             action.in_acc_no not in latest_dues
             or latest_dues[action.in_acc_no].timestamp < action.timestamp
@@ -263,7 +266,7 @@ def notify_about_overdues(
     ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
     ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
     overdues = []
-    emails = public_state.acc_no_to_email("overdue")
+    emails = database.acc_no_to_email("overdue")
     for payment in latest_dues.values():
         if ago_55d < payment.timestamp < ago_35d:
             if payment.in_acc_no in emails:
@@ -284,15 +287,18 @@ def load_config():
                            mbank_anonymization_key=mbank_anonymization_key)
 
 
-def main(config, schedule, should_keep_running):
+def get_database(config):
+    database_uri = config.args[0][-1]
+    return ksiemgowy.models.KsiemgowyDB(database_uri)
+
+
+def main(config, database, schedule, should_keep_running):
     """Program's entry point. Schedules periodic execution of all routines."""
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
 
-    public_database_uri = config.args[0][-1]
-    public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
     # pylint:disable=unused-variable
-    emails = public_state.acc_no_to_email("arrived")  # noqa
+    emails = database.acc_no_to_email("arrived")  # noqa
     for account in config.args:
         account = list(account) + [config. mbank_anonymization_key]
         check_for_updates(*account)
@@ -304,12 +310,12 @@ def main(config, schedule, should_keep_running):
                                           *config.args[-1])
 
     deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
-    public_database_uri = config.args[0][-1]
-    public_state = ksiemgowy.models.KsiemgowyDB(public_database_uri)
+    database_uri = config.args[0][-1]
+    database = ksiemgowy.models.KsiemgowyDB(database_uri)
     schedule.every().hour.do(
-        ksiemgowy.homepage_updater.maybe_update, public_state, deploy_key_path
+        ksiemgowy.homepage_updater.maybe_update, database, deploy_key_path
     )
-    ksiemgowy.homepage_updater.maybe_update(public_state, deploy_key_path)
+    ksiemgowy.homepage_updater.maybe_update(database, deploy_key_path)
 
     while should_keep_running():
         schedule.run_pending()
@@ -318,8 +324,17 @@ def main(config, schedule, should_keep_running):
 
 def entrypoint():
     config = load_config()
-    main(config, schedule, lambda: True)
+    database = get_database(config)
+    main(config, database, schedule, lambda: True)
+
+
+class EntrypointTestCase(unittest.TestCase):
+    def test_entrypoint_doesnt_crash(self):
+        config_mock = KsiemgowyConfig(
+            args=[[None]], mbank_anonymization_key='')
+        main(config_mock, mock.Mock(), mock.Mock(), lambda: False)
 
 
 if __name__ == "__main__":
-    entrypoint()
+    unittest.main()
+    # entrypoint()
