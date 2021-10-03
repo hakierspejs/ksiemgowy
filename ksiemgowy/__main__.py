@@ -227,32 +227,6 @@ def check_for_updates(  # pylint: disable=too-many-arguments
     LOGGER.info("check_for_updates: done")
 
 
-def parse_config_and_build_accounts():
-    """Parses the configuration file and builds arguments for all routines."""
-    with open(
-        os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
-        encoding="utf8",
-    ) as config_file:
-        config = yaml.load(config_file)
-    ret = []
-    database_uri = config["PUBLIC_DB_URI"]
-    deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
-    for account in config["ACCOUNTS"]:
-        imap_login = account["IMAP_LOGIN"]
-        imap_server = account["IMAP_SERVER"]
-        imap_password = account["IMAP_PASSWORD"]
-        acc_no = account["ACC_NO"]
-        ret.append(
-            [
-                imap_login,
-                imap_password,
-                imap_server,
-                acc_no,
-            ]
-        )
-    return database_uri, deploy_key_path, ret
-
-
 @atexit.register
 def atexit_handler(*_, **__):
     """Handles program termination in a predictable way."""
@@ -291,11 +265,30 @@ def notify_about_overdues(
     LOGGER.info("done notify_about_overdues()")
 
 
-def load_config():
-    mbank_anonymization_key = os.environ["MBANK_ANONYMIZATION_KEY"].encode()
-    database_uri, deploy_key_path, accounts = parse_config_and_build_accounts()
+def load_config(config_file, env):
+    """Parses the configuration file and builds arguments for all routines."""
+    mbank_anonymization_key = env["MBANK_ANONYMIZATION_KEY"].encode()
+    config = yaml.load(config_file)
+    accounts = []
+    database_uri = config["PUBLIC_DB_URI"]
+    deploy_key_path = env["DEPLOY_KEY_PATH"]
+    for account in config["ACCOUNTS"]:
+        imap_login = account["IMAP_LOGIN"]
+        imap_server = account["IMAP_SERVER"]
+        imap_password = account["IMAP_PASSWORD"]
+        acc_no = account["ACC_NO"]
+        accounts.append(
+            [
+                imap_login,
+                imap_password,
+                imap_server,
+                acc_no,
+            ]
+        )
+
     return KsiemgowyConfig(database_uri=database_uri, accounts=accounts,
-                           mbank_anonymization_key=mbank_anonymization_key)
+                           mbank_anonymization_key=mbank_anonymization_key,
+                           deploy_key_path=deploy_key_path)
 
 
 def get_database(config):
@@ -336,7 +329,11 @@ def main(config, database, homepage_update, schedule, should_keep_running):
 
 
 def entrypoint():
-    config = load_config()
+    with open(
+        os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
+        encoding="utf8",
+    ) as config_file:
+        config = load_config(config_file, os.environ)
     database = get_database(config)
     main(config, database, ksiemgowy.homepage_updater.maybe_update,
          schedule_module, lambda: True)

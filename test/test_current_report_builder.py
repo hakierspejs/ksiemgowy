@@ -131,7 +131,3 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
         }
 
         self.assertEqual(expected_output, current_report)
-
-
-if __name__ == "__main__":
-    unittest.main()
