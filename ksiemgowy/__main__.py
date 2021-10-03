@@ -35,10 +35,14 @@ LOGGER = logging.getLogger("ksiemgowy.__main__")
 SEND_EMAIL = True
 
 
+
 @dataclass(frozen=True)
 class KsiemgowyConfig:
-    args: T.Any
+    accounts: T.Any
     mbank_anonymization_key: str
+
+    def get_account_for_overdue_notifications(self):
+        return self.accounts[-1]
 
 
 def imap_connect(login, password, server):
@@ -216,7 +220,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
     LOGGER.info("check_for_updates: done")
 
 
-def parse_config_and_build_args():
+def parse_config_and_build_accounts():
     """Parses the configuration file and builds arguments for all routines."""
     with open(
         os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
@@ -282,13 +286,13 @@ def notify_about_overdues(
 
 def load_config():
     mbank_anonymization_key = os.environ["MBANK_ANONYMIZATION_KEY"].encode()
-    args = parse_config_and_build_args()
-    return KsiemgowyConfig(args=args,
+    accounts = parse_config_and_build_accounts()
+    return KsiemgowyConfig(accounts=accounts,
                            mbank_anonymization_key=mbank_anonymization_key)
 
 
 def get_database(config):
-    database_uri = config.args[0][-1]
+    database_uri = config.accounts[0][-1]
     return ksiemgowy.models.KsiemgowyDB(database_uri)
 
 
@@ -299,19 +303,18 @@ def main(config, database, schedule, should_keep_running):
 
     # pylint:disable=unused-variable
     emails = database.acc_no_to_email("arrived")  # noqa
-    for account in config.args:
+    for account in config.accounts:
         account = list(account) + [config. mbank_anonymization_key]
         check_for_updates(*account)
         schedule.every().hour.do(check_for_updates, *account)
 
     # the weird schedule is supposed to try to accomodate different lifestyles
     # use the last specified account for overdue notifications:
+    overdue_account = config.get_account_for_overdue_notifications()
     schedule.every((24 * 3) + 5).hours.do(notify_about_overdues,
-                                          *config.args[-1])
+                                          *overdue_account)
 
     deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
-    database_uri = config.args[0][-1]
-    database = ksiemgowy.models.KsiemgowyDB(database_uri)
     schedule.every().hour.do(
         ksiemgowy.homepage_updater.maybe_update, database, deploy_key_path
     )
@@ -331,7 +334,7 @@ def entrypoint():
 class EntrypointTestCase(unittest.TestCase):
     def test_entrypoint_doesnt_crash(self):
         config_mock = KsiemgowyConfig(
-            args=[[None]], mbank_anonymization_key='')
+            accounts=[[None]], mbank_anonymization_key='')
         main(config_mock, mock.Mock(), mock.Mock(), lambda: False)
 
 
