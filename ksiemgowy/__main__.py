@@ -35,21 +35,34 @@ LOGGER = logging.getLogger("ksiemgowy.__main__")
 SEND_EMAIL = True
 
 
+@dataclass(frozen=True)
+class MailConfig:
+    login: str
+    password: str
+    server: str
+
+    def imap_connect(self):
+        """Logs in to IMAP using given credentials."""
+        mail = imaplib.IMAP4_SSL(self.server)
+        mail.login(self.login, self.password)
+        return mail
+
+
+@dataclass(frozen=True)
+class KsiemgowyAccount:
+    acc_number: str
+    mail_config: MailConfig
+
 
 @dataclass(frozen=True)
 class KsiemgowyConfig:
-    accounts: T.Any
+    database_uri: str
+    deploy_key_path: str
+    accounts: T.List[KsiemgowyAccount]
     mbank_anonymization_key: str
 
     def get_account_for_overdue_notifications(self):
         return self.accounts[-1]
-
-
-def imap_connect(login, password, server):
-    """Logs in to IMAP using given credentials."""
-    mail = imaplib.IMAP4_SSL(server)
-    mail.login(login, password)
-    return mail
 
 
 @contextlib.contextmanager
@@ -111,11 +124,11 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
 
 
 def build_confirmation_mail(
+    mbank_anonymization_key,
     fromaddr,
     toaddr,
     mbank_action,
     emails,
-    mbank_anonymization_key,
 ):
     """Sends an e-mail confirming that a membership due has arrived and was
     accounted for."""
@@ -170,17 +183,14 @@ def gen_unseen_mbank_emails(database, mail):
 
 
 def check_for_updates(  # pylint: disable=too-many-arguments
-    imap_login,
-    imap_password,
-    imap_server,
-    acc_number,
-    database_uri,
     mbank_anonymization_key,
+    database,
+    mail_config,
+    acc_number,
 ):
     """Program's entry point."""
     LOGGER.info("checking for updates...")
-    database = ksiemgowy.models.KsiemgowyDB(database_uri)
-    mail = imap_connect(imap_login, imap_password, imap_server)
+    mail = mail_config.imap_connect()
     for msg in gen_unseen_mbank_emails(database, mail):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
@@ -195,14 +205,14 @@ def check_for_updates(  # pylint: disable=too-many-arguments
                     action.anonymized(mbank_anonymization_key).asdict()
                 )
                 if SEND_EMAIL:
-                    with smtp_login(imap_login, imap_password) as server:
+                    with smtp_login(mail_config.login, mail_config.login) as server:
                         emails = database.acc_no_to_email("arrived")
                         msg = build_confirmation_mail(
-                            imap_login,
-                            imap_login,
+                            mbank_anonymization_key,
+                            mail_config.login,
+                            mail_config.login,
                             action,
                             emails,
-                            mbank_anonymization_key,
                         )
                         server.send_message(msg)
                         time.sleep(10)  # HACK: slow down potential self-spam
@@ -229,6 +239,7 @@ def parse_config_and_build_accounts():
         config = yaml.load(config_file)
     ret = []
     database_uri = config["PUBLIC_DB_URI"]
+    deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
         imap_server = account["IMAP_SERVER"]
@@ -240,10 +251,9 @@ def parse_config_and_build_accounts():
                 imap_password,
                 imap_server,
                 acc_no,
-                database_uri,
             ]
         )
-    return ret
+    return database_uri, deploy_key_path, ret
 
 
 @atexit.register
@@ -253,12 +263,11 @@ def atexit_handler(*_, **__):
 
 
 def notify_about_overdues(
-    imap_login, imap_password, _imap_server, database_uri
+    imap_login, imap_password, _imap_server, database
 ):
     """Checks whether any of the organization members is overdue and notifies
     them about that fact."""
     LOGGER.info("notify_about_overdues()")
-    database = ksiemgowy.models.KsiemgowyDB(database_uri)
     latest_dues = {}
     for action in database.list_positive_transfers():
         if (
@@ -286,8 +295,8 @@ def notify_about_overdues(
 
 def load_config():
     mbank_anonymization_key = os.environ["MBANK_ANONYMIZATION_KEY"].encode()
-    accounts = parse_config_and_build_accounts()
-    return KsiemgowyConfig(accounts=accounts,
+    database_uri, deploy_key_path, accounts = parse_config_and_build_accounts()
+    return KsiemgowyConfig(database_uri=database_uri, accounts=accounts,
                            mbank_anonymization_key=mbank_anonymization_key)
 
 
@@ -296,7 +305,7 @@ def get_database(config):
     return ksiemgowy.models.KsiemgowyDB(database_uri)
 
 
-def main(config, database, schedule, should_keep_running):
+def main(config, database, homepage_update, schedule, should_keep_running):
     """Program's entry point. Schedules periodic execution of all routines."""
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
@@ -304,21 +313,22 @@ def main(config, database, schedule, should_keep_running):
     # pylint:disable=unused-variable
     emails = database.acc_no_to_email("arrived")  # noqa
     for account in config.accounts:
-        account = list(account) + [config. mbank_anonymization_key]
-        check_for_updates(*account)
-        schedule.every().hour.do(check_for_updates, *account)
+        args = account.__dict__
+        args['mbank_anonymization_key'] = config.mbank_anonymization_key
+        args['database'] = database
+        check_for_updates(**args)
+        schedule.every().hour.do(check_for_updates, **args)
 
     # the weird schedule is supposed to try to accomodate different lifestyles
     # use the last specified account for overdue notifications:
     overdue_account = config.get_account_for_overdue_notifications()
     schedule.every((24 * 3) + 5).hours.do(notify_about_overdues,
-                                          *overdue_account)
+                                          **overdue_account.__dict__)
 
-    deploy_key_path = os.environ["DEPLOY_KEY_PATH"]
     schedule.every().hour.do(
-        ksiemgowy.homepage_updater.maybe_update, database, deploy_key_path
+        homepage_update, database, config.deploy_key_path
     )
-    ksiemgowy.homepage_updater.maybe_update(database, deploy_key_path)
+    homepage_update(database, config.deploy_key_path)
 
     while should_keep_running():
         schedule.run_pending()
@@ -328,14 +338,25 @@ def main(config, database, schedule, should_keep_running):
 def entrypoint():
     config = load_config()
     database = get_database(config)
-    main(config, database, schedule, lambda: True)
+    main(config, database, ksiemgowy.homepage_updater.maybe_update,
+         schedule, lambda: True)
 
 
 class EntrypointTestCase(unittest.TestCase):
     def test_entrypoint_doesnt_crash(self):
+
+        mail_search_mock = mock.Mock()
+        mail_search_mock.search.return_value = [None, ['']]
+        mail_mock = mock.Mock()
+        mail_mock.imap_connect.return_value = mail_search_mock
         config_mock = KsiemgowyConfig(
-            accounts=[[None]], mbank_anonymization_key='')
-        main(config_mock, mock.Mock(), mock.Mock(), lambda: False)
+            database_uri='',
+            deploy_key_path='',
+            accounts=[
+                KsiemgowyAccount(
+                    mail_config=mail_mock, acc_number='')
+            ], mbank_anonymization_key='')
+        main(config_mock, mock.Mock(), mock.Mock(), mock.Mock(), lambda: False)
 
 
 if __name__ == "__main__":
