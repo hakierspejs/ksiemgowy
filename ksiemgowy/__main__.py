@@ -121,11 +121,7 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
 
 
 def build_confirmation_mail(
-    mbank_anonymization_key,
-    fromaddr,
-    toaddr,
-    mbank_action,
-    emails,
+    mbank_anonymization_key, fromaddr, toaddr, mbank_action, emails,
 ):
     """Sends an e-mail confirming that a membership due has arrived and was
     accounted for."""
@@ -180,10 +176,7 @@ def gen_unseen_mbank_emails(database, mail):
 
 
 def check_for_updates(  # pylint: disable=too-many-arguments
-    mbank_anonymization_key,
-    database,
-    mail_config,
-    acc_number,
+    mbank_anonymization_key, database, mail_config, acc_number,
 ):
     """Program's entry point."""
     LOGGER.info("checking for updates...")
@@ -234,8 +227,7 @@ def atexit_handler(*_, **__):
 
 
 def notify_about_overdues(
-    database,
-    mail_config,
+    database, mail_config,
 ):
     """Checks whether any of the organization members is overdue and notifies
     them about that fact."""
@@ -278,17 +270,15 @@ def load_config(config_file, env):
         imap_password = account["IMAP_PASSWORD"]
         acc_no = account["ACC_NO"]
         accounts.append(
-            [
-                imap_login,
-                imap_password,
-                imap_server,
-                acc_no,
-            ]
+            [imap_login, imap_password, imap_server, acc_no,]
         )
 
-    return KsiemgowyConfig(database_uri=database_uri, accounts=accounts,
-                           mbank_anonymization_key=mbank_anonymization_key,
-                           deploy_key_path=deploy_key_path)
+    return KsiemgowyConfig(
+        database_uri=database_uri,
+        accounts=accounts,
+        mbank_anonymization_key=mbank_anonymization_key,
+        deploy_key_path=deploy_key_path,
+    )
 
 
 def get_database(config):
@@ -305,22 +295,23 @@ def main(config, database, homepage_update, schedule, should_keep_running):
     emails = database.acc_no_to_email("arrived")  # noqa
     for account in config.accounts:
         args = account.__dict__
-        args['mbank_anonymization_key'] = config.mbank_anonymization_key
-        args['database'] = database
+        args["mbank_anonymization_key"] = config.mbank_anonymization_key
+        args["database"] = database
         check_for_updates(**args)
         schedule.every().hour.do(check_for_updates, **args)
 
     # the weird schedule is supposed to try to accomodate different lifestyles
     # use the last specified account for overdue notifications:
     overdue_account = config.get_account_for_overdue_notifications()
-    overdue_args = {'database':  database,
-                    "mail_config": overdue_account.mail_config}
-    schedule.every((24 * 3) + 5).hours.do(notify_about_overdues,
-                                          **overdue_args)
-
-    schedule.every().hour.do(
-        homepage_update, database, config.deploy_key_path
+    overdue_args = {
+        "database": database,
+        "mail_config": overdue_account.mail_config,
+    }
+    schedule.every((24 * 3) + 5).hours.do(
+        notify_about_overdues, **overdue_args
     )
+
+    schedule.every().hour.do(homepage_update, database, config.deploy_key_path)
     homepage_update(database, config.deploy_key_path)
 
     while should_keep_running():
@@ -335,8 +326,13 @@ def entrypoint():
     ) as config_file:
         config = load_config(config_file, os.environ)
     database = get_database(config)
-    main(config, database, ksiemgowy.homepage_updater.maybe_update,
-         schedule_module, lambda: True)
+    main(
+        config,
+        database,
+        ksiemgowy.homepage_updater.maybe_update,
+        schedule_module,
+        lambda: True,
+    )
 
 
 if __name__ == "__main__":
