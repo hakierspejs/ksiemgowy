@@ -48,7 +48,6 @@ jobs:
                   pip install -r requirements.txt
             - name: Lint with flake8
               run: |
-                  python -m pip install flake8
                   flake8 --ignore=W503 ksiemgowy/
 
     pylint:
@@ -64,9 +63,9 @@ jobs:
               run: |
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
+                  pip install -r requirements-dev.txt
             - name: Pylint code analysis
               run: |
-                  python -m pip install pylint
                   pylint ksiemgowy/
 
     mypy:
@@ -82,7 +81,7 @@ jobs:
               run: |
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
-                  yes | mypy ksiemgowy --install-types || true
+                  pip install -r requirements-dev.txt
             - name: MyPy code analysis
               run: |
                   mypy --strict ksiemgowy
