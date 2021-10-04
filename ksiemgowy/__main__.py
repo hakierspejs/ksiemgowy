@@ -252,7 +252,8 @@ def notify_about_overdues(
     for action in database.list_positive_transfers():
         if (
             action.in_acc_no not in latest_dues
-            or latest_dues[action.in_acc_no].timestamp < action.timestamp
+            or latest_dues[action.in_acc_no].get_timestamp()
+            < action.get_timestamp()
         ):
             latest_dues[action.in_acc_no] = action
 
@@ -261,7 +262,7 @@ def notify_about_overdues(
     overdues = []
     emails = database.acc_no_to_email("overdue")
     for payment in latest_dues.values():
-        if ago_55d < payment.timestamp < ago_35d:
+        if ago_55d < payment.get_timestamp() < ago_35d:
             if payment.in_acc_no in emails:
                 overdues.append(emails[payment.in_acc_no])
 

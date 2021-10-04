@@ -120,8 +120,6 @@ class KsiemgowyDB:
         observed so far."""
         for entry in self.mbank_actions.select().execute().fetchall():
             ret = entry.mbank_action
-            ret["timestamp"] = dateutil.parser.parse(ret["timestamp"])
-            ret["amount_pln"] = float(ret["amount_pln"].replace(",", "."))
             yield ksiemgowy.mbankmail.MbankAction(**ret)
 
     def add_positive_transfer(self, mbank_action: Dict[str, str]) -> None:
@@ -137,6 +135,4 @@ class KsiemgowyDB:
         observed so far."""
         for entry in self.expenses.select().execute().fetchall():
             ret = entry.mbank_action
-            ret["timestamp"] = dateutil.parser.parse(ret["timestamp"])
-            ret["amount_pln"] = float(ret["amount_pln"].replace(",", "."))
             yield ksiemgowy.mbankmail.MbankAction(**ret)

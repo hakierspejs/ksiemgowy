@@ -9,6 +9,8 @@ import pprint
 import copy
 import hashlib
 import logging
+import datetime
+import dateutil.parser
 
 import lxml.html
 from email.message import Message
@@ -41,11 +43,11 @@ class MbankAction:
 
     in_acc_no: str
     out_acc_no: str
-    amount_pln: str
+    amount_pln: float
     in_person: str
     in_desc: str
     balance: str
-    timestamp: str
+    timestamp: datetime.datetime
     action_type: str
 
     def anonymized(self, mbank_anonymization_key: bytes) -> "MbankAction":
@@ -57,6 +59,9 @@ class MbankAction:
         new.in_person = anonymize(self.in_person, mbank_anonymization_key)
         new.in_desc = anonymize(self.in_desc, mbank_anonymization_key)
         return new
+
+    def get_timestamp(self) -> datetime.datetime:
+        return dateutil.parser.parse(self.timestamp)
 
     asdict = dataclasses.asdict
 
@@ -86,6 +91,7 @@ def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
             "przych": "in_transfer",
             "wych": "out_transfer",
         }.get(action["action_type"], "other")
+        action["amount_pln"] = float(action["amount_pln"].replace(",", "."))
         action["timestamp"] = f"{date} {time}"
         actions.append(MbankAction(**action))
     return {"actions": actions}
@@ -120,7 +126,7 @@ def main(input_fpath: str, mode: str, loglevel: str) -> None:
     input_fpath, then runs either parse_mbank_html or parse_mbank_email,
     depending on the mode."""
     logging.basicConfig(level=loglevel.upper())
-    with open(input_fpath, 'rb') as input_file:
+    with open(input_fpath, "rb") as input_file:
         input_string = input_file.read()
     if mode == "html":
         result = parse_mbank_html(input_string)
