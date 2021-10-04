@@ -1,3 +1,4 @@
+import datetime
 import contextlib
 import email
 
@@ -70,15 +71,6 @@ class EntrypointTestCase(unittest.TestCase):
             mock.Mock(),
         )
 
-    def test_entrypoint_doesnt_crash(self):
-
-        with open(
-            "docs/przykladowy_zalacznik_mbanku.eml",
-            "rb",
-        ) as f:
-            self.incoming_messages = [f.read()]
-            self.run_entrypoint()
-
     def test_entrypoint_sends_a_message(self):
 
         with open(
@@ -89,6 +81,55 @@ class EntrypointTestCase(unittest.TestCase):
             self.run_entrypoint()
             self.assertNotEqual(len(self.sent_messages), 0)
 
+    def test_entrypoint_does_nothing_when_inbox_is_empty(self):
+
+        self.run_entrypoint()
+        self.assertEqual(len(self.sent_messages), 0)
+
+
+    def test_entrypoint_sends_no_reminder_if_user_isnt_overdue(self):
+
+        now = datetime.datetime.now()
+        forty_days_ago = now - datetime.timedelta(days=20)
+        self.database_mock.in_acc_no_to_email.insert(None).execute(
+            in_acc_no="a", email="example_email"
+        )
+        self.database_mock.add_positive_transfer(
+            MbankAction(
+                in_acc_no="a",
+                out_acc_no="b",
+                amount_pln=100.0,
+                in_person="asd",
+                in_desc="e",
+                balance="100",
+                timestamp=str(forty_days_ago),
+                action_type="in_transfer",
+            )
+        )
+        self.run_entrypoint()
+        self.assertEqual(len(self.sent_messages), 0)
+
+    def test_entrypoint_sends_a_reminder_if_somebody_is_overdue(self):
+
+        now = datetime.datetime.now()
+        forty_days_ago = now - datetime.timedelta(days=40)
+        self.database_mock.in_acc_no_to_email.insert(None).execute(
+            in_acc_no="a", email="example_email"
+        )
+        self.database_mock.add_positive_transfer(
+            MbankAction(
+                in_acc_no="a",
+                out_acc_no="b",
+                amount_pln=100.0,
+                in_person="asd",
+                in_desc="e",
+                balance="100",
+                timestamp=str(forty_days_ago),
+                action_type="in_transfer",
+            )
+        )
+        self.run_entrypoint()
+        self.assertEqual(len(self.sent_messages), 1)
 
     def test_build_confirmation_mail_copies_email_if_not_in_mapping(self):
         mbank_action = MbankAction(

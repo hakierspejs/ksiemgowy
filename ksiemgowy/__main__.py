@@ -139,7 +139,6 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
 
     msg.attach(MIMEText(message_text, "plain", "utf-8"))
     server.send_message(msg)
-    time.sleep(10)  # HACK: slow down potential self-spam
 
 
 def build_confirmation_mail(
@@ -236,7 +235,6 @@ def check_for_updates(  # pylint: disable=too-many-arguments
                             emails,
                         )
                         smtp_conn.send_message(msg)
-                        time.sleep(10)  # HACK: slow down potential self-spam
 
                 LOGGER.info("added an action")
             elif action.action_type == "out_transfer" and str(
