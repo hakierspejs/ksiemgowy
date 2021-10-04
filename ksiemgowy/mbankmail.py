@@ -9,8 +9,14 @@ import pprint
 import copy
 import hashlib
 import logging
+import datetime
 
+from email.message import Message
+from typing import Dict, List
+
+import dateutil.parser
 import lxml.html
+
 
 INCOMING_RE = re.compile(
     "^mBank: Przelew (?P<action_type>przych|wych)\\."
@@ -23,7 +29,7 @@ INCOMING_RE = re.compile(
 )
 
 
-def anonymize(hashed_string, mbank_anonymization_key):
+def anonymize(hashed_string: str, mbank_anonymization_key: bytes) -> str:
     """Anonymizes an input string using mbank_anonymization_key as
     cryptographic pepper."""
     return hashlib.sha256(
@@ -38,14 +44,14 @@ class MbankAction:
 
     in_acc_no: str
     out_acc_no: str
-    amount_pln: str
+    amount_pln: float
     in_person: str
     in_desc: str
     balance: str
     timestamp: str
     action_type: str
 
-    def anonymized(self, mbank_anonymization_key):
+    def anonymized(self, mbank_anonymization_key: bytes) -> "MbankAction":
         """Anonymizes all potentially sensitive fields using
         mbank_anonymization_key as cryptographic pepper."""
         new = copy.copy(self)
@@ -55,10 +61,15 @@ class MbankAction:
         new.in_desc = anonymize(self.in_desc, mbank_anonymization_key)
         return new
 
+    def get_timestamp(self) -> datetime.datetime:
+        """Returns timestamp. This is there because we currently store the
+        timestamp as string for rather random reasons."""
+        return dateutil.parser.parse(self.timestamp)
+
     asdict = dataclasses.asdict
 
 
-def parse_mbank_html(mbank_html):
+def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
     """Parses mBank .htm attachment file and generates a list of actions
     that were derived from it."""
     html = lxml.html.fromstring(mbank_html)
@@ -83,12 +94,15 @@ def parse_mbank_html(mbank_html):
             "przych": "in_transfer",
             "wych": "out_transfer",
         }.get(action["action_type"], "other")
-        action["timestamp"] = f"{date} {time}"
-        actions.append(MbankAction(**action))
+        actions.append(MbankAction(
+            timestamp=f"{date} {time}",
+            amount_pln=float(action.pop("amount_pln").replace(",", ".")),
+            **action
+        ))
     return {"actions": actions}
 
 
-def parse_mbank_email(msg):
+def parse_mbank_email(msg: Message) -> Dict[str, List[MbankAction]]:
     """Finds attachment with mBank account update in an .eml mBank email,
     then behaves like parse_mbank_html."""
     parsed = {}
@@ -102,28 +116,25 @@ def parse_mbank_email(msg):
     return parsed
 
 
-def parse_args():
+def parse_args() -> Dict[str, str]:
     """Parses command-line arguments and returns them in a form usable as
     **kwargs."""
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("-i", "--input-fpath", required=True)
-    parser.add_argument("-e", "--encoding", default="iso8859-2")
     parser.add_argument("-L", "--loglevel", default="DEBUG")
-    parser.add_argument("--mode", choices=["eml", "html"], required=True)
+    parser.add_argument("--mode", choices=["html"], required=True)
     return parser.parse_args().__dict__
 
 
-def main(input_fpath, mode, encoding, loglevel):
+def main(input_fpath: str, mode: str, loglevel: str) -> None:
     """Entry point for the submodule, used for diagnostics. Reads data from
     input_fpath, then runs either parse_mbank_html or parse_mbank_email,
     depending on the mode."""
     logging.basicConfig(level=loglevel.upper())
-    with open(input_fpath, encoding=encoding) as input_file:
+    with open(input_fpath, "rb") as input_file:
         input_string = input_file.read()
     if mode == "html":
         result = parse_mbank_html(input_string)
-    elif mode == "eml":
-        result = parse_mbank_email(input_string)
     else:
         raise RuntimeError("Unexpected mode: %s" % mode)
     pprint.pprint(result)

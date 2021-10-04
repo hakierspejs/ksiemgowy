@@ -30,7 +30,7 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
                 in_person="b5d99033edf432cf08ab35d3e47cfeb4e7af370cd3f",
                 in_desc="09564e96eabee7aaddac31c2b7dc11ffe23ca3be4bb",
                 balance="3575,04",
-                timestamp=datetime.datetime(2021, 9, 1, 17, 19),
+                timestamp="2021-09-01 17:19",
                 action_type="out_transfer",
             ),
             MbankAction(
@@ -40,7 +40,7 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
                 in_person="b5d99033edf432cfb35d3e47cfeb4e7af370cd3f",
                 in_desc="c66a1e94465f724a5a893af5ce8e38666d3fe304",
                 balance="3575,04",
-                timestamp=datetime.datetime(2021, 9, 1, 17, 15),
+                timestamp="2021-09-01 17:15",
                 action_type="out_transfer",
             ),
         ]
@@ -52,7 +52,7 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
                 in_person="alsoFake",
                 in_desc="fakeDesc",
                 balance="2137,37",
-                timestamp=datetime.datetime(2021, 9, 2, 3, 37),
+                timestamp="2021-09-02 03:37",
                 action_type="in_transfer",
             )
         ]
@@ -131,7 +131,3 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
         }
 
         self.assertEqual(expected_output, current_report)
-
-
-if __name__ == "__main__":
-    unittest.main()
