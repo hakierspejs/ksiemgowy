@@ -132,7 +132,7 @@ def apply_positive_transfers(
     last_updated: datetime.datetime,
     mbank_actions: List[MbankAction],
     balances_by_account_labels: Dict[str, float],
-) -> Tuple[float, int, datetime, Dict[str, Dict[str, float]]]:
+) -> Tuple[float, int, datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all positive transfers both to balances_by_account_labels and
     monthly_income. Returns newly built monthly_expenses, as well as total
     money raised and current information about the number of members who
@@ -179,7 +179,7 @@ def apply_positive_transfers(
 
 def apply_expenses(
     expenses: List[MbankAction], balances_by_account_labels: Dict[Any, Any]
-) -> Tuple[datetime, Dict[str, Dict[str, float]]]:
+) -> Tuple[datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all expenses both to balances_by_account_labels and
     monthly_expenses. Returns newly built monthly_expenses."""
     last_updated = None
@@ -245,7 +245,7 @@ def build_extra_monthly_reservations(now: datetime.datetime) -> int:
             for _ in dateutil.rrule.rrule(
                 dateutil.rrule.MONTHLY,
                 # https://pad.hs-ldz.pl/aPQpWcUbTvWwEdwsxB0ulQ#Kwestia-sk%C5%82adek
-                dtstart=datetime(year=2020, month=11, day=24),
+                dtstart=datetime.datetime(year=2020, month=11, day=24),
                 until=now,
             )
         ]

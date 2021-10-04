@@ -311,7 +311,23 @@ def get_database(config):
     return ksiemgowy.models.KsiemgowyDB(database_uri)
 
 
-def main(config, database, homepage_update, schedule, should_keep_running):
+class ScheduleWrapper:
+    def every_seconds_do(
+        self, n: int, fn: T.Callable[..., Any], *args, **kwargs
+    ) -> None:
+        schedule_module.every(n).seconds.do(fn, *args, **kwargs)
+
+    def run_pending(self) -> None:
+        schedule_module.run_pending()
+
+
+def main(
+    config: KsiemgowyConfig,
+    database: ksiemgowy.models.KsiemgowyDB,
+    homepage_update: T.Callable[[ksiemgowy.models.KsiemgowyDB, str], None],
+    schedule_wrapper: ScheduleWrapper,
+    should_keep_running: T.Callable[[], bool],
+) -> None:
     """Program's entry point. Schedules periodic execution of all routines."""
     logging.basicConfig(level="INFO")
     LOGGER.info("ksiemgowyd started")
@@ -323,7 +339,7 @@ def main(config, database, homepage_update, schedule, should_keep_running):
         args["mbank_anonymization_key"] = config.mbank_anonymization_key
         args["database"] = database
         check_for_updates(**args)
-        schedule.every().hour.do(check_for_updates, **args)
+        schedule_wrapper.every_seconds_do(3600, check_for_updates, **args)
 
     # the weird schedule is supposed to try to accomodate different lifestyles
     # use the last specified account for overdue notifications:
@@ -332,19 +348,21 @@ def main(config, database, homepage_update, schedule, should_keep_running):
         "database": database,
         "mail_config": overdue_account.mail_config,
     }
-    schedule.every((24 * 3) + 5).hours.do(
-        notify_about_overdues, **overdue_args
+    schedule_wrapper.every_seconds_do(
+        (3600 * ((24 * 3) + 5)), notify_about_overdues, **overdue_args
     )
 
-    schedule.every().hour.do(homepage_update, database, config.deploy_key_path)
+    schedule_wrapper.every_seconds_do(
+        3600, homepage_update, database, config.deploy_key_path
+    )
     homepage_update(database, config.deploy_key_path)
 
     while should_keep_running():
-        schedule.run_pending()
+        schedule_wrapper.run_pending()
         time.sleep(1)
 
 
-def entrypoint():
+def entrypoint() -> None:
     with open(
         os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
         encoding="utf8",
@@ -355,7 +373,7 @@ def entrypoint():
         config,
         database,
         ksiemgowy.homepage_updater.maybe_update,
-        schedule_module,
+        ScheduleWrapper(),
         lambda: True,
     )
 

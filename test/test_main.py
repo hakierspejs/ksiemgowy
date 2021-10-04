@@ -9,18 +9,8 @@ from ksiemgowy.mbankmail import MbankAction
 
 
 class ScheduleMock:
-    def every(self, *args, **kwargs):
-
-        class inner_inner_class:
-            def do(self, fn, *args, **kwargs):
-                fn(*args, **kwargs)
-
-        class inner_class:
-
-            hour = inner_inner_class()
-            hours = inner_inner_class()
-
-        return inner_class()
+    def every_seconds_do(self, n, fn, *args, **kwargs):
+        fn(*args, **kwargs)
 
 
 class EntrypointTestCase(unittest.TestCase):
