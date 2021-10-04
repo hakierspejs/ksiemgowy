@@ -20,7 +20,7 @@ import smtplib
 import logging
 import contextlib
 
-import schedule as schedule_module
+import schedule as schedule_module  # type: ignore
 import yaml
 
 import ksiemgowy.mbankmail
@@ -45,14 +45,14 @@ class MailConfig:
     password: str
     server: str
 
-    def imap_connect(self):
+    def imap_connect(self) -> imaplib.IMAP4_SSL:
         """Logs in to IMAP using given credentials."""
         mail = imaplib.IMAP4_SSL(self.server)
         mail.login(self.login, self.password)
         return mail
 
     @contextlib.contextmanager
-    def smtp_login(self):
+    def smtp_login(self) -> T.Generator[smtplib.SMTP_SSL, None, None]:
         """A context manager that handles SMTP login and logout."""
         server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
         server.ehlo()
@@ -78,7 +78,9 @@ class KsiemgowyConfig:
         return self.accounts[-1]
 
 
-def send_overdue_email(server, fromaddr, overdue_email):
+def send_overdue_email(
+    server: smtplib.SMTP_SSL, fromaddr: str, overdue_email: str
+) -> None:
     """Sends an e-mail notifying that a member is overdue with their
     payments."""
     msg = MIMEMultipart("alternative")
@@ -201,13 +203,13 @@ def check_for_updates(  # pylint: disable=too-many-arguments
         for action in parsed.get("actions", []):
             LOGGER.info(
                 "Observed an action: %r",
-                action.anonymized(mbank_anonymization_key).asdict(),
+                action.anonymized(mbank_anonymization_key),
             )
             if action.action_type == "in_transfer" and str(
                 action.out_acc_no
             ) == str(acc_number):
                 database.add_positive_transfer(
-                    action.anonymized(mbank_anonymization_key).asdict()
+                    action.anonymized(mbank_anonymization_key)
                 )
                 if SEND_EMAIL:
                     with mail_config.smtp_login() as smtp_conn:
@@ -227,7 +229,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
                 action.in_acc_no
             ) == str(acc_number):
                 database.add_expense(
-                    action.anonymized(mbank_anonymization_key).asdict()
+                    action.anonymized(mbank_anonymization_key)
                 )
                 LOGGER.info("added an expense")
             else:
@@ -236,7 +238,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
 
 
 @atexit.register
-def atexit_handler(*_, **__):
+def atexit_handler(*_: T.Any, **__: T.Any) -> None:
     """Handles program termination in a predictable way."""
     LOGGER.info("Shutting down")
 
@@ -248,7 +250,7 @@ def notify_about_overdues(
     """Checks whether any of the organization members is overdue and notifies
     them about that fact."""
     LOGGER.info("notify_about_overdues()")
-    latest_dues = {}
+    latest_dues: T.Dict[str, MbankAction] = {}
     for action in database.list_positive_transfers():
         if (
             action.in_acc_no not in latest_dues
@@ -307,14 +309,9 @@ def load_config(
     )
 
 
-def get_database(config):
-    database_uri = config.accounts[0][-1]
-    return ksiemgowy.models.KsiemgowyDB(database_uri)
-
-
 class ScheduleWrapper:
     def every_seconds_do(
-        self, n: int, fn: T.Callable[..., Any], *args, **kwargs
+        self, n: int, fn: T.Callable[..., Any], *args: T.Any, **kwargs: T.Any
     ) -> None:
         schedule_module.every(n).seconds.do(fn, *args, **kwargs)
 
@@ -369,10 +366,9 @@ def entrypoint() -> None:
         encoding="utf8",
     ) as config_file:
         config = load_config(config_file, dict(os.environ))
-    database = get_database(config)
     main(
         config,
-        database,
+        ksiemgowy.models.KsiemgowyDB(config.database_uri),
         ksiemgowy.homepage_updater.maybe_update,
         ScheduleWrapper(),
         lambda: True,

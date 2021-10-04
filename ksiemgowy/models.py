@@ -122,13 +122,15 @@ class KsiemgowyDB:
             ret = entry.mbank_action
             yield ksiemgowy.mbankmail.MbankAction(**ret)
 
-    def add_positive_transfer(self, mbank_action: Dict[str, str]) -> None:
+    def add_positive_transfer(self, mbank_action: MbankAction) -> None:
         """Adds a positive transfer to the database."""
-        self.mbank_actions.insert(None).execute(mbank_action=mbank_action)
+        self.mbank_actions.insert(None).execute(
+            mbank_action=mbank_action.asdict()
+        )
 
     def add_expense(self, mbank_action: MbankAction) -> None:
         """Adds an expense to the database."""
-        self.expenses.insert(None).execute(mbank_action=mbank_action)
+        self.expenses.insert(None).execute(mbank_action=mbank_action.asdict())
 
     def list_expenses(self) -> Generator[MbankAction, None, None]:
         """Returns a generator that lists all expenses transfers that were

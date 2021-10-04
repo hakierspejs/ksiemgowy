@@ -47,7 +47,7 @@ class MbankAction:
     in_person: str
     in_desc: str
     balance: str
-    timestamp: datetime.datetime
+    timestamp: str
     action_type: str
 
     def anonymized(self, mbank_anonymization_key: bytes) -> "MbankAction":
@@ -91,9 +91,11 @@ def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
             "przych": "in_transfer",
             "wych": "out_transfer",
         }.get(action["action_type"], "other")
-        action["amount_pln"] = float(action["amount_pln"].replace(",", "."))
-        action["timestamp"] = f"{date} {time}"
-        actions.append(MbankAction(**action))
+        actions.append(MbankAction(
+            timestamp=f"{date} {time}",
+            amount_pln=float(action.pop("amount_pln").replace(",", ".")),
+            **action
+        ))
     return {"actions": actions}
 
 
