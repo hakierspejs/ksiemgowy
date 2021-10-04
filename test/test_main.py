@@ -61,7 +61,22 @@ class EntrypointTestCase(unittest.TestCase):
         )
         self.database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
 
-    def run_entrypoint(self):
+    def run_entrypoint(
+        self, positive_actions_fixtures=None, in_acc_no_to_email_fixtures=None
+    ):
+
+        if positive_actions_fixtures:
+            for action in positive_actions_fixtures:
+                self.database_mock.add_positive_transfer(action)
+
+        if in_acc_no_to_email_fixtures:
+            for (
+                in_acc_no,
+                email_address,
+            ) in in_acc_no_to_email_fixtures.items():
+                self.database_mock.in_acc_no_to_email.insert(None).execute(
+                    in_acc_no=in_acc_no, email=email_address
+                )
 
         ksiemgowy_main.main(
             self.config_mock,
@@ -86,49 +101,48 @@ class EntrypointTestCase(unittest.TestCase):
         self.run_entrypoint()
         self.assertEqual(len(self.sent_messages), 0)
 
-
     def test_entrypoint_sends_no_reminder_if_user_isnt_overdue(self):
 
         now = datetime.datetime.now()
-        forty_days_ago = now - datetime.timedelta(days=20)
-        self.database_mock.in_acc_no_to_email.insert(None).execute(
-            in_acc_no="a", email="example_email"
+        some_time_ago = now - datetime.timedelta(days=20)
+
+        self.run_entrypoint(
+            [
+                MbankAction(
+                    in_acc_no="a",
+                    out_acc_no="b",
+                    amount_pln=100.0,
+                    in_person="asd",
+                    in_desc="e",
+                    balance="100",
+                    timestamp=str(some_time_ago),
+                    action_type="in_transfer",
+                )
+            ],
+            {"a": "example@example.com"},
         )
-        self.database_mock.add_positive_transfer(
-            MbankAction(
-                in_acc_no="a",
-                out_acc_no="b",
-                amount_pln=100.0,
-                in_person="asd",
-                in_desc="e",
-                balance="100",
-                timestamp=str(forty_days_ago),
-                action_type="in_transfer",
-            )
-        )
-        self.run_entrypoint()
         self.assertEqual(len(self.sent_messages), 0)
 
     def test_entrypoint_sends_a_reminder_if_somebody_is_overdue(self):
 
         now = datetime.datetime.now()
-        forty_days_ago = now - datetime.timedelta(days=40)
-        self.database_mock.in_acc_no_to_email.insert(None).execute(
-            in_acc_no="a", email="example_email"
+        some_time_ago = now - datetime.timedelta(days=40)
+
+        self.run_entrypoint(
+            [
+                MbankAction(
+                    in_acc_no="a",
+                    out_acc_no="b",
+                    amount_pln=100.0,
+                    in_person="asd",
+                    in_desc="e",
+                    balance="100",
+                    timestamp=str(some_time_ago),
+                    action_type="in_transfer",
+                )
+            ],
+            {"a": "example@example.com"},
         )
-        self.database_mock.add_positive_transfer(
-            MbankAction(
-                in_acc_no="a",
-                out_acc_no="b",
-                amount_pln=100.0,
-                in_person="asd",
-                in_desc="e",
-                balance="100",
-                timestamp=str(forty_days_ago),
-                action_type="in_transfer",
-            )
-        )
-        self.run_entrypoint()
         self.assertEqual(len(self.sent_messages), 1)
 
     def test_build_confirmation_mail_copies_email_if_not_in_mapping(self):
