@@ -1,2 +1,2 @@
-sphinx
-coverage
+sphinx==4.1.2
+coverage==5.5
