@@ -152,14 +152,14 @@ def apply_positive_transfers(
             ACCOUNT_LABELS[action.out_acc_no]
         ] += action.amount_pln
 
-        month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
+        month = f"{action.get_timestamp().year}-{action.get_timestamp().month:02d}"
         monthly_income.setdefault(month, {}).setdefault("Suma", 0)
         monthly_income[month]["Suma"] += action.amount_pln
 
-        if action.timestamp < month_ago:
+        if action.get_timestamp() < month_ago:
             continue
-        if last_updated is None or action.timestamp > last_updated:
-            last_updated = action.timestamp
+        if last_updated is None or action.get_timestamp() > last_updated:
+            last_updated = action.get_timestamp()
         if (
             action.in_acc_no not in observed_acc_numbers
             and action.in_person not in observed_acc_owners
@@ -191,12 +191,12 @@ def apply_expenses(
         balances_by_account_labels[
             ACCOUNT_LABELS[action.in_acc_no]
         ] -= action.amount_pln
-        month = f"{action.timestamp.year}-{action.timestamp.month:02d}"
+        month = f"{action.get_timestamp().year}-{action.get_timestamp().month:02d}"
         category = determine_category(action)
         monthly_expenses.setdefault(month, {}).setdefault(category, 0)
         monthly_expenses[month][category] += action.amount_pln
-        if last_updated is None or action.timestamp > last_updated:
-            last_updated = action.timestamp
+        if last_updated is None or action.get_timestamp() > last_updated:
+            last_updated = action.get_timestamp()
 
     return last_updated, monthly_expenses
 
@@ -253,7 +253,7 @@ def build_extra_monthly_reservations(now: datetime.datetime) -> int:
 
 
 def get_current_report(
-    now: datetime,
+    now: datetime.datetime,
     expenses: List[MbankAction],
     mbank_actions: List[MbankAction],
     corrections: Optional[Dict[str, Dict[str, float]]] = None,
