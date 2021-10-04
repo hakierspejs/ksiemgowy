@@ -132,7 +132,7 @@ class KsiemgowyDB:
         """Adds an expense to the database."""
         self.expenses.insert(None).execute(mbank_action=mbank_action.asdict())
 
-    def list_expenses(self) -> Generator[MbankAction, None, None]:
+    def list_expenses(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all expenses transfers that were
         observed so far."""
         for entry in self.expenses.select().execute().fetchall():

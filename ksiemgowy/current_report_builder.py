@@ -8,7 +8,16 @@ import logging
 import dateutil.rrule
 
 from ksiemgowy.mbankmail import MbankAction
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, TypedDict
+from typing import (
+    Any,
+    Dict,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    TypedDict,
+    Iterable,
+)
 
 
 LOGGER = logging.getLogger("homepage_updater")
@@ -22,11 +31,14 @@ ACCOUNT_LABELS = {
     ): "Konto stowarzyszenia",
 }
 
-T_CORRECTIONS = TypedDict('T_CORRECTIONS', {
-    "ACCOUNT_CORRECTIONS": Dict[str, float],
-    "MONTHLY_INCOME_CORRECTIONS": Dict[str, Dict[str, float]],
-    "MONTHLY_EXPENSE_CORRECTIONS": Dict[str, Dict[str, float]],
-})
+T_CORRECTIONS = TypedDict(
+    "T_CORRECTIONS",
+    {
+        "ACCOUNT_CORRECTIONS": Dict[str, float],
+        "MONTHLY_INCOME_CORRECTIONS": Dict[str, Dict[str, float]],
+        "MONTHLY_EXPENSE_CORRECTIONS": Dict[str, Dict[str, float]],
+    },
+)
 
 CORRECTIONS: T_CORRECTIONS = {
     "ACCOUNT_CORRECTIONS": {
@@ -136,7 +148,7 @@ def apply_d33tah_dues(
 def apply_positive_transfers(
     now: datetime.datetime,
     last_updated: datetime.datetime,
-    mbank_actions: List[MbankAction],
+    mbank_actions: Iterable[MbankAction],
     balances_by_account_labels: Dict[str, float],
 ) -> Tuple[float, int, datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all positive transfers both to balances_by_account_labels and
@@ -186,7 +198,7 @@ def apply_positive_transfers(
 
 
 def apply_expenses(
-    expenses: List[MbankAction], balances_by_account_labels: Dict[Any, Any]
+    expenses: Iterable[MbankAction], balances_by_account_labels: Dict[Any, Any]
 ) -> Tuple[datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all expenses both to balances_by_account_labels and
     monthly_expenses. Returns newly built monthly_expenses."""
@@ -289,8 +301,8 @@ T_CURRENT_REPORT = TypedDict(
 
 def get_current_report(
     now: datetime.datetime,
-    expenses: List[MbankAction],
-    mbank_actions: List[MbankAction],
+    expenses: Iterable[MbankAction],
+    mbank_actions: Iterable[MbankAction],
     corrections: Optional[T_CORRECTIONS] = None,
 ) -> T_CURRENT_REPORT:
     """Module's entry point. Given time, expenses, income and corrections,
