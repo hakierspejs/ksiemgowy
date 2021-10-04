@@ -1,12 +1,12 @@
 """This module describes data structures used in ksiemgowy."""
 
 import logging
-import sqlalchemy
+from typing import Dict, Iterator
 
+import sqlalchemy
 
 import ksiemgowy.mbankmail
 from ksiemgowy.mbankmail import MbankAction
-from typing import Dict, Iterator
 
 LOGGER = logging.getLogger(__name__)
 

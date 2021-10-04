@@ -9,10 +9,12 @@ import datetime
 import imaplib
 import os
 import email
+from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from dataclasses import dataclass
 import typing as T
+from typing import Any, Dict, Iterator
 
 
 import time
@@ -20,18 +22,17 @@ import smtplib
 import logging
 import contextlib
 
-import schedule as schedule_module  # type: ignore
 import yaml
+
+import schedule as schedule_module  # type: ignore
 
 import ksiemgowy.mbankmail
 import ksiemgowy.models
 import ksiemgowy.homepage_updater
 
 # those are for type annotations:
-from email.message import Message
 from ksiemgowy.mbankmail import MbankAction
 from ksiemgowy.models import KsiemgowyDB
-from typing import Any, Dict, Iterator
 
 
 IMAP_FILTER = '(SINCE "02-Apr-2020" FROM "kontakt@mbank.pl")'
@@ -41,6 +42,10 @@ SEND_EMAIL = True
 
 @dataclass(frozen=True)
 class MailConfig:
+    """A structure that stores our mail credentials and exposes an interface
+    that allows the user to create SMTP and IMAP connections. Tested with
+    GMail."""
+
     login: str
     password: str
     server: str
@@ -63,18 +68,27 @@ class MailConfig:
 
 @dataclass(frozen=True)
 class KsiemgowyAccount:
+    """Stores information tied to a specific bank account: its number and
+    an e-mail configuration used to handle communications related to it."""
+
     acc_number: str
     mail_config: MailConfig
 
 
 @dataclass(frozen=True)
 class KsiemgowyConfig:
+    """Stores information required to start Ksiemgowy. This includes
+    database, e-mail and website credentials, as well as cryptographic pepper
+    used to anonymize account data."""
+
     database_uri: str
     deploy_key_path: str
     accounts: T.List[KsiemgowyAccount]
     mbank_anonymization_key: bytes
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
+        """Returns an e-mail account used for overdue notifications. Currently
+        it's the last one mentioned in the configuration."""
         return self.accounts[-1]
 
 
@@ -309,22 +323,31 @@ def load_config(
     )
 
 
-class ScheduleWrapper:
-    def every_seconds_do(
-        self, n: int, fn: T.Callable[..., Any], *args: T.Any, **kwargs: T.Any
-    ) -> None:
-        schedule_module.every(n).seconds.do(fn, *args, **kwargs)
+def every_seconds_do(
+    num_seconds: int,
+    called_fn: T.Callable[..., Any],
+    *args: T.Any,
+    **kwargs: T.Any,
+) -> None:
+    """A wrapper for "schedule" module. Intended to satisfy MyPy, as well as
+    increasing testability by not relying on global state."""
 
-    def run_pending(self) -> None:
+    schedule_module.every(num_seconds).seconds.do(called_fn, *args, **kwargs)
+
+
+def main_loop() -> None:
+    """Main loop. Factored out for increased testability."""
+    while True:
         schedule_module.run_pending()
+        time.sleep(1)
 
 
 def main(
     config: KsiemgowyConfig,
     database: ksiemgowy.models.KsiemgowyDB,
     homepage_update: T.Callable[[ksiemgowy.models.KsiemgowyDB, str], None],
-    schedule_wrapper: ScheduleWrapper,
-    should_keep_running: T.Callable[[], bool],
+    register_fn: T.Callable[[int, T.Callable[..., Any], T.Any, T.Any], None],
+    main_loop_fn: T.Callable[[], None],
 ) -> None:
     """Program's entry point. Schedules periodic execution of all routines."""
     logging.basicConfig(level="INFO")
@@ -337,7 +360,7 @@ def main(
         args["mbank_anonymization_key"] = config.mbank_anonymization_key
         args["database"] = database
         check_for_updates(**args)
-        schedule_wrapper.every_seconds_do(3600, check_for_updates, **args)
+        register_fn(3600, check_for_updates, **args)
 
     # the weird schedule is supposed to try to accomodate different lifestyles
     # use the last specified account for overdue notifications:
@@ -346,21 +369,17 @@ def main(
         "database": database,
         "mail_config": overdue_account.mail_config,
     }
-    schedule_wrapper.every_seconds_do(
-        (3600 * ((24 * 3) + 5)), notify_about_overdues, **overdue_args
-    )
+    register_fn((3600 * ((24 * 3) + 5)), notify_about_overdues, **overdue_args)
 
-    schedule_wrapper.every_seconds_do(
-        3600, homepage_update, database, config.deploy_key_path
-    )
+    register_fn(3600, homepage_update, database, config.deploy_key_path)
     homepage_update(database, config.deploy_key_path)
 
-    while should_keep_running():
-        schedule_wrapper.run_pending()
-        time.sleep(1)
+    main_loop_fn()
 
 
 def entrypoint() -> None:
+    """Program's entry point. Loads config, instantiates required objects
+    and then runs the main function."""
     with open(
         os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
         encoding="utf8",
@@ -370,8 +389,8 @@ def entrypoint() -> None:
         config,
         ksiemgowy.models.KsiemgowyDB(config.database_uri),
         ksiemgowy.homepage_updater.maybe_update,
-        ScheduleWrapper(),
-        lambda: True,
+        every_seconds_do,
+        main_loop,
     )
 
 

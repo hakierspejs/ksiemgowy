@@ -10,11 +10,12 @@ import copy
 import hashlib
 import logging
 import datetime
-import dateutil.parser
 
-import lxml.html
 from email.message import Message
 from typing import Dict, List
+
+import dateutil.parser
+import lxml.html
 
 
 INCOMING_RE = re.compile(
@@ -61,6 +62,8 @@ class MbankAction:
         return new
 
     def get_timestamp(self) -> datetime.datetime:
+        """Returns timestamp. This is there because we currently store the
+        timestamp as string for rather random reasons."""
         return dateutil.parser.parse(self.timestamp)
 
     asdict = dataclasses.asdict

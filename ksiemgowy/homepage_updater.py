@@ -11,12 +11,13 @@ import shutil
 import socket
 import subprocess
 import time
+from typing import Dict, Tuple, Generator, Optional
+
 import yaml
 
 
 import ksiemgowy.current_report_builder
 import ksiemgowy.models
-from typing import Dict, Tuple, Generator, Optional
 
 
 LOGGER = logging.getLogger("homepage_updater")
@@ -232,10 +233,6 @@ def maybe_update_dues(
 def maybe_update(
     database: ksiemgowy.models.KsiemgowyDB, deploy_key_path: str
 ) -> None:
-    """Submodule's entry point. Checks out the repository, operates on it and
-    cleans up the checked out tree."""
-    with git_cloned(deploy_key_path) as git_env:
-        maybe_update_dues(database, git_env)
     """Submodule's entry point. Checks out the repository, operates on it and
     cleans up the checked out tree."""
     with git_cloned(deploy_key_path) as git_env:

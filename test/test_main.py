@@ -8,13 +8,11 @@ import ksiemgowy.models
 from ksiemgowy.mbankmail import MbankAction
 
 
-class ScheduleMock:
-    def every_seconds_do(self, n, fn, *args, **kwargs):
-        fn(*args, **kwargs)
+def run_immediately(_, fn, *args, **kwargs):
+    fn(*args, **kwargs)
 
 
 class EntrypointTestCase(unittest.TestCase):
-
     def build_mail_mock(self, messages=None):
 
         """Generates a mock that fakes imaplib interface, returning e-mails
@@ -34,7 +32,7 @@ class EntrypointTestCase(unittest.TestCase):
         mail_mock.imap_connect.return_value = mail_connection_mock
 
         def send_message_mock(*args, **kwargs):
-            print('message sent.')
+            print("message sent.")
 
         @contextlib.contextmanager
         def smtp_login_mock(*args, **kwargs):
@@ -50,20 +48,29 @@ class EntrypointTestCase(unittest.TestCase):
         mail_mock = self.build_mail_mock(messages)
 
         config_mock = ksiemgowy_main.KsiemgowyConfig(
-            database_uri='',
-            deploy_key_path='',
+            database_uri="",
+            deploy_key_path="",
             accounts=[
                 ksiemgowy_main.KsiemgowyAccount(
-                    mail_config=mail_mock, acc_number='81089394')
-            ], mbank_anonymization_key=b'')
-        database_mock = ksiemgowy.models.KsiemgowyDB('sqlite://')
-        ksiemgowy_main.main(config_mock, database_mock, mock.Mock(),
-                            ScheduleMock(), lambda: False)
+                    mail_config=mail_mock, acc_number="81089394"
+                )
+            ],
+            mbank_anonymization_key=b"",
+        )
+        database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
+        ksiemgowy_main.main(
+            config_mock,
+            database_mock,
+            mock.Mock(),
+            run_immediately,
+            mock.Mock(),
+        )
 
     def test_entrypoint_doesnt_crash(self):
 
         with open(
-                'docs/przykladowy_zalacznik_mbanku.eml', 'rb',
+            "docs/przykladowy_zalacznik_mbanku.eml",
+            "rb",
         ) as f:
             self.run_entrypoint([f.read()])
 

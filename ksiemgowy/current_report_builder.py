@@ -5,9 +5,7 @@ information about organization's current financial status."""
 
 import datetime
 import logging
-import dateutil.rrule
 
-from ksiemgowy.mbankmail import MbankAction
 from typing import (
     Dict,
     Optional,
@@ -17,6 +15,10 @@ from typing import (
     TypedDict,
     Iterable,
 )
+
+import dateutil.rrule
+
+from ksiemgowy.mbankmail import MbankAction
 
 
 LOGGER = logging.getLogger("homepage_updater")
