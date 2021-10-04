@@ -15,7 +15,7 @@ def run_immediately(_, fn, args, kwargs):
     fn(*args, **kwargs)
 
 
-class EntrypointTestCase(unittest.TestCase):
+class KsiemgowySystemTestCase(unittest.TestCase):
     def setUp(self):
 
         """Generates a mock that fakes imaplib interface, returning e-mails
@@ -145,6 +145,8 @@ class EntrypointTestCase(unittest.TestCase):
         )
         self.assertEqual(len(self.sent_messages), 1)
 
+
+class BuildConfirmationMailTestCase(unittest.TestCase):
     def test_build_confirmation_mail_copies_email_if_not_in_mapping(self):
         mbank_action = MbankAction(
             in_acc_no="a",
