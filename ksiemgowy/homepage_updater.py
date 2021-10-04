@@ -15,7 +15,7 @@ import yaml
 
 
 import ksiemgowy.current_report_builder
-from typing import Dict
+from typing import Dict, Tuple
 
 
 LOGGER = logging.getLogger("homepage_updater")
@@ -38,7 +38,9 @@ def deserialize(serialized_string):
     return yaml.safe_load(serialized_string)
 
 
-def upload_value_to_graphite(host, metric, value):
+def upload_value_to_graphite(
+    host: Tuple[str, int], metric: str, value: str
+) -> None:
     """Uploads a single metric to a Graphite server."""
     sock = socket.socket()
     try:
@@ -53,17 +55,20 @@ def upload_value_to_graphite(host, metric, value):
     time.sleep(3.0)
 
 
-def upload_to_graphite(host, current_report):
+def upload_to_graphite(
+    host: Tuple[str, int],
+    current_report: ksiemgowy.current_report_builder.T_CURRENT_REPORT,
+) -> None:
     """Uploads metrics to Graphite server."""
     upload_value_to_graphite(
         host,
         "hakierspejs.finanse.total_lastmonth",
-        current_report["dues_total_lastmonth"],
+        str(current_report["dues_total_lastmonth"]),
     )
     upload_value_to_graphite(
         host,
         "hakierspejs.finanse.num_subscribers",
-        current_report["dues_num_subscribers"],
+        str(current_report["dues_num_subscribers"]),
     )
 
 
@@ -153,7 +158,10 @@ def do_states_differ(remote_state, current_report):
     return False
 
 
-def is_local_state_newer(remote_state: Dict[str, str], current_report: Dict[str, str]) -> bool:
+def is_local_state_newer(
+    remote_state: Dict[str, str],
+    current_report: ksiemgowy.current_report_builder.T_CURRENT_REPORT,
+) -> bool:
     """Compares remote state and current report, using time criteria."""
     local_modified = datetime.datetime.strptime(
         current_report["dues_last_updated"], "%d-%m-%Y"
