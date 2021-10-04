@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for ksiemgowy/models.py: 77%</title>
+    <title>Coverage for ksiemgowy/models.py: 80%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="jquery.min.js"></script>
@@ -18,15 +18,15 @@
 <div id="header">
     <div class="content">
         <h1>Coverage for <b>ksiemgowy/models.py</b> :
-            <span class="pc_cov">77%</span>
+            <span class="pc_cov">80%</span>
         </h1>
         <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
         <h2 class="stats">
             57 statements &nbsp;
-            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">45 run</button>
-            <button type="button" class="mis show_mis shortkey_m button_toggle_mis" title="Toggle lines missing">12 missing</button>
+            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">46 run</button>
+            <button type="button" class="mis show_mis shortkey_m button_toggle_mis" title="Toggle lines missing">11 missing</button>
             <button type="button" class="exc show_exc shortkey_x button_toggle_exc" title="Toggle lines excluded">0 excluded</button>
-            <button type="button" class="par run show_par shortkey_p button_toggle_par" title="Toggle lines partially run">2 partial</button>
+            <button type="button" class="par run show_par shortkey_p button_toggle_par" title="Toggle lines partially run">3 partial</button>
         </h2>
     </div>
 </div>
@@ -189,7 +189,7 @@
     <p id="t134" class="run"><span class="n"><a href="#t134">134</a></span><span class="t">    <span class="key">def</span> <span class="nam">list_expenses</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span> <span class="op">-></span> <span class="nam">Iterator</span><span class="op">[</span><span class="nam">MbankAction</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p id="t135" class="pln"><span class="n"><a href="#t135">135</a></span><span class="t">        <span class="str">"""Returns a generator that lists all expenses transfers that were</span>&nbsp;</span><span class="r"></span></p>
     <p id="t136" class="pln"><span class="n"><a href="#t136">136</a></span><span class="t"><span class="str">        observed so far."""</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t137" class="mis show_mis"><span class="n"><a href="#t137">137</a></span><span class="t">        <span class="key">for</span> <span class="nam">entry</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">expenses</span><span class="op">.</span><span class="nam">select</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">execute</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">fetchall</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t137" class="par run show_par"><span class="n"><a href="#t137">137</a></span><span class="t">        <span class="key">for</span> <span class="nam">entry</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">expenses</span><span class="op">.</span><span class="nam">select</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">execute</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">fetchall</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"><span class="annotate short">137&#x202F;&#x219B;&#x202F;138</span><span class="annotate long">line 137 didn't jump to line 138, because the loop on line 137 never started</span></span></p>
     <p id="t138" class="mis show_mis"><span class="n"><a href="#t138">138</a></span><span class="t">            <span class="nam">ret</span> <span class="op">=</span> <span class="nam">entry</span><span class="op">.</span><span class="nam">mbank_action</span>&nbsp;</span><span class="r"></span></p>
     <p id="t139" class="mis show_mis"><span class="n"><a href="#t139">139</a></span><span class="t">            <span class="key">yield</span> <span class="nam">ksiemgowy</span><span class="op">.</span><span class="nam">mbankmail</span><span class="op">.</span><span class="nam">MbankAction</span><span class="op">(</span><span class="op">**</span><span class="nam">ret</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </div>
