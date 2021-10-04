@@ -23,7 +23,7 @@ jobs:
                   COVERAGE_PATH=$(python -c 'print(__import__("importlib").util.find_spec("coverage").origin)' | xargs dirname)
                   find $COVERAGE_PATH -name index.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
                   find $COVERAGE_PATH -name pyfile.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
-                  python -m coverage run --source=. --branch -m unittest -v
+                  python -m coverage run --source=ksiemgowy --branch -m unittest -v
                   python -m coverage html
                   rm -rf docs/htmlcov
                   mv htmlcov docs
