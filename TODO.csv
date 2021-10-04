@@ -1,0 +1,12 @@
+25,OPEN,Zabijaj agenta SSH po użyciu.,,2021-09-08 21:39:24 +0000 UTC
+24,OPEN,homepage_updater: rzeczy charakterystyczne dla Hakierspejsu powinny być opcjonalne,,2021-09-07 12:15:42 +0000 UTC
+19,OPEN,Dodaj automatyczną obsługę wyłączania wiadomości,,2021-09-05 10:35:23 +0000 UTC
+17,OPEN,Połącz expenses oraz mbank_actions,,2021-09-03 20:40:36 +0000 UTC
+16,OPEN,Zmień nazwę mbank_actions na positive_actions,,2021-09-03 20:40:03 +0000 UTC
+15,OPEN,Napisz test na główny kod homepage_updater,,2021-09-03 20:39:32 +0000 UTC
+12,OPEN,Między 55 a 65 dniem overdue, daj CC dla zarządu,,2021-05-16 18:50:22 +0000 UTC
+8,OPEN,Udokumentuj korygowanie liczenia stanu konta,,2021-05-16 18:40:01 +0000 UTC
+7,OPEN,Nie używaj zmiennych środowiskowych do odbierania parametrów,,2021-05-16 18:39:44 +0000 UTC
+6,OPEN,Nie przechowuj danych finansowych we floatach,,2021-09-08 21:45:17 +0000 UTC
+5,OPEN,Zmień typy notify_* in_acc_no_to_email na boolowskie,,2021-05-16 18:37:35 +0000 UTC
+4,OPEN,Napisz test end-to-end,,2021-05-16 18:24:23 +0000 UTC
