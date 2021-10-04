@@ -37,6 +37,7 @@
  <a href="#A"><strong>A</strong></a>
  | <a href="#B"><strong>B</strong></a>
  | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
@@ -55,6 +56,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ksiemgowy.html#ksiemgowy.models.KsiemgowyDB.acc_no_to_email">acc_no_to_email() (ksiemgowy.models.KsiemgowyDB method)</a>
 </li>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CORRECTIONS.ACCOUNT_CORRECTIONS">ACCOUNT_CORRECTIONS (ksiemgowy.current_report_builder.T_CORRECTIONS attribute)</a>
+</li>
       <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.MbankAction.action_type">action_type (ksiemgowy.mbankmail.MbankAction attribute)</a>
 </li>
       <li><a href="ksiemgowy.html#ksiemgowy.models.KsiemgowyDB.add_expense">add_expense() (ksiemgowy.models.KsiemgowyDB method)</a>
@@ -63,10 +66,10 @@
 </li>
       <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.MbankAction.amount_pln">amount_pln (ksiemgowy.mbankmail.MbankAction attribute)</a>
 </li>
-      <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.anonymize">anonymize() (in module ksiemgowy.mbankmail)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.anonymize">anonymize() (in module ksiemgowy.mbankmail)</a>
+</li>
       <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.MbankAction.anonymized">anonymized() (ksiemgowy.mbankmail.MbankAction method)</a>
 </li>
       <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.apply_corrections">apply_corrections() (in module ksiemgowy.current_report_builder)</a>
@@ -87,10 +90,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.MbankAction.balance">balance (ksiemgowy.mbankmail.MbankAction attribute)</a>
 </li>
-      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.build_extra_monthly_reservations">build_extra_monthly_reservations() (in module ksiemgowy.current_report_builder)</a>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CURRENT_REPORT.balance_so_far">balance_so_far (ksiemgowy.current_report_builder.T_CURRENT_REPORT attribute)</a>
+</li>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CURRENT_REPORT.balances_by_account_labels">balances_by_account_labels (ksiemgowy.current_report_builder.T_CURRENT_REPORT attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_MONTHLY_REPORT.Bilans">Bilans (ksiemgowy.current_report_builder.T_MONTHLY_REPORT attribute)</a>
+</li>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.build_extra_monthly_reservations">build_extra_monthly_reservations() (in module ksiemgowy.current_report_builder)</a>
+</li>
       <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.build_monthly_balance">build_monthly_balance() (in module ksiemgowy.current_report_builder)</a>
 </li>
       <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.build_monthly_final_balance">build_monthly_final_balance() (in module ksiemgowy.current_report_builder)</a>
@@ -103,11 +112,25 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ksiemgowy.html#ksiemgowy.homepage_updater.deserialize">deserialize() (in module ksiemgowy.homepage_updater)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.determine_category">determine_category() (in module ksiemgowy.current_report_builder)</a>
 </li>
       <li><a href="ksiemgowy.html#ksiemgowy.homepage_updater.do_states_differ">do_states_differ() (in module ksiemgowy.homepage_updater)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CURRENT_REPORT.dues_last_updated">dues_last_updated (ksiemgowy.current_report_builder.T_CURRENT_REPORT attribute)</a>
+</li>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CURRENT_REPORT.dues_num_subscribers">dues_num_subscribers (ksiemgowy.current_report_builder.T_CURRENT_REPORT attribute)</a>
+</li>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CURRENT_REPORT.dues_total_lastmonth">dues_total_lastmonth (ksiemgowy.current_report_builder.T_CURRENT_REPORT attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CURRENT_REPORT.extra_monthly_reservations">extra_monthly_reservations (ksiemgowy.current_report_builder.T_CURRENT_REPORT attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -214,8 +237,6 @@
 </li>
       <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.MbankAction">MbankAction (class in ksiemgowy.mbankmail)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     module
 
@@ -232,6 +253,14 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CURRENT_REPORT.monthly">monthly (ksiemgowy.current_report_builder.T_CURRENT_REPORT attribute)</a>
+</li>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CORRECTIONS.MONTHLY_EXPENSE_CORRECTIONS">MONTHLY_EXPENSE_CORRECTIONS (ksiemgowy.current_report_builder.T_CORRECTIONS attribute)</a>
+</li>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CORRECTIONS.MONTHLY_INCOME_CORRECTIONS">MONTHLY_INCOME_CORRECTIONS (ksiemgowy.current_report_builder.T_CORRECTIONS attribute)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="O">O</h2>
@@ -247,11 +276,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.parse_args">parse_args() (in module ksiemgowy.mbankmail)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.parse_mbank_email">parse_mbank_email() (in module ksiemgowy.mbankmail)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.parse_mbank_html">parse_mbank_html() (in module ksiemgowy.mbankmail)</a>
+</li>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_MONTHLY_REPORT.Przychody">Przychody (ksiemgowy.current_report_builder.T_MONTHLY_REPORT attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -259,6 +290,8 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_MONTHLY_REPORT.Saldo">Saldo (ksiemgowy.current_report_builder.T_MONTHLY_REPORT attribute)</a>
+</li>
       <li><a href="ksiemgowy.html#ksiemgowy.homepage_updater.serialize">serialize() (in module ksiemgowy.homepage_updater)</a>
 </li>
   </ul></td>
@@ -273,6 +306,14 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CORRECTIONS">T_CORRECTIONS (class in ksiemgowy.current_report_builder)</a>
+</li>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_CURRENT_REPORT">T_CURRENT_REPORT (class in ksiemgowy.current_report_builder)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_MONTHLY_REPORT">T_MONTHLY_REPORT (class in ksiemgowy.current_report_builder)</a>
+</li>
       <li><a href="ksiemgowy.html#ksiemgowy.mbankmail.MbankAction.timestamp">timestamp (ksiemgowy.mbankmail.MbankAction attribute)</a>
 </li>
   </ul></td>
@@ -296,6 +337,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ksiemgowy.html#ksiemgowy.models.KsiemgowyDB.was_imap_id_already_handled">was_imap_id_already_handled() (ksiemgowy.models.KsiemgowyDB method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ksiemgowy.html#ksiemgowy.current_report_builder.T_MONTHLY_REPORT.Wydatki">Wydatki (ksiemgowy.current_report_builder.T_MONTHLY_REPORT attribute)</a>
 </li>
   </ul></td>
 </tr></table>
