@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for ksiemgowy/homepage_updater.py: 28%</title>
+    <title>Coverage for ksiemgowy/homepage_updater.py: 25%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="jquery.min.js"></script>
@@ -18,13 +18,13 @@
 <div id="header">
     <div class="content">
         <h1>Coverage for <b>ksiemgowy/homepage_updater.py</b> :
-            <span class="pc_cov">28%</span>
+            <span class="pc_cov">25%</span>
         </h1>
         <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
         <h2 class="stats">
             104 statements &nbsp;
-            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">33 run</button>
-            <button type="button" class="mis show_mis shortkey_m button_toggle_mis" title="Toggle lines missing">71 missing</button>
+            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">30 run</button>
+            <button type="button" class="mis show_mis shortkey_m button_toggle_mis" title="Toggle lines missing">74 missing</button>
             <button type="button" class="exc show_exc shortkey_x button_toggle_exc" title="Toggle lines excluded">0 excluded</button>
             <button type="button" class="par run show_par shortkey_p button_toggle_par" title="Toggle lines partially run">0 partial</button>
         </h2>
@@ -246,13 +246,13 @@
     <p id="t191" class="pln"><span class="n"><a href="#t191">191</a></span><span class="t">    <span class="nam">current_report</span><span class="op">:</span> <span class="nam">ksiemgowy</span><span class="op">.</span><span class="nam">current_report_builder</span><span class="op">.</span><span class="nam">T_CURRENT_REPORT</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p id="t192" class="pln"><span class="n"><a href="#t192">192</a></span><span class="t"><span class="op">)</span> <span class="op">-></span> <span class="nam">bool</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p id="t193" class="pln"><span class="n"><a href="#t193">193</a></span><span class="t">    <span class="str">"""Compares remote state and current report, using time criteria."""</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t194" class="run"><span class="n"><a href="#t194">194</a></span><span class="t">    <span class="nam">local_modified</span> <span class="op">=</span> <span class="nam">datetime</span><span class="op">.</span><span class="nam">datetime</span><span class="op">.</span><span class="nam">strptime</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t194" class="mis show_mis"><span class="n"><a href="#t194">194</a></span><span class="t">    <span class="nam">local_modified</span> <span class="op">=</span> <span class="nam">datetime</span><span class="op">.</span><span class="nam">datetime</span><span class="op">.</span><span class="nam">strptime</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p id="t195" class="pln"><span class="n"><a href="#t195">195</a></span><span class="t">        <span class="nam">current_report</span><span class="op">[</span><span class="str">"dues_last_updated"</span><span class="op">]</span><span class="op">,</span> <span class="str">"%d-%m-%Y"</span>&nbsp;</span><span class="r"></span></p>
     <p id="t196" class="pln"><span class="n"><a href="#t196">196</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t197" class="run"><span class="n"><a href="#t197">197</a></span><span class="t">    <span class="nam">remote_modified</span> <span class="op">=</span> <span class="nam">datetime</span><span class="op">.</span><span class="nam">datetime</span><span class="op">.</span><span class="nam">strptime</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t197" class="mis show_mis"><span class="n"><a href="#t197">197</a></span><span class="t">    <span class="nam">remote_modified</span> <span class="op">=</span> <span class="nam">datetime</span><span class="op">.</span><span class="nam">datetime</span><span class="op">.</span><span class="nam">strptime</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p id="t198" class="pln"><span class="n"><a href="#t198">198</a></span><span class="t">        <span class="nam">remote_state</span><span class="op">[</span><span class="str">"dues_last_updated"</span><span class="op">]</span><span class="op">,</span> <span class="str">"%d-%m-%Y"</span>&nbsp;</span><span class="r"></span></p>
     <p id="t199" class="pln"><span class="n"><a href="#t199">199</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t200" class="run"><span class="n"><a href="#t200">200</a></span><span class="t">    <span class="key">return</span> <span class="nam">local_modified</span> <span class="op">></span> <span class="nam">remote_modified</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t200" class="mis show_mis"><span class="n"><a href="#t200">200</a></span><span class="t">    <span class="key">return</span> <span class="nam">local_modified</span> <span class="op">></span> <span class="nam">remote_modified</span>&nbsp;</span><span class="r"></span></p>
     <p id="t201" class="pln"><span class="n"><a href="#t201">201</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p id="t202" class="pln"><span class="n"><a href="#t202">202</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p id="t203" class="run"><span class="n"><a href="#t203">203</a></span><span class="t"><span class="key">def</span> <span class="nam">maybe_update_dues</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
