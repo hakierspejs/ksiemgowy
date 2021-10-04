@@ -13,26 +13,30 @@ def run_immediately(_, fn, args, kwargs):
 
 
 class EntrypointTestCase(unittest.TestCase):
-    def build_mail_mock(self, messages=None):
+    def setUp(self):
 
         """Generates a mock that fakes imaplib interface, returning e-mails
         from a given iterator. Not my proudest hack. Apologies!"""
 
+        self.sent_messages = []
+        self.incoming_messages = []
+
         def mail_fetch_mock(mail, _):
             return None, [(None, mail)]
 
-        if messages is None:
-            messages = []
+        def return_messages(*args, **kwargs):
+            return self.incoming_messages
+
         mail_connection_mock = mock.Mock()
         messages_mock = mock.Mock()
-        messages_mock.split.return_value = messages
+        messages_mock.split.side_effect = return_messages
         mail_connection_mock.search.return_value = (None, [messages_mock])
         mail_connection_mock.fetch.side_effect = mail_fetch_mock
         mail_mock = mock.Mock()
         mail_mock.imap_connect.return_value = mail_connection_mock
 
-        def send_message_mock(*args, **kwargs):
-            print("message sent.")
+        def send_message_mock(msg):
+            self.sent_messages.append(msg)
 
         @contextlib.contextmanager
         def smtp_login_mock(*args, **kwargs):
@@ -42,12 +46,7 @@ class EntrypointTestCase(unittest.TestCase):
 
         mail_mock.smtp_login = smtp_login_mock
 
-        return mail_mock
-
-    def run_entrypoint(self, messages):
-        mail_mock = self.build_mail_mock(messages)
-
-        config_mock = ksiemgowy_main.KsiemgowyConfig(
+        self.config_mock = ksiemgowy_main.KsiemgowyConfig(
             database_uri="",
             deploy_key_path="",
             accounts=[
@@ -57,10 +56,13 @@ class EntrypointTestCase(unittest.TestCase):
             ],
             mbank_anonymization_key=b"",
         )
-        database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
+        self.database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
+
+    def run_entrypoint(self):
+
         ksiemgowy_main.main(
-            config_mock,
-            database_mock,
+            self.config_mock,
+            self.database_mock,
             mock.Mock(),
             run_immediately,
             mock.Mock(),
@@ -72,7 +74,19 @@ class EntrypointTestCase(unittest.TestCase):
             "docs/przykladowy_zalacznik_mbanku.eml",
             "rb",
         ) as f:
-            self.run_entrypoint([f.read()])
+            self.incoming_messages = [f.read()]
+            self.run_entrypoint()
+
+    def test_entrypoint_sends_a_message(self):
+
+        with open(
+            "docs/przykladowy_zalacznik_mbanku.eml",
+            "rb",
+        ) as f:
+            self.incoming_messages = [f.read()]
+            self.run_entrypoint()
+            self.assertNotEqual(len(self.sent_messages), 0)
+
 
     def test_build_confirmation_mail_copies_email_if_not_in_mapping(self):
         mbank_action = MbankAction(
