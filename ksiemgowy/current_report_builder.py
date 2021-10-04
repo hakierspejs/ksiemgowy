@@ -7,6 +7,9 @@ import datetime
 import logging
 import dateutil.rrule
 
+from ksiemgowy.mbankmail import MbankAction
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+
 
 LOGGER = logging.getLogger("homepage_updater")
 ACCOUNT_LABELS = {
@@ -45,8 +48,11 @@ CORRECTIONS = {
 
 
 def apply_corrections(
-    corrections, balances_by_account_labels, monthly_income, monthly_expenses
-):
+    corrections: Dict[str, Dict[str, float]],
+    balances_by_account_labels: Dict[str, float],
+    monthly_income: Dict[str, Dict[str, float]],
+    monthly_expenses: Dict[str, Dict[str, float]],
+) -> None:
     """Apply a specified set of corrections to monthly_income, monthly_expenses
     and balances_by_account_labels."""
     # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
@@ -77,7 +83,7 @@ def apply_corrections(
             monthly_expenses[month][label] += value
 
 
-def determine_category(action):
+def determine_category(action: MbankAction) -> str:
     """Given an incoming action, determine what label to assign to it."""
     if (
         action.out_acc_no == "5c0de18baddf47952"
@@ -99,7 +105,10 @@ def determine_category(action):
     return "Pozostałe"
 
 
-def apply_d33tah_dues(monthly_income, balances_by_account_labels):
+def apply_d33tah_dues(
+    monthly_income: Dict[str, Dict[str, float]],
+    balances_by_account_labels: Dict[str, float],
+) -> None:
     """Applies dues paid by d33tah to monthly_income. This is here because
     the banking system didn't notify about self-transfers, so they needed to
     be added explicitly."""
@@ -119,8 +128,11 @@ def apply_d33tah_dues(monthly_income, balances_by_account_labels):
 
 
 def apply_positive_transfers(
-    now, last_updated, mbank_actions, balances_by_account_labels
-):
+    now: datetime.datetime,
+    last_updated: datetime.datetime,
+    mbank_actions: List[MbankAction],
+    balances_by_account_labels: Dict[str, float],
+) -> Tuple[float, int, datetime, Dict[str, Dict[str, float]]]:
     """Apply all positive transfers both to balances_by_account_labels and
     monthly_income. Returns newly built monthly_expenses, as well as total
     money raised and current information about the number of members who
@@ -165,7 +177,9 @@ def apply_positive_transfers(
     )
 
 
-def apply_expenses(expenses, balances_by_account_labels):
+def apply_expenses(
+    expenses: List[MbankAction], balances_by_account_labels: Dict[Any, Any]
+) -> Tuple[datetime, Dict[str, Dict[str, float]]]:
     """Apply all expenses both to balances_by_account_labels and
     monthly_expenses. Returns newly built monthly_expenses."""
     last_updated = None
@@ -187,7 +201,11 @@ def apply_expenses(expenses, balances_by_account_labels):
     return last_updated, monthly_expenses
 
 
-def build_monthly_final_balance(months, monthly_income, monthly_expenses):
+def build_monthly_final_balance(
+    months: Set[str],
+    monthly_income: Dict[str, Dict[str, Union[float, int]]],
+    monthly_expenses: Dict[str, Dict[str, float]],
+) -> Tuple[Dict[str, Dict[str, Union[float, int]]], float]:
     """Calculates monthly final balances, given all of the actions - an amount
     that specifies whether we accumulated more than we spent, or otherwise."""
     balance_so_far = 0
@@ -201,7 +219,11 @@ def build_monthly_final_balance(months, monthly_income, monthly_expenses):
     return monthly_final_balance, balance_so_far
 
 
-def build_monthly_balance(months, monthly_income, monthly_expenses):
+def build_monthly_balance(
+    months: Set[str],
+    monthly_income: Dict[str, Dict[str, Union[float, int]]],
+    monthly_expenses: Dict[str, Dict[str, float]],
+) -> Dict[str, Dict[str, Union[float, int]]]:
     """Calculates balances for each of the months - the final amount of money
     on all of our accounts at the end of the month."""
     return {
@@ -213,7 +235,7 @@ def build_monthly_balance(months, monthly_income, monthly_expenses):
     }
 
 
-def build_extra_monthly_reservations(now):
+def build_extra_monthly_reservations(now: datetime.datetime) -> int:
     """Returns all extra monthly reservations collected until now.
     On 24 November 2020, we agreed that we'll be continuing to increase our
     reserves by 200 PLN each month."""
@@ -223,14 +245,34 @@ def build_extra_monthly_reservations(now):
             for _ in dateutil.rrule.rrule(
                 dateutil.rrule.MONTHLY,
                 # https://pad.hs-ldz.pl/aPQpWcUbTvWwEdwsxB0ulQ#Kwestia-sk%C5%82adek
-                dtstart=datetime.datetime(year=2020, month=11, day=24),
+                dtstart=datetime(year=2020, month=11, day=24),
                 until=now,
             )
         ]
     )
 
 
-def get_current_report(now, expenses, mbank_actions, corrections=None):
+def get_current_report(
+    now: datetime,
+    expenses: List[MbankAction],
+    mbank_actions: List[MbankAction],
+    corrections: Optional[Dict[str, Dict[str, float]]] = None,
+) -> Dict[
+    str,
+    Union[
+        float,
+        str,
+        int,
+        Dict[str, float],
+        Dict[
+            str,
+            Union[
+                Dict[str, Dict[str, float]],
+                Dict[str, Union[Dict[str, float], Dict[str, int]]],
+            ],
+        ],
+    ],
+]:
     """Module's entry point. Given time, expenses, income and corrections,
     generates a monthly summary of actions that happened on the accounts."""
 

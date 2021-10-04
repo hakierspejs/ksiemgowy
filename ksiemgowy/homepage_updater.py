@@ -15,6 +15,7 @@ import yaml
 
 
 import ksiemgowy.current_report_builder
+from typing import Dict
 
 
 LOGGER = logging.getLogger("homepage_updater")
@@ -152,7 +153,7 @@ def do_states_differ(remote_state, current_report):
     return False
 
 
-def is_local_state_newer(remote_state, current_report):
+def is_local_state_newer(remote_state: Dict[str, str], current_report: Dict[str, str]) -> bool:
     """Compares remote state and current report, using time criteria."""
     local_modified = datetime.datetime.strptime(
         current_report["dues_last_updated"], "%d-%m-%Y"

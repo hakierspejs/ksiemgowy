@@ -72,7 +72,7 @@ class KsiemgowyConfig:
     database_uri: str
     deploy_key_path: str
     accounts: T.List[KsiemgowyAccount]
-    mbank_anonymization_key: str
+    mbank_anonymization_key: bytes
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         return self.accounts[-1]

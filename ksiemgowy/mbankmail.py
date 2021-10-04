@@ -10,10 +10,12 @@ import copy
 import hashlib
 import logging
 import datetime
+import dateutil.parser
 
 import lxml.html
 from email.message import Message
 from typing import Dict, List
+
 
 INCOMING_RE = re.compile(
     "^mBank: Przelew (?P<action_type>przych|wych)\\."
@@ -48,7 +50,7 @@ class MbankAction:
     timestamp: datetime.datetime
     action_type: str
 
-    def anonymized(self, mbank_anonymization_key: bytes) -> 'MbankAction':
+    def anonymized(self, mbank_anonymization_key: bytes) -> "MbankAction":
         """Anonymizes all potentially sensitive fields using
         mbank_anonymization_key as cryptographic pepper."""
         new = copy.copy(self)
@@ -86,7 +88,7 @@ def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
             "przych": "in_transfer",
             "wych": "out_transfer",
         }.get(action["action_type"], "other")
-        action["timestamp"] = f"{date} {time}"
+        action["timestamp"] = dateutil.parser.parse(f"{date} {time}")
         actions.append(MbankAction(**action))
     return {"actions": actions}
 
@@ -105,28 +107,25 @@ def parse_mbank_email(msg: Message) -> Dict[str, List[MbankAction]]:
     return parsed
 
 
-def parse_args():
+def parse_args() -> Dict[str, str]:
     """Parses command-line arguments and returns them in a form usable as
     **kwargs."""
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("-i", "--input-fpath", required=True)
-    parser.add_argument("-e", "--encoding", default="iso8859-2")
     parser.add_argument("-L", "--loglevel", default="DEBUG")
-    parser.add_argument("--mode", choices=["eml", "html"], required=True)
+    parser.add_argument("--mode", choices=["html"], required=True)
     return parser.parse_args().__dict__
 
 
-def main(input_fpath, mode, encoding, loglevel):
+def main(input_fpath: str, mode: str, loglevel: str) -> None:
     """Entry point for the submodule, used for diagnostics. Reads data from
     input_fpath, then runs either parse_mbank_html or parse_mbank_email,
     depending on the mode."""
     logging.basicConfig(level=loglevel.upper())
-    with open(input_fpath, encoding=encoding) as input_file:
+    with open(input_fpath, 'rb') as input_file:
         input_string = input_file.read()
     if mode == "html":
         result = parse_mbank_html(input_string)
-    elif mode == "eml":
-        result = parse_mbank_email(input_string)
     else:
         raise RuntimeError("Unexpected mode: %s" % mode)
     pprint.pprint(result)

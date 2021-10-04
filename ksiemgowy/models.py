@@ -7,7 +7,7 @@ import sqlalchemy
 
 import ksiemgowy.mbankmail
 from ksiemgowy.mbankmail import MbankAction
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, Generator
 
 LOGGER = logging.getLogger(__name__)
 
@@ -128,11 +128,11 @@ class KsiemgowyDB:
         """Adds a positive transfer to the database."""
         self.mbank_actions.insert(None).execute(mbank_action=mbank_action)
 
-    def add_expense(self, mbank_action):
+    def add_expense(self, mbank_action: MbankAction) -> None:
         """Adds an expense to the database."""
         self.expenses.insert(None).execute(mbank_action=mbank_action)
 
-    def list_expenses(self):
+    def list_expenses(self) -> Generator[MbankAction, None, None]:
         """Returns a generator that lists all expenses transfers that were
         observed so far."""
         for entry in self.expenses.select().execute().fetchall():
