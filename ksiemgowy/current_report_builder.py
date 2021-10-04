@@ -9,7 +9,6 @@ import dateutil.rrule
 
 from ksiemgowy.mbankmail import MbankAction
 from typing import (
-    Any,
     Dict,
     Optional,
     Set,
@@ -198,7 +197,8 @@ def apply_positive_transfers(
 
 
 def apply_expenses(
-    expenses: Iterable[MbankAction], balances_by_account_labels: Dict[Any, Any]
+    expenses: Iterable[MbankAction],
+    balances_by_account_labels: Dict[str, float],
 ) -> Tuple[datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all expenses both to balances_by_account_labels and
     monthly_expenses. Returns newly built monthly_expenses."""

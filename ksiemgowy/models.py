@@ -6,7 +6,7 @@ import sqlalchemy
 
 import ksiemgowy.mbankmail
 from ksiemgowy.mbankmail import MbankAction
-from typing import Any, Dict, Iterator
+from typing import Dict, Iterator
 
 LOGGER = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ class KsiemgowyDB:
         LOGGER.debug("mark_imap_id_already_handled(%r)", imap_id)
         self.observed_email_ids.insert(None).execute(imap_id=imap_id)
 
-    def acc_no_to_email(self, notification_type: str) -> Dict[Any, Any]:
+    def acc_no_to_email(self, notification_type: str) -> Dict[str, str]:
         """Builds a mapping between banking accounts an e-mail addresses for
         people interested in a given type of a notification."""
         ret = {}

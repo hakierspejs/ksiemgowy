@@ -133,7 +133,7 @@ def build_confirmation_mail(
     fromaddr: str,
     toaddr: str,
     mbank_action: MbankAction,
-    emails: Dict[Any, Any],
+    emails: Dict[str, str],
 ) -> MIMEMultipart:
     """Sends an e-mail confirming that a membership due has arrived and was
     accounted for."""
