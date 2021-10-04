@@ -9,18 +9,6 @@ otrzymanych przelewach oraz przypomnienia w przypadku zalegania ze składkami.
 
 TODO
 
-## Plan rozwoju aplikacji
-
-W zasadzie, najchętniej bym ten projekt przepisał. Wydzieliłbym wtedy część
-"gadającą" z imap oraz zapisującą zahashowane powiadomienia e-mail w bazie. W
-ten sposób części: wysyłająca maile oraz aktualizująca stronę WWW mogłyby
-funkcjonować niezależnie od parsera maili.
-
-Alternatywą, która przychodzi mi do głowy jest podzielenie projektu na
-"podprogramy", które `schedule` odpala z różnym interwałem. Byłby to dużo
-prostszy refactor: kontenerów by ubyło, nie musiałbym też od razu trzymać tak
-dużo stanu w bazie. Wydaje mi się to jednak mniej eleganckie.
-
 ## Testowanie
 
 TODO
