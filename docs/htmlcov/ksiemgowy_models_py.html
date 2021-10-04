@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for ksiemgowy/models.py: 71%</title>
+    <title>Coverage for ksiemgowy/models.py: 77%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="jquery.min.js"></script>
@@ -18,13 +18,13 @@
 <div id="header">
     <div class="content">
         <h1>Coverage for <b>ksiemgowy/models.py</b> :
-            <span class="pc_cov">71%</span>
+            <span class="pc_cov">77%</span>
         </h1>
         <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
         <h2 class="stats">
             57 statements &nbsp;
-            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">43 run</button>
-            <button type="button" class="mis show_mis shortkey_m button_toggle_mis" title="Toggle lines missing">14 missing</button>
+            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">45 run</button>
+            <button type="button" class="mis show_mis shortkey_m button_toggle_mis" title="Toggle lines missing">12 missing</button>
             <button type="button" class="exc show_exc shortkey_x button_toggle_exc" title="Toggle lines excluded">0 excluded</button>
             <button type="button" class="par run show_par shortkey_p button_toggle_par" title="Toggle lines partially run">2 partial</button>
         </h2>
@@ -163,9 +163,9 @@
     <p id="t108" class="pln"><span class="n"><a href="#t108">108</a></span><span class="t">        <span class="str">"""Builds a mapping between banking accounts an e-mail addresses for</span>&nbsp;</span><span class="r"></span></p>
     <p id="t109" class="pln"><span class="n"><a href="#t109">109</a></span><span class="t"><span class="str">        people interested in a given type of a notification."""</span>&nbsp;</span><span class="r"></span></p>
     <p id="t110" class="run"><span class="n"><a href="#t110">110</a></span><span class="t">        <span class="nam">ret</span> <span class="op">=</span> <span class="op">{</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t111" class="par run show_par"><span class="n"><a href="#t111">111</a></span><span class="t">        <span class="key">for</span> <span class="nam">entry</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">in_acc_no_to_email</span><span class="op">.</span><span class="nam">select</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">execute</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">fetchall</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"><span class="annotate short">111&#x202F;&#x219B;&#x202F;112</span><span class="annotate long">line 111 didn't jump to line 112, because the loop on line 111 never started</span></span></p>
-    <p id="t112" class="mis show_mis"><span class="n"><a href="#t112">112</a></span><span class="t">            <span class="key">if</span> <span class="nam">entry</span><span class="op">[</span><span class="str">"notify_"</span> <span class="op">+</span> <span class="nam">notification_type</span><span class="op">]</span> <span class="op">==</span> <span class="str">"y"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t113" class="mis show_mis"><span class="n"><a href="#t113">113</a></span><span class="t">                <span class="nam">ret</span><span class="op">[</span><span class="nam">entry</span><span class="op">[</span><span class="str">"in_acc_no"</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="nam">entry</span><span class="op">[</span><span class="str">"email"</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t111" class="run"><span class="n"><a href="#t111">111</a></span><span class="t">        <span class="key">for</span> <span class="nam">entry</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">in_acc_no_to_email</span><span class="op">.</span><span class="nam">select</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">execute</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">fetchall</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t112" class="par run show_par"><span class="n"><a href="#t112">112</a></span><span class="t">            <span class="key">if</span> <span class="nam">entry</span><span class="op">[</span><span class="str">"notify_"</span> <span class="op">+</span> <span class="nam">notification_type</span><span class="op">]</span> <span class="op">==</span> <span class="str">"y"</span><span class="op">:</span>&nbsp;</span><span class="r"><span class="annotate short">112&#x202F;&#x219B;&#x202F;111</span><span class="annotate long">line 112 didn't jump to line 111, because the condition on line 112 was never false</span></span></p>
+    <p id="t113" class="run"><span class="n"><a href="#t113">113</a></span><span class="t">                <span class="nam">ret</span><span class="op">[</span><span class="nam">entry</span><span class="op">[</span><span class="str">"in_acc_no"</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="nam">entry</span><span class="op">[</span><span class="str">"email"</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p id="t114" class="pln"><span class="n"><a href="#t114">114</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p id="t115" class="run"><span class="n"><a href="#t115">115</a></span><span class="t">        <span class="key">return</span> <span class="nam">ret</span>&nbsp;</span><span class="r"></span></p>
     <p id="t116" class="pln"><span class="n"><a href="#t116">116</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
