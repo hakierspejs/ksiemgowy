@@ -1,2 +1,4 @@
 sphinx==4.1.2
 coverage==5.5
+mypy==0.910
+lxml-stubs==0.2.0
