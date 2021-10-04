@@ -1,7 +1,9 @@
 import contextlib
+import email
 
 import unittest
 import unittest.mock as mock
+import typing as T
 
 import ksiemgowy.__main__ as ksiemgowy_main
 import ksiemgowy.models
@@ -18,8 +20,8 @@ class EntrypointTestCase(unittest.TestCase):
         """Generates a mock that fakes imaplib interface, returning e-mails
         from a given iterator. Not my proudest hack. Apologies!"""
 
-        self.sent_messages = []
-        self.incoming_messages = []
+        self.sent_messages: T.List[email.message.Message] = []
+        self.incoming_messages: T.List[bytes] = []
 
         def mail_fetch_mock(mail, _):
             return None, [(None, mail)]
@@ -92,7 +94,7 @@ class EntrypointTestCase(unittest.TestCase):
         mbank_action = MbankAction(
             in_acc_no="a",
             out_acc_no="b",
-            amount_pln="100",
+            amount_pln=100.0,
             in_person="asd",
             in_desc="e",
             balance="100",

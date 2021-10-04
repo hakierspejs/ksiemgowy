@@ -5,7 +5,7 @@ import unittest
 
 from ksiemgowy.mbankmail import MbankAction
 
-import ksiemgowy.current_report_builder
+import ksiemgowy.current_report_builder as M
 
 
 HAKIERSPEJS_ACC_NO = (
@@ -57,13 +57,13 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
             )
         ]
 
-        corrections = {
+        corrections: M.T_CORRECTIONS = {
             "ACCOUNT_CORRECTIONS": {"Konto Jacka": 0.0},
             "MONTHLY_INCOME_CORRECTIONS": {},
             "MONTHLY_EXPENSE_CORRECTIONS": {},
         }
 
-        current_report = ksiemgowy.current_report_builder.get_current_report(
+        current_report = M.get_current_report(
             now, expenses, mbank_actions, corrections
         )
 
