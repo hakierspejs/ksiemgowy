@@ -223,7 +223,7 @@ def maybe_update_dues(
         if remote_state is None:
             remote_state = current_report
         else:
-            remote_state.update(current_report)
+            remote_state.update(current_report)  # type: ignore
         LOGGER.info("maybe_update_dues: updating dues")
         update_git_remote_state(remote_state_path, remote_state, git_env)
     LOGGER.info("maybe_update_dues: done")
