@@ -8,7 +8,7 @@ import logging
 import dateutil.rrule
 
 from ksiemgowy.mbankmail import MbankAction
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, TypedDict
 
 
 LOGGER = logging.getLogger("homepage_updater")
@@ -22,18 +22,24 @@ ACCOUNT_LABELS = {
     ): "Konto stowarzyszenia",
 }
 
-CORRECTIONS = {
+T_CORRECTIONS = TypedDict('T_CORRECTIONS', {
+    "ACCOUNT_CORRECTIONS": Dict[str, float],
+    "MONTHLY_INCOME_CORRECTIONS": Dict[str, Dict[str, float]],
+    "MONTHLY_EXPENSE_CORRECTIONS": Dict[str, Dict[str, float]],
+})
+
+CORRECTIONS: T_CORRECTIONS = {
     "ACCOUNT_CORRECTIONS": {
         "Konto Jacka": -347.53,
         "Konto stowarzyszenia": -727.53,
     },
     "MONTHLY_INCOME_CORRECTIONS": {
-        "2020-04": {"Suma": 200},
-        "2020-05": {"Suma": 100},
+        "2020-04": {"Suma": 200.0},
+        "2020-05": {"Suma": 100.0},
     },
     "MONTHLY_EXPENSE_CORRECTIONS": {
         "2020-08": {"Meetup": 294.36},
-        "2020-10": {"Remont": 1145},
+        "2020-10": {"Remont": 1145.0},
         "2020-11": {"Pozostałe": 139.80},
         "2021-01": {
             "Drukarka HP": 314.00,
@@ -48,7 +54,7 @@ CORRECTIONS = {
 
 
 def apply_corrections(
-    corrections: Dict[str, Dict[str, float]],
+    corrections: T_CORRECTIONS,
     balances_by_account_labels: Dict[str, float],
     monthly_income: Dict[str, Dict[str, float]],
     monthly_expenses: Dict[str, Dict[str, float]],
@@ -137,11 +143,11 @@ def apply_positive_transfers(
     monthly_income. Returns newly built monthly_expenses, as well as total
     money raised and current information about the number of members who
     paid dues and the datestamp of due last paid."""
-    monthly_income = {}
+    monthly_income: Dict[str, Dict[str, float]] = {}
     observed_acc_numbers = set()
     observed_acc_owners = set()
 
-    total = 0
+    total = 0.0
     num_subscribers = 0
     month_ago = now - datetime.timedelta(days=31)
     for action in mbank_actions:
@@ -152,7 +158,9 @@ def apply_positive_transfers(
             ACCOUNT_LABELS[action.out_acc_no]
         ] += action.amount_pln
 
-        month = f"{action.get_timestamp().year}-{action.get_timestamp().month:02d}"
+        month = (
+            f"{action.get_timestamp().year}-{action.get_timestamp().month:02d}"
+        )
         monthly_income.setdefault(month, {}).setdefault("Suma", 0)
         monthly_income[month]["Suma"] += action.amount_pln
 
@@ -182,8 +190,8 @@ def apply_expenses(
 ) -> Tuple[datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all expenses both to balances_by_account_labels and
     monthly_expenses. Returns newly built monthly_expenses."""
-    last_updated = None
-    monthly_expenses = {}
+    last_updated = datetime.datetime(year=1970, month=1, day=1)
+    monthly_expenses: Dict[str, Dict[str, float]] = {}
     for action in expenses:
         balances_by_account_labels.setdefault(
             ACCOUNT_LABELS[action.in_acc_no], 0.0
@@ -191,7 +199,9 @@ def apply_expenses(
         balances_by_account_labels[
             ACCOUNT_LABELS[action.in_acc_no]
         ] -= action.amount_pln
-        month = f"{action.get_timestamp().year}-{action.get_timestamp().month:02d}"
+        month = (
+            f"{action.get_timestamp().year}-{action.get_timestamp().month:02d}"
+        )
         category = determine_category(action)
         monthly_expenses.setdefault(month, {}).setdefault(category, 0)
         monthly_expenses[month][category] += action.amount_pln
@@ -203,13 +213,13 @@ def apply_expenses(
 
 def build_monthly_final_balance(
     months: Set[str],
-    monthly_income: Dict[str, Dict[str, Union[float, int]]],
+    monthly_income: Dict[str, Dict[str, float]],
     monthly_expenses: Dict[str, Dict[str, float]],
-) -> Tuple[Dict[str, Dict[str, Union[float, int]]], float]:
+) -> Tuple[Dict[str, Dict[str, float]], float]:
     """Calculates monthly final balances, given all of the actions - an amount
     that specifies whether we accumulated more than we spent, or otherwise."""
-    balance_so_far = 0
-    monthly_final_balance = {}
+    balance_so_far = 0.0
+    monthly_final_balance: Dict[str, Dict[str, float]] = {}
     for month in sorted(months):
         _monthly_income = sum(monthly_income.get(month, {}).values())
         _monthly_expenses = sum(monthly_expenses.get(month, {}).values())
@@ -252,31 +262,41 @@ def build_extra_monthly_reservations(now: datetime.datetime) -> int:
     )
 
 
+T_MONTHLY_REPORT = TypedDict(
+    "T_MONTHLY_REPORT",
+    {
+        "Wydatki": Dict[str, Dict[str, float]],
+        "Przychody": Dict[str, Dict[str, float]],
+        "Bilans": Dict[str, Dict[str, float]],
+        "Saldo": Dict[str, Dict[str, float]],
+    },
+)
+
+
+T_CURRENT_REPORT = TypedDict(
+    "T_CURRENT_REPORT",
+    {
+        "dues_total_lastmonth": float,
+        "dues_last_updated": str,
+        "dues_num_subscribers": int,
+        "extra_monthly_reservations": int,
+        "balance_so_far": float,
+        "balances_by_account_labels": Dict[str, float],
+        "monthly": T_MONTHLY_REPORT,
+    },
+)
+
+
 def get_current_report(
     now: datetime.datetime,
     expenses: List[MbankAction],
     mbank_actions: List[MbankAction],
-    corrections: Optional[Dict[str, Dict[str, float]]] = None,
-) -> Dict[
-    str,
-    Union[
-        float,
-        str,
-        int,
-        Dict[str, float],
-        Dict[
-            str,
-            Union[
-                Dict[str, Dict[str, float]],
-                Dict[str, Union[Dict[str, float], Dict[str, int]]],
-            ],
-        ],
-    ],
-]:
+    corrections: Optional[T_CORRECTIONS] = None,
+) -> T_CURRENT_REPORT:
     """Module's entry point. Given time, expenses, income and corrections,
     generates a monthly summary of actions that happened on the accounts."""
 
-    balances_by_account_labels = {}
+    balances_by_account_labels: Dict[str, float] = {}
 
     last_updated, monthly_expenses = apply_expenses(
         expenses,
@@ -307,7 +327,7 @@ def get_current_report(
         months, monthly_income, monthly_expenses
     )
 
-    ret = {
+    ret: T_CURRENT_REPORT = {
         "dues_total_lastmonth": total,
         "dues_last_updated": last_updated.strftime("%d-%m-%Y"),
         "dues_num_subscribers": num_subscribers,
