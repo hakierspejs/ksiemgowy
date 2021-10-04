@@ -8,7 +8,7 @@ import ksiemgowy.models
 from ksiemgowy.mbankmail import MbankAction
 
 
-def run_immediately(_, fn, *args, **kwargs):
+def run_immediately(_, fn, args, kwargs):
     fn(*args, **kwargs)
 
 

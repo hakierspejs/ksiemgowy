@@ -326,8 +326,8 @@ def load_config(
 def every_seconds_do(
     num_seconds: int,
     called_fn: T.Callable[..., Any],
-    *args: T.Any,
-    **kwargs: T.Any,
+    args: T.Any,
+    kwargs: T.Any,
 ) -> None:
     """A wrapper for "schedule" module. Intended to satisfy MyPy, as well as
     increasing testability by not relying on global state."""
@@ -359,19 +359,39 @@ def main(
         args = account.__dict__
         args["mbank_anonymization_key"] = config.mbank_anonymization_key
         args["database"] = database
-        check_for_updates(**args)
-        register_fn(3600, check_for_updates, **args)
+        check_for_updates(
+            config.mbank_anonymization_key,
+            database,
+            account.mail_config,
+            account.acc_number,
+        )
+
+        register_fn(
+            3600,
+            check_for_updates,
+            [
+                config.mbank_anonymization_key,
+                database,
+                account.mail_config,
+                account.acc_number,
+            ],
+            {},
+        )
 
     # the weird schedule is supposed to try to accomodate different lifestyles
     # use the last specified account for overdue notifications:
     overdue_account = config.get_account_for_overdue_notifications()
-    overdue_args = {
-        "database": database,
-        "mail_config": overdue_account.mail_config,
-    }
-    register_fn((3600 * ((24 * 3) + 5)), notify_about_overdues, **overdue_args)
+    register_fn(
+        (3600 * ((24 * 3) + 5)),
+        notify_about_overdues,
+        [
+            database,
+            overdue_account.mail_config,
+        ],
+        {},
+    )
 
-    register_fn(3600, homepage_update, database, config.deploy_key_path)
+    register_fn(3600, homepage_update, [database, config.deploy_key_path], {})
     homepage_update(database, config.deploy_key_path)
 
     main_loop_fn()
