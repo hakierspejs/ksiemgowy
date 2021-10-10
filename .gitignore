@@ -7,3 +7,4 @@ db
 config.yaml
 docs/.doctrees
 .coverage
+*/.mypy_cache/*

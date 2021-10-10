@@ -8,6 +8,8 @@ import typing as T
 
 import ksiemgowy.__main__ as ksiemgowy_main
 import ksiemgowy.models
+import ksiemgowy.config
+import ksiemgowy.bookkeeping
 from ksiemgowy.mbankmail import MbankAction
 
 
@@ -48,11 +50,11 @@ class KsiemgowySystemTestCase(unittest.TestCase):
 
         mail_mock.smtp_login = smtp_login_mock
 
-        self.config_mock = ksiemgowy_main.KsiemgowyConfig(
+        self.config_mock = ksiemgowy.config.KsiemgowyConfig(
             database_uri="",
             deploy_key_path="",
             accounts=[
-                ksiemgowy_main.KsiemgowyAccount(
+                ksiemgowy.config.KsiemgowyAccount(
                     mail_config=mail_mock, acc_number="81089394"
                 )
             ],
@@ -168,7 +170,7 @@ class BuildConfirmationMailTestCase(unittest.TestCase):
             timestamp="2021-09-09 22:39:11.099772",
             action_type="in_transfer",
         )
-        msg = ksiemgowy_main.build_confirmation_mail(
+        msg = ksiemgowy.bookkeeping.build_confirmation_mail(
             fromaddr="from@address",
             toaddr="to_address",
             mbank_action=mbank_action,
