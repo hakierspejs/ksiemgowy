@@ -91,11 +91,11 @@ class KsiemgowyDB:
 
     def was_imap_id_already_handled(self, imap_id: str) -> bool:
         """Tells whether a given IMAP ID was already processed by ksiemgowy."""
-        entries = list(
+        entries = (
             self.observed_email_ids.select()
             .where(self.observed_email_ids.c.imap_id == imap_id)
             .execute()
-            .fetchall()
+            .fetchone()
         )
         return bool(entries)
 

@@ -17,7 +17,6 @@ def run_immediately(_, fn, args, kwargs):
 
 class KsiemgowySystemTestCase(unittest.TestCase):
     def setUp(self):
-
         """Generates a mock that fakes imaplib interface, returning e-mails
         from a given iterator. Not my proudest hack. Apologies!"""
 
@@ -94,7 +93,18 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         ) as f:
             self.incoming_messages = [f.read()]
             self.run_entrypoint()
-            self.assertNotEqual(len(self.sent_messages), 0)
+            self.assertEqual(len(self.sent_messages), 1)
+
+    def test_running_entrypoint_twice_sends_a_single_message(self):
+
+        with open(
+            "docs/przykladowy_zalacznik_mbanku.eml",
+            "rb",
+        ) as f:
+            self.incoming_messages = [f.read()]
+            self.run_entrypoint()
+            self.run_entrypoint()
+            self.assertEqual(len(self.sent_messages), 1)
 
     def test_entrypoint_does_nothing_when_inbox_is_empty(self):
 
