@@ -11,7 +11,22 @@ TODO
 
 ## Testowanie
 
-TODO
+Ksiemgowy zawiera następujące testy:
+
+1. testy jednostkowe, które sprawdzają pracę poszczególnych modułów w izolacji,
+2. test "systemowy", w którym funkcjonalność e-mail została zastąpiona mockami,
+3. testy jakości kodu oraz adnotacje typów
+
+Aby zobaczyć instrukcje uruchomienia testów, zerknij do konfiguracji CI
+znajdującej się w katalogu `.github`.
+
+Wykonanie pełnego testu end-to-end dla ksiemgowego byłoby dość trudne ze
+względu na następujące czynniki:
+
+1. potrzebę uruchomienia serwera IMAP oraz SMTP oraz testowania ich skutków
+ubocznych,
+2. to że ksiemgowy pracuje w pętli nieskończonej, powtarzając swoje zadania
+co jakiś (zwykle długi) czas.
 
 ## Znane bugi/wady projektu/brakująca funkcjonalność
 
