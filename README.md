@@ -7,7 +7,17 @@ otrzymanych przelewach oraz przypomnienia w przypadku zalegania ze składkami.
 
 ## Architektura
 
-TODO
+Przy projektowaniu Ksiemgowego przyjęto następujące założenia:
+
+1. projekt będzie działał na prywatnym komputerze Jacka
+1. projekt będzie obsługiwał max. trzycyfrową ilość członków z max. trzycyfrową ilością przelewów miesięcznie,
+("zwykły desktop" / tania VMka)
+1. docelowo projekt będzie przeniesiony pod kontrolę zarządu organizacji, ale dobrze byłoby nie przekazywać im loginu i hasła do mojego starego e-maila, z tego powodu:
+    * potrzebna jest obsługa zewnętrznej bazy danych
+    * projekt powinien być podzielony na moduły z możliwością uruchomienia więcej niż jednej instancji modułu sprawdzającego pocztę (stare konto Jacka + współdzielone przez zarząd konto Hakierspejsu)
+1. awarie są bardziej akceptowalne niż dodatkowa złożoność wynikająca z high availability; dopuszczalne jest okazjonalna konieczność ręcznej ingerencji w działanie programu
+
+TODO: dopisać więcej
 
 ## Testowanie
 
