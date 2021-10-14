@@ -89,9 +89,8 @@ def notify_about_overdues(
             if payment.in_acc_no in emails:
                 overdues.append(emails[payment.in_acc_no])
 
-    if ksiemgowy.config.SEND_EMAIL:
-        with mail_config.smtp_login() as server:
-            for overdue in overdues:
-                send_overdue_email(server, mail_config.login, overdue)
+    with mail_config.smtp_login() as server:
+        for overdue in overdues:
+            send_overdue_email(server, mail_config.login, overdue)
 
     LOGGER.info("done notify_about_overdues()")

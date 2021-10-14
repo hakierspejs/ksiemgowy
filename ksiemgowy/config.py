@@ -9,9 +9,6 @@ import typing as T
 from dataclasses import dataclass
 import yaml
 
-SEND_EMAIL = True
-IMAP_FILTER = '(SINCE "02-Apr-2020" FROM "kontakt@mbank.pl")'
-
 
 @dataclass(frozen=True)
 class MailConfig:
@@ -22,6 +19,7 @@ class MailConfig:
     login: str
     password: str
     server: str
+    imap_filter: str
 
     def imap_connect(self) -> imaplib.IMAP4_SSL:
         """Logs in to IMAP using given credentials."""
@@ -58,6 +56,7 @@ class KsiemgowyConfig:
     deploy_key_path: str
     accounts: T.List[KsiemgowyAccount]
     mbank_anonymization_key: bytes
+    should_send_mail: bool
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         """Returns an e-mail account used for overdue notifications. Currently
@@ -74,10 +73,12 @@ def load_config(
     mbank_anonymization_key = config["MBANK_ANONYMIZATION_KEY"].encode()
     database_uri = config["PUBLIC_DB_URI"]
     deploy_key_path = config["DEPLOY_KEY_PATH"]
+    should_send_mail = config["SEND_MAIL"]
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
         imap_server = account["IMAP_SERVER"]
         imap_password = account["IMAP_PASSWORD"]
+        imap_filter = account["IMAP_FILTER"]
         acc_no = account["ACC_NO"]
         accounts.append(
             KsiemgowyAccount(
@@ -86,6 +87,7 @@ def load_config(
                     login=imap_login,
                     password=imap_password,
                     server=imap_server,
+                    imap_filter=imap_filter,
                 ),
             )
         )
@@ -95,4 +97,5 @@ def load_config(
         accounts=accounts,
         mbank_anonymization_key=mbank_anonymization_key,
         deploy_key_path=deploy_key_path,
+        should_send_mail=should_send_mail,
     )

@@ -59,6 +59,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
                 )
             ],
             mbank_anonymization_key=b"",
+            should_send_mail=True,
         )
         self.database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
 

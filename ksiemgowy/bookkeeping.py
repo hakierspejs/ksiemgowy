@@ -55,13 +55,13 @@ przez Telegrama, Matriksa albo wyślij oddzielnego maila.
 
 
 def gen_unseen_mbank_emails(
-    database: KsiemgowyDB, mail: imaplib.IMAP4_SSL
+    database: KsiemgowyDB, mail: imaplib.IMAP4_SSL, imap_filter: str
 ) -> T.Iterator[Message]:
     """Connects to imap_server using login and password from the arguments,
     then yields a pair (mail_id_as_str, email_as_eml_string) for each of
     e-mails coming from mBank."""
     mail.select("inbox")
-    _, data = mail.search(None, ksiemgowy.config.IMAP_FILTER)
+    _, data = mail.search(None, imap_filter)
     mail_ids = data[0]
     id_list = mail_ids.split()
     for mail_id in reversed(id_list):
@@ -78,16 +78,19 @@ def gen_unseen_mbank_emails(
             database.mark_imap_id_already_handled(mail_key)
 
 
-def check_for_updates(  # pylint: disable=too-many-arguments
+def check_for_updates(
     mbank_anonymization_key: bytes,
     database: KsiemgowyDB,
     mail_config: ksiemgowy.config.MailConfig,
     acc_number: str,
+    should_send_mail: bool,
 ) -> None:
     """Program's entry point."""
     LOGGER.info("checking for updates...")
     mail = mail_config.imap_connect()
-    for msg in gen_unseen_mbank_emails(database, mail):
+    for msg in gen_unseen_mbank_emails(
+        database, mail, mail_config.imap_filter
+    ):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
         for action in parsed.get("actions", []):
             LOGGER.info(
@@ -100,7 +103,7 @@ def check_for_updates(  # pylint: disable=too-many-arguments
                 database.add_positive_transfer(
                     action.anonymized(mbank_anonymization_key)
                 )
-                if ksiemgowy.config.SEND_EMAIL:
+                if should_send_mail:
                     with mail_config.smtp_login() as smtp_conn:
                         emails = database.acc_no_to_email("arrived")
                         msg = build_confirmation_mail(
