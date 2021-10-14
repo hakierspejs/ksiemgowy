@@ -57,6 +57,7 @@ class KsiemgowyConfig:
     accounts: T.List[KsiemgowyAccount]
     mbank_anonymization_key: bytes
     should_send_mail: bool
+    homepage_git_repo_url: str
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         """Returns an e-mail account used for overdue notifications. Currently
@@ -74,6 +75,7 @@ def load_config(
     database_uri = config["PUBLIC_DB_URI"]
     deploy_key_path = config["DEPLOY_KEY_PATH"]
     should_send_mail = config["SEND_MAIL"]
+    homepage_git_repo_url = config["HOMEPAGE_GIT_REPO_URL"]
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
         imap_server = account["IMAP_SERVER"]
@@ -98,4 +100,5 @@ def load_config(
         mbank_anonymization_key=mbank_anonymization_key,
         deploy_key_path=deploy_key_path,
         should_send_mail=should_send_mail,
+        homepage_git_repo_url=homepage_git_repo_url,
     )

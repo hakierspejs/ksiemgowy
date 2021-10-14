@@ -53,7 +53,9 @@ def main_loop() -> None:
 def main(
     config: ksiemgowy.config.KsiemgowyConfig,
     database: ksiemgowy.models.KsiemgowyDB,
-    homepage_update: T.Callable[[ksiemgowy.models.KsiemgowyDB, str], None],
+    homepage_update: T.Callable[
+        [ksiemgowy.models.KsiemgowyDB, str, str], None
+    ],
     register_fn: T.Callable[[int, T.Callable[..., T.Any], T.Any, T.Any], None],
     main_loop_fn: T.Callable[[], None],
 ) -> None:
@@ -105,8 +107,15 @@ def main(
             {},
         )
 
-    register_fn(3600, homepage_update, [database, config.deploy_key_path], {})
-    homepage_update(database, config.deploy_key_path)
+    register_fn(
+        3600,
+        homepage_update,
+        [database, config.deploy_key_path, config.homepage_git_repo_url],
+        {},
+    )
+    homepage_update(
+        database, config.deploy_key_path, config.homepage_git_repo_url
+    )
 
     main_loop_fn()
 

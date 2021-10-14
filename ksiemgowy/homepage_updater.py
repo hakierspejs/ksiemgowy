@@ -242,7 +242,7 @@ def maybe_update_dues(
 def maybe_update(
     database: ksiemgowy.models.KsiemgowyDB,
     deploy_key_path: str,
-    git_url: str = "git@github.com:hakierspejs/homepage.git",
+    git_url: str,
     dues_file_path: str = DUES_FILE_PATH,
     corrections: Optional[
         ksiemgowy.current_report_builder.T_CORRECTIONS
