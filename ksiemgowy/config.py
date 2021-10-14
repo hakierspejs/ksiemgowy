@@ -69,7 +69,7 @@ def load_config(
     config_file: T.IO[T.Any]
 ) -> KsiemgowyConfig:
     """Parses the configuration file and builds arguments for all routines."""
-    config = yaml.load(config_file)
+    config = yaml.load(config_file, yaml.SafeLoader)
     accounts = []
     mbank_anonymization_key = config["MBANK_ANONYMIZATION_KEY"].encode()
     database_uri = config["PUBLIC_DB_URI"]
