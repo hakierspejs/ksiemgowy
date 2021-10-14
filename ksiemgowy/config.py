@@ -66,14 +66,14 @@ class KsiemgowyConfig:
 
 
 def load_config(
-    config_file: T.IO[T.Any], env: T.Dict[str, str]
+    config_file: T.IO[T.Any]
 ) -> KsiemgowyConfig:
     """Parses the configuration file and builds arguments for all routines."""
-    mbank_anonymization_key = env["MBANK_ANONYMIZATION_KEY"].encode()
     config = yaml.load(config_file)
     accounts = []
+    mbank_anonymization_key = config["MBANK_ANONYMIZATION_KEY"].encode()
     database_uri = config["PUBLIC_DB_URI"]
-    deploy_key_path = env["DEPLOY_KEY_PATH"]
+    deploy_key_path = config["DEPLOY_KEY_PATH"]
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
         imap_server = account["IMAP_SERVER"]

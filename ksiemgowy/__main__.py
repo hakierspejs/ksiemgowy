@@ -112,7 +112,7 @@ def entrypoint() -> None:
         os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
         encoding="utf8",
     ) as config_file:
-        config = ksiemgowy.config.load_config(config_file, dict(os.environ))
+        config = ksiemgowy.config.load_config(config_file)
     main(
         config,
         ksiemgowy.models.KsiemgowyDB(config.database_uri),
