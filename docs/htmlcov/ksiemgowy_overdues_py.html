@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for ksiemgowy/overdues.py: 94%</title>
+    <title>Coverage for ksiemgowy/overdues.py: 96%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="jquery.min.js"></script>
@@ -18,15 +18,15 @@
 <div id="header">
     <div class="content">
         <h1>Coverage for <b>ksiemgowy/overdues.py</b> :
-            <span class="pc_cov">94%</span>
+            <span class="pc_cov">96%</span>
         </h1>
         <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
         <h2 class="stats">
-            38 statements &nbsp;
-            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">38 run</button>
+            37 statements &nbsp;
+            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">37 run</button>
             <button type="button" class="mis show_mis shortkey_m button_toggle_mis" title="Toggle lines missing">0 missing</button>
             <button type="button" class="exc show_exc shortkey_x button_toggle_exc" title="Toggle lines excluded">0 excluded</button>
-            <button type="button" class="par run show_par shortkey_p button_toggle_par" title="Toggle lines partially run">3 partial</button>
+            <button type="button" class="par run show_par shortkey_p button_toggle_par" title="Toggle lines partially run">2 partial</button>
         </h2>
     </div>
 </div>
@@ -144,12 +144,11 @@
     <p id="t89" class="par run show_par"><span class="n"><a href="#t89">89</a></span><span class="t">            <span class="key">if</span> <span class="nam">payment</span><span class="op">.</span><span class="nam">in_acc_no</span> <span class="key">in</span> <span class="nam">emails</span><span class="op">:</span>&nbsp;</span><span class="r"><span class="annotate short">89&#x202F;&#x219B;&#x202F;87</span><span class="annotate long">line 89 didn't jump to line 87, because the condition on line 89 was never false</span></span></p>
     <p id="t90" class="run"><span class="n"><a href="#t90">90</a></span><span class="t">                <span class="nam">overdues</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">emails</span><span class="op">[</span><span class="nam">payment</span><span class="op">.</span><span class="nam">in_acc_no</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p id="t91" class="pln"><span class="n"><a href="#t91">91</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p id="t92" class="par run show_par"><span class="n"><a href="#t92">92</a></span><span class="t">    <span class="key">if</span> <span class="nam">ksiemgowy</span><span class="op">.</span><span class="nam">config</span><span class="op">.</span><span class="nam">SEND_EMAIL</span><span class="op">:</span>&nbsp;</span><span class="r"><span class="annotate short">92&#x202F;&#x219B;&#x202F;97</span><span class="annotate long">line 92 didn't jump to line 97, because the condition on line 92 was never false</span></span></p>
-    <p id="t93" class="run"><span class="n"><a href="#t93">93</a></span><span class="t">        <span class="key">with</span> <span class="nam">mail_config</span><span class="op">.</span><span class="nam">smtp_login</span><span class="op">(</span><span class="op">)</span> <span class="key">as</span> <span class="nam">server</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t94" class="run"><span class="n"><a href="#t94">94</a></span><span class="t">            <span class="key">for</span> <span class="nam">overdue</span> <span class="key">in</span> <span class="nam">overdues</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t95" class="run"><span class="n"><a href="#t95">95</a></span><span class="t">                <span class="nam">send_overdue_email</span><span class="op">(</span><span class="nam">server</span><span class="op">,</span> <span class="nam">mail_config</span><span class="op">.</span><span class="nam">login</span><span class="op">,</span> <span class="nam">overdue</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t96" class="pln"><span class="n"><a href="#t96">96</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p id="t97" class="run"><span class="n"><a href="#t97">97</a></span><span class="t">    <span class="nam">LOGGER</span><span class="op">.</span><span class="nam">info</span><span class="op">(</span><span class="str">"done notify_about_overdues()"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t92" class="run"><span class="n"><a href="#t92">92</a></span><span class="t">    <span class="key">with</span> <span class="nam">mail_config</span><span class="op">.</span><span class="nam">smtp_login</span><span class="op">(</span><span class="op">)</span> <span class="key">as</span> <span class="nam">server</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t93" class="run"><span class="n"><a href="#t93">93</a></span><span class="t">        <span class="key">for</span> <span class="nam">overdue</span> <span class="key">in</span> <span class="nam">overdues</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t94" class="run"><span class="n"><a href="#t94">94</a></span><span class="t">            <span class="nam">send_overdue_email</span><span class="op">(</span><span class="nam">server</span><span class="op">,</span> <span class="nam">mail_config</span><span class="op">.</span><span class="nam">login</span><span class="op">,</span> <span class="nam">overdue</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t95" class="pln"><span class="n"><a href="#t95">95</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p id="t96" class="run"><span class="n"><a href="#t96">96</a></span><span class="t">    <span class="nam">LOGGER</span><span class="op">.</span><span class="nam">info</span><span class="op">(</span><span class="str">"done notify_about_overdues()"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </div>
 <div id="footer">
     <div class="content">
