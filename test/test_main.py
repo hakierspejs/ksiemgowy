@@ -167,7 +167,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
 
 class BuildConfirmationMailTestCase(unittest.TestCase):
     def test_build_confirmation_mail_copies_email_if_not_in_mapping(self):
-        mbank_action = MbankAction(
+        positive_action = MbankAction(
             in_acc_no="a",
             out_acc_no="b",
             amount_pln=100.0,
@@ -180,7 +180,7 @@ class BuildConfirmationMailTestCase(unittest.TestCase):
         msg = ksiemgowy.bookkeeping.build_confirmation_mail(
             fromaddr="from@address",
             toaddr="to_address",
-            mbank_action=mbank_action,
+            positive_action=positive_action,
             emails={},
             mbank_anonymization_key=b"ad",
         )

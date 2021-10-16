@@ -149,7 +149,7 @@ def apply_d33tah_dues(
 def apply_positive_transfers(
     now: datetime.datetime,
     last_updated: datetime.datetime,
-    mbank_actions: Iterable[MbankAction],
+    positive_actions: Iterable[MbankAction],
     balances_by_account_labels: Dict[str, float],
 ) -> Tuple[float, int, datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all positive transfers both to balances_by_account_labels and
@@ -163,7 +163,7 @@ def apply_positive_transfers(
     total = 0.0
     num_subscribers = 0
     month_ago = now - datetime.timedelta(days=31)
-    for action in mbank_actions:
+    for action in positive_actions:
         balances_by_account_labels.setdefault(
             ACCOUNT_LABELS[action.out_acc_no], 0.0
         )
@@ -304,7 +304,7 @@ T_CURRENT_REPORT = TypedDict(
 def get_current_report(
     now: datetime.datetime,
     expenses: Iterable[MbankAction],
-    mbank_actions: Iterable[MbankAction],
+    positive_actions: Iterable[MbankAction],
     corrections: Optional[T_CORRECTIONS] = None,
 ) -> T_CURRENT_REPORT:
     """Module's entry point. Given time, expenses, income and corrections,
@@ -323,7 +323,7 @@ def get_current_report(
         last_updated,
         monthly_income,
     ) = apply_positive_transfers(
-        now, last_updated, mbank_actions, balances_by_account_labels
+        now, last_updated, positive_actions, balances_by_account_labels
     )
 
     if corrections is None:

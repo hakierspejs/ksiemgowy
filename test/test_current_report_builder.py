@@ -44,7 +44,7 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
                 action_type="out_transfer",
             ),
         ]
-        mbank_actions = [
+        positive_actions = [
             MbankAction(
                 in_acc_no="totallyFake",
                 out_acc_no=HAKIERSPEJS_ACC_NO,
@@ -64,7 +64,7 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
         }
 
         current_report = M.get_current_report(
-            now, expenses, mbank_actions, corrections
+            now, expenses, positive_actions, corrections
         )
 
         expected_output = {

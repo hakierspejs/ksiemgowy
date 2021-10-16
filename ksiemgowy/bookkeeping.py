@@ -21,14 +21,14 @@ def build_confirmation_mail(
     mbank_anonymization_key: bytes,
     fromaddr: str,
     toaddr: str,
-    mbank_action: MbankAction,
+    positive_action: MbankAction,
     emails: T.Dict[str, str],
 ) -> MIMEMultipart:
     """Sends an e-mail confirming that a membership due has arrived and was
     accounted for."""
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
-    acc_no = mbank_action.anonymized(mbank_anonymization_key).in_acc_no
+    acc_no = positive_action.anonymized(mbank_anonymization_key).in_acc_no
     if acc_no in emails:
         msg["To"] = emails[acc_no]
         msg["Cc"] = toaddr
@@ -37,8 +37,8 @@ def build_confirmation_mail(
     msg["Subject"] = "ksiemgowyd: zaksiemgowano przelew! :)"
     message_text = f"""Dziękuję za wspieranie Hakierspejsu! ❤
 
-Twój przelew na kwotę {mbank_action.amount_pln} zł z dnia \
-{mbank_action.timestamp} został pomyślnie zaksięgowany przez Ksiemgowego. \
+Twój przelew na kwotę {positive_action.amount_pln} zł z dnia \
+{positive_action.timestamp} został pomyślnie zaksięgowany przez Ksiemgowego. \
 Wkrótce strona internetowa Hakierspejsu zostanie zaktualizowana, aby \
 odzwierciedlać aktualny stan konta.
 
