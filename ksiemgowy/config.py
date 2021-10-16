@@ -103,7 +103,7 @@ def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
         )
 
     return KsiemgowyConfig(
-        database_uri=config["PUBLIC_DB_URI"],
+        database_uri=config["DATABASE_URI"],
         accounts=accounts,
         mbank_anonymization_key=config["MBANK_ANONYMIZATION_KEY"].encode(),
         should_send_mail=config["SEND_MAIL"],
