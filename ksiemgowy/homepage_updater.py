@@ -168,7 +168,9 @@ def update_git_remote_state(
     with open(filepath, "w", encoding="utf8") as remote_state_file:
         remote_state_file.write(serialize(new_state))
     subprocess.check_call(
-        ["git", "add", filepath.name], cwd="homepage", env=env
+        ["git", "add", filepath.relative_to("homepage")],
+        cwd="homepage",
+        env=env,
     )
     subprocess.check_call(
         ["git", "commit", "-m", "dues: autoupdate"], cwd="homepage", env=env
