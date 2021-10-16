@@ -20,22 +20,22 @@ class KsiemgowyDB:
         self.database = sqlalchemy.create_engine(database_uri)
         metadata = sqlalchemy.MetaData(self.database)
 
-        self.mbank_actions = sqlalchemy.Table(
-            "mbank_actions",
+        self.positive_actions = sqlalchemy.Table(
+            "positive_actions",
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("mbank_action", sqlalchemy.JSON),
+            sqlalchemy.Column("positive_action", sqlalchemy.JSON),
         )
 
         self.expenses = sqlalchemy.Table(
             "expenses",
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("mbank_action", sqlalchemy.JSON),
+            sqlalchemy.Column("positive_action", sqlalchemy.JSON),
         )
 
         try:
-            self.mbank_actions.create()
+            self.positive_actions.create()
         except (
             sqlalchemy.exc.OperationalError,
             sqlalchemy.exc.ProgrammingError,
@@ -71,6 +71,9 @@ class KsiemgowyDB:
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
             sqlalchemy.Column("imap_id", sqlalchemy.String, unique=True),
+        )
+        sqlalchemy.Index(
+            "observed_email_ids_idx", self.observed_email_ids.c.imap_id
         )
 
         try:
@@ -117,23 +120,25 @@ class KsiemgowyDB:
     def list_positive_transfers(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all positive transfers that were
         observed so far."""
-        for entry in self.mbank_actions.select().execute().fetchall():
-            ret = entry.mbank_action
+        for entry in self.positive_actions.select().execute().fetchall():
+            ret = entry.positive_action
             yield ksiemgowy.mbankmail.MbankAction(**ret)
 
-    def add_positive_transfer(self, mbank_action: MbankAction) -> None:
+    def add_positive_transfer(self, positive_action: MbankAction) -> None:
         """Adds a positive transfer to the database."""
-        self.mbank_actions.insert(None).execute(
-            mbank_action=mbank_action.asdict()
+        self.positive_actions.insert(None).execute(
+            positive_action=positive_action.asdict()
         )
 
-    def add_expense(self, mbank_action: MbankAction) -> None:
+    def add_expense(self, positive_action: MbankAction) -> None:
         """Adds an expense to the database."""
-        self.expenses.insert(None).execute(mbank_action=mbank_action.asdict())
+        self.expenses.insert(None).execute(
+            positive_action=positive_action.asdict()
+        )
 
     def list_expenses(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all expenses transfers that were
         observed so far."""
         for entry in self.expenses.select().execute().fetchall():
-            ret = entry.mbank_action
+            ret = entry.positive_action
             yield ksiemgowy.mbankmail.MbankAction(**ret)

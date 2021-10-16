@@ -52,13 +52,20 @@ class KsiemgowySystemTestCase(unittest.TestCase):
 
         self.config_mock = ksiemgowy.config.KsiemgowyConfig(
             database_uri="",
-            deploy_key_path="",
             accounts=[
                 ksiemgowy.config.KsiemgowyAccount(
                     mail_config=mail_mock, acc_number="81089394"
                 )
             ],
             mbank_anonymization_key=b"",
+            should_send_mail=True,
+            git_updater_config=ksiemgowy.config.GitUpdaterConfig(
+                deploy_key_path="",
+                git_url="",
+                dues_file_path="/",
+            ),
+            graphite_host="127.0.0.1",
+            graphite_port=31337,
         )
         self.database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
 
@@ -160,7 +167,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
 
 class BuildConfirmationMailTestCase(unittest.TestCase):
     def test_build_confirmation_mail_copies_email_if_not_in_mapping(self):
-        mbank_action = MbankAction(
+        positive_action = MbankAction(
             in_acc_no="a",
             out_acc_no="b",
             amount_pln=100.0,
@@ -173,7 +180,7 @@ class BuildConfirmationMailTestCase(unittest.TestCase):
         msg = ksiemgowy.bookkeeping.build_confirmation_mail(
             fromaddr="from@address",
             toaddr="to_address",
-            mbank_action=mbank_action,
+            positive_action=positive_action,
             emails={},
             mbank_anonymization_key=b"ad",
         )

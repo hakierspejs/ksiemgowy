@@ -1,12 +1,12 @@
-CREATE VIEW mbank_actions_unpacked AS SELECT id,
-        mbank_action ->> 'in_acc_no' AS in_acc_no,
-        mbank_action ->> 'out_acc_no' AS out_acc_no,
-        replace(mbank_action ->> 'amount_pln', ',', '.')::real AS amount_pln,
-        mbank_action ->> 'in_person' AS in_person,
-        mbank_action ->> 'in_desc' AS in_desc,
-        mbank_action ->> 'balance' AS balance,
-        to_timestamp(mbank_action ->> 'timestamp', 'YYYY-MM-DD HH24:MI') AS timestamp
-    FROM mbank_actions;
+CREATE VIEW positive_actions_unpacked AS SELECT id,
+        positive_action ->> 'in_acc_no' AS in_acc_no,
+        positive_action ->> 'out_acc_no' AS out_acc_no,
+        replace(positive_action ->> 'amount_pln', ',', '.')::real AS amount_pln,
+        positive_action ->> 'in_person' AS in_person,
+        positive_action ->> 'in_desc' AS in_desc,
+        positive_action ->> 'balance' AS balance,
+        to_timestamp(positive_action ->> 'timestamp', 'YYYY-MM-DD HH24:MI') AS timestamp
+    FROM positive_actions;
 
 
 CREATE VIEW members_ever as select m.in_acc_no,
@@ -21,7 +21,7 @@ CREATE VIEW members_ever as select m.in_acc_no,
 	min(timestamp) first_paid,
 	max(timestamp) last_paid,
 	count(1) num_dues
-    from mbank_actions_unpacked m
+    from positive_actions_unpacked m
     group by m.in_acc_no
     order by days_since_last_payment asc
 ;
