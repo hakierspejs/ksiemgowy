@@ -7,8 +7,12 @@ What is ksiemgowy?
 Ksiemgowy is a tool used for bookkeeping of membership dues in Hakierspejs,
 a `hackerspace`_ in Łódź, Poland. Long story short, one day we decided to start
 collecting dues in order to build up some money that would eventually let us
-rent our headquarters. The person who asked for money also had a secondary
-goals:
+rent our headquarters. At the same time, we didn't want to spend too much time
+pinging people who are overdue and reporting organization's current financial
+situation. Because of that, we decided to create software that would automate
+the main activities related to handling dues.
+
+The system was built with the following goals in mind:
 
 * transparency: everyone should have access to current information about the
   status of fundraising,
