@@ -38,6 +38,17 @@ class MailConfig:
 
 
 @dataclass(frozen=True)
+class GitUpdaterConfig:
+    """Stores information tied to the Git part of the homepage updater module.
+    Basically: where's the repo, which credentials to use and which file to
+    update."""
+
+    git_url: str
+    deploy_key_path: str
+    dues_file_path: str
+
+
+@dataclass(frozen=True)
 class KsiemgowyAccount:
     """Stores information tied to a specific bank account: its number and
     an e-mail configuration used to handle communications related to it."""
@@ -53,11 +64,12 @@ class KsiemgowyConfig:
     used to anonymize account data."""
 
     database_uri: str
-    deploy_key_path: str
     accounts: T.List[KsiemgowyAccount]
     mbank_anonymization_key: bytes
     should_send_mail: bool
-    homepage_git_repo_url: str
+    git_updater_config: GitUpdaterConfig
+    graphite_host: str
+    graphite_port: int
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         """Returns an e-mail account used for overdue notifications. Currently
@@ -65,17 +77,13 @@ class KsiemgowyConfig:
         return self.accounts[-1]
 
 
-def load_config(
-    config_file: T.IO[T.Any]
-) -> KsiemgowyConfig:
+def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
     """Parses the configuration file and builds arguments for all routines."""
     config = yaml.load(config_file, yaml.SafeLoader)
     accounts = []
-    mbank_anonymization_key = config["MBANK_ANONYMIZATION_KEY"].encode()
-    database_uri = config["PUBLIC_DB_URI"]
     deploy_key_path = config["DEPLOY_KEY_PATH"]
-    should_send_mail = config["SEND_MAIL"]
-    homepage_git_repo_url = config["HOMEPAGE_GIT_REPO_URL"]
+    git_url = config["HOMEPAGE_GIT_REPO_URL"]
+    dues_file_path = config["DUES_FILE_PATH"]
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
         imap_server = account["IMAP_SERVER"]
@@ -95,10 +103,15 @@ def load_config(
         )
 
     return KsiemgowyConfig(
-        database_uri=database_uri,
+        database_uri=config["PUBLIC_DB_URI"],
         accounts=accounts,
-        mbank_anonymization_key=mbank_anonymization_key,
-        deploy_key_path=deploy_key_path,
-        should_send_mail=should_send_mail,
-        homepage_git_repo_url=homepage_git_repo_url,
+        mbank_anonymization_key=config["MBANK_ANONYMIZATION_KEY"].encode(),
+        should_send_mail=config["SEND_MAIL"],
+        git_updater_config=GitUpdaterConfig(
+            deploy_key_path=deploy_key_path,
+            git_url=git_url,
+            dues_file_path=dues_file_path,
+        ),
+        graphite_host=config["GRAPHITE_HOST"],
+        graphite_port=int(config["GRAPHITE_PORT"]),
     )

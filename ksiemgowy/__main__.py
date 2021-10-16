@@ -54,7 +54,13 @@ def main(
     config: ksiemgowy.config.KsiemgowyConfig,
     database: ksiemgowy.models.KsiemgowyDB,
     homepage_update: T.Callable[
-        [ksiemgowy.models.KsiemgowyDB, str, str], None
+        [
+            ksiemgowy.models.KsiemgowyDB,
+            ksiemgowy.config.GitUpdaterConfig,
+            str,
+            int,
+        ],
+        None,
     ],
     register_fn: T.Callable[[int, T.Callable[..., T.Any], T.Any, T.Any], None],
     main_loop_fn: T.Callable[[], None],
@@ -110,11 +116,19 @@ def main(
     register_fn(
         3600,
         homepage_update,
-        [database, config.deploy_key_path, config.homepage_git_repo_url],
+        [
+            database,
+            config.git_updater_config,
+            config.graphite_host,
+            config.graphite_port,
+        ],
         {},
     )
     homepage_update(
-        database, config.deploy_key_path, config.homepage_git_repo_url
+        database,
+        config.git_updater_config,
+        config.graphite_host,
+        config.graphite_port,
     )
 
     main_loop_fn()

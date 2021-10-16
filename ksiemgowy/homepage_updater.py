@@ -19,11 +19,10 @@ import yaml
 
 import ksiemgowy.current_report_builder
 import ksiemgowy.models
+import ksiemgowy.config
 
 
 LOGGER = logging.getLogger("homepage_updater")
-DUES_FILE_PATH = "_data/dues.yml"
-GRAPHITE_HOST = ("graphite.hs-ldz.pl", 2003)
 
 
 def serialize(
@@ -70,10 +69,12 @@ def upload_value_to_graphite(
 
 
 def upload_to_graphite(
-    host: Tuple[str, int],
+    graphite_host: str,
+    graphite_port: int,
     current_report: ksiemgowy.current_report_builder.T_CURRENT_REPORT,
 ) -> None:
     """Uploads metrics to Graphite server."""
+    host = (graphite_host, graphite_port)
     upload_value_to_graphite(
         host,
         "hakierspejs.finanse.total_lastmonth",
@@ -208,7 +209,7 @@ def maybe_update_dues(
     git_env: Dict[str, str],
     dues_file_path: str,
     corrections: Optional[ksiemgowy.current_report_builder.T_CORRECTIONS],
-) -> None:
+) -> ksiemgowy.current_report_builder.T_CURRENT_REPORT:
     """Generates the current report, retrieves the one that's accessible online
     and if the current one is later, updates the remote state."""
     now = datetime.datetime.now()
@@ -218,7 +219,6 @@ def maybe_update_dues(
         database.list_positive_transfers(),
         corrections,
     )
-    upload_to_graphite(GRAPHITE_HOST, current_report)
     remote_state_path = pathlib.Path(f"homepage/{dues_file_path}")
     remote_state = get_remote_state_dues(remote_state_path)
     if remote_state is None:
@@ -237,18 +237,24 @@ def maybe_update_dues(
         LOGGER.info("maybe_update_dues: updating dues")
         update_git_remote_state(remote_state_path, remote_state, git_env)
     LOGGER.info("maybe_update_dues: done")
+    return current_report
 
 
 def maybe_update(
     database: ksiemgowy.models.KsiemgowyDB,
-    deploy_key_path: str,
-    git_url: str,
-    dues_file_path: str = DUES_FILE_PATH,
+    git_updater_config: ksiemgowy.config.GitUpdaterConfig,
+    graphite_host: str,
+    graphite_port: int,
     corrections: Optional[
         ksiemgowy.current_report_builder.T_CORRECTIONS
     ] = None,
 ) -> None:
     """Submodule's entry point. Checks out the repository, operates on it and
     cleans up the checked out tree."""
-    with git_cloned(deploy_key_path, git_url) as git_env:
-        maybe_update_dues(database, git_env, dues_file_path, corrections)
+    with git_cloned(
+        git_updater_config.deploy_key_path, git_updater_config.git_url
+    ) as git_env:
+        current_report = maybe_update_dues(
+            database, git_env, git_updater_config.dues_file_path, corrections
+        )
+        upload_to_graphite(graphite_host, graphite_port, current_report)

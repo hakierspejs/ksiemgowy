@@ -27,12 +27,16 @@ class HomepageUpdaterSystemTestCase(unittest.TestCase):
         database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
         M.maybe_update(
             database_mock,
-            "/tmp/zxc",
-            git_url="/tmp/qwe3",
-            dues_file_path="data.yml",
+            git_updater_config=ksiemgowy.config.GitUpdaterConfig(
+                deploy_key_path="/tmp/zxc",
+                git_url="/tmp/qwe3",
+                dues_file_path="data.yml",
+            ),
             corrections={
                 "ACCOUNT_CORRECTIONS": {},
                 "MONTHLY_INCOME_CORRECTIONS": {},
                 "MONTHLY_EXPENSE_CORRECTIONS": {},
             },
+            graphite_host="127.0.0.1",
+            graphite_port=31337,
         )
