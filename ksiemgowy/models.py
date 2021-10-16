@@ -72,6 +72,9 @@ class KsiemgowyDB:
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
             sqlalchemy.Column("imap_id", sqlalchemy.String, unique=True),
         )
+        sqlalchemy.Index(
+            "observed_email_ids_idx", self.observed_email_ids.c.imap_id
+        )
 
         try:
             self.in_acc_no_to_email.create()
