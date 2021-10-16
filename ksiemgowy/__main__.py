@@ -66,7 +66,7 @@ def main(
     main_loop_fn: T.Callable[[], None],
 ) -> None:
     """Program's entry point. Schedules periodic execution of all routines."""
-    logging.basicConfig(level="INFO")
+
     LOGGER.info("ksiemgowyd started")
 
     # pylint:disable=unused-variable
@@ -137,6 +137,8 @@ def main(
 def entrypoint() -> None:
     """Program's entry point. Loads config, instantiates required objects
     and then runs the main function."""
+    logging_format = "[%(asctime)s] " + logging.BASIC_FORMAT
+    logging.basicConfig(level="INFO", format=logging_format)
     with open(
         os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
         encoding="utf8",
