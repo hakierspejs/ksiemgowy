@@ -42,6 +42,10 @@ co jakiś (zwykle długi) czas.
 
 1. aktualnie brakuje obsługi przelewów wewnętrznych
 
+Bardziej wyczerpującą listę niedoskonałości ksiemgowego można znaleźć tutaj:
+
+https://github.com/hakierspejs/ksiemgowy/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc
+
 ## Powiązane systemy
 
 Hakierspejs używa Ksiemgowego aby wyświetlać informację na stronie
