@@ -1,4 +1,4 @@
-# Ksiemgowy
+# Ksiemgowy ![open the documentation](https://readthedocs.org/projects/pip/badge/?version=latest&style=plastic)
 
 It is a project that checks e-mails about new messages from mBank
 transfers. When a transfer arrives, ksiemgowy enters it in the internal database
