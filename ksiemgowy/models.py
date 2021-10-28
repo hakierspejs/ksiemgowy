@@ -155,5 +155,5 @@ class KsiemgowyDB:
         """Returns a generator that lists all expenses transfers that were
         observed so far."""
         for entry in self.expenses.select().execute().fetchall():
-            ret = entry.positive_action
-            yield ksiemgowy.mbankmail.MbankAction(**ret)
+            entry = {k: v for k, v in dict(entry).items() if k != 'id'}
+            yield ksiemgowy.mbankmail.MbankAction(**entry)
