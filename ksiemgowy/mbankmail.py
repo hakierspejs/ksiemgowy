@@ -47,7 +47,7 @@ class MbankAction:
     amount_pln: float
     in_person: str
     in_desc: str
-    balance: str
+    balance: float
     timestamp: str
     action_type: str
 
@@ -94,11 +94,20 @@ def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
             "przych": "in_transfer",
             "wych": "out_transfer",
         }.get(action["action_type"], "other")
-        actions.append(MbankAction(
-            timestamp=f"{date} {time}",
-            amount_pln=float(action.pop("amount_pln").replace(",", ".")),
-            **action
-        ))
+        action["amount_pln"] = action["amount_pln"].replace(",", ".")
+        action["balance"] = action["balance"].replace(",", ".")
+        actions.append(
+            MbankAction(
+                in_acc_no=action["in_acc_no"],
+                out_acc_no=action["out_acc_no"],
+                amount_pln=float(action["amount_pln"]),
+                in_person=action["in_person"],
+                in_desc=action["in_desc"],
+                balance=float(action["balance"]),
+                timestamp=f"{date} {time}",
+                action_type=action["action_type"],
+            )
+        )
     return {"actions": actions}
 
 

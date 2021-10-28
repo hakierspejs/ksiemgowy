@@ -19,7 +19,7 @@ class MailParserTestCase(unittest.TestCase):
                     amount_pln=200.00,
                     in_person="JACEK WIELEMBOREK UL",
                     in_desc="SKŁADKA CZŁO...",
-                    balance="796,03",
+                    balance=796.03,
                     timestamp="2021-05-07 01:50",
                     action_type="in_transfer",
                 )

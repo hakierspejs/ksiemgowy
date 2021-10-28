@@ -24,14 +24,29 @@ class KsiemgowyDB:
             "positive_actions",
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("positive_action", sqlalchemy.JSON),
+            sqlalchemy.Column("in_acc_no", sqlalchemy.String),
+            sqlalchemy.Column("out_acc_no", sqlalchemy.String),
+            sqlalchemy.Column("amount_pln", sqlalchemy.Float),
+            sqlalchemy.Column("in_person", sqlalchemy.String),
+            sqlalchemy.Column("in_desc", sqlalchemy.String),
+            sqlalchemy.Column("balance", sqlalchemy.Float),
+            sqlalchemy.Column("timestamp", sqlalchemy.String),
+            sqlalchemy.Column("action_type", sqlalchemy.String),
+
         )
 
         self.expenses = sqlalchemy.Table(
             "expenses",
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("positive_action", sqlalchemy.JSON),
+            sqlalchemy.Column("in_acc_no", sqlalchemy.String),
+            sqlalchemy.Column("out_acc_no", sqlalchemy.String),
+            sqlalchemy.Column("amount_pln", sqlalchemy.Float),
+            sqlalchemy.Column("in_person", sqlalchemy.String),
+            sqlalchemy.Column("in_desc", sqlalchemy.String),
+            sqlalchemy.Column("balance", sqlalchemy.Float),
+            sqlalchemy.Column("timestamp", sqlalchemy.String),
+            sqlalchemy.Column("action_type", sqlalchemy.String),
         )
 
         try:
@@ -121,19 +136,19 @@ class KsiemgowyDB:
         """Returns a generator that lists all positive transfers that were
         observed so far."""
         for entry in self.positive_actions.select().execute().fetchall():
-            ret = entry.positive_action
-            yield ksiemgowy.mbankmail.MbankAction(**ret)
+            entry = {k: v for k, v in dict(entry).items() if k != 'id'}
+            yield ksiemgowy.mbankmail.MbankAction(**entry)
 
     def add_positive_transfer(self, positive_action: MbankAction) -> None:
         """Adds a positive transfer to the database."""
         self.positive_actions.insert(None).execute(
-            positive_action=positive_action.asdict()
+            **positive_action.asdict()
         )
 
     def add_expense(self, positive_action: MbankAction) -> None:
         """Adds an expense to the database."""
         self.expenses.insert(None).execute(
-            positive_action=positive_action.asdict()
+            **positive_action.asdict()
         )
 
     def list_expenses(self) -> Iterator[MbankAction]:
