@@ -8,7 +8,6 @@ import logging
 
 from typing import (
     Dict,
-    Optional,
     Set,
     Tuple,
     Union,
@@ -19,65 +18,20 @@ from typing import (
 import dateutil.rrule
 
 from ksiemgowy.mbankmail import MbankAction
+from ksiemgowy.config import ReportBuilderConfig
 
 
 LOGGER = logging.getLogger("homepage_updater")
-ACCOUNT_LABELS = {
-    ("76561893"): "Konto Jacka",
-    (
-        "1f328d38b05ea11998bac3ee0a4a2c6c9595e6848d22f66a47aa4a68f3b781ed"
-    ): "Konto Jacka",
-    (
-        "d66afcd5d08d61a5678dd3dd3fbb6b2f84985c5add8306e6b3a1c2df0e85f840"
-    ): "Konto stowarzyszenia",
-}
-
-T_CORRECTIONS = TypedDict(
-    "T_CORRECTIONS",
-    {
-        "ACCOUNT_CORRECTIONS": Dict[str, float],
-        "MONTHLY_INCOME_CORRECTIONS": Dict[str, Dict[str, float]],
-        "MONTHLY_EXPENSE_CORRECTIONS": Dict[str, Dict[str, float]],
-    },
-)
-
-CORRECTIONS: T_CORRECTIONS = {
-    "ACCOUNT_CORRECTIONS": {
-        "Konto Jacka": -347.53,
-        "Konto stowarzyszenia": -727.53,
-    },
-    "MONTHLY_INCOME_CORRECTIONS": {
-        "2020-04": {"Suma": 200.0},
-        "2020-05": {"Suma": 100.0},
-    },
-    "MONTHLY_EXPENSE_CORRECTIONS": {
-        "2020-08": {"Meetup": 294.36},
-        "2020-10": {"Remont": 1145.0},
-        "2020-11": {"Pozostałe": 139.80},
-        "2021-01": {
-            "Drukarka HP": 314.00,
-            "Meetup (za 6 mies.)": 285.43,
-        },
-        "2021-02": {"Domena": 55.34},
-        "2021-05": {"Pozostałe": 200.0},
-        "2021-07": {"Meetup (za 6 mies.)": 301.07},
-        "2021-08": {"Zakupy": 840.04},
-    },
-}
 
 
-def apply_corrections(
-    corrections: T_CORRECTIONS,
+def apply_global_corrections(
+    corrections_by_label: Dict[str, float],
     balances_by_account_labels: Dict[str, float],
-    monthly_income: Dict[str, Dict[str, float]],
-    monthly_expenses: Dict[str, Dict[str, float]],
 ) -> None:
-    """Apply a specified set of corrections to monthly_income, monthly_expenses
-    and balances_by_account_labels."""
+    """Apply a specified set of corrections to balances_by_account_labels."""
     # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
     # związanych z przelewami własnymi:
-    apply_d33tah_dues(monthly_income, balances_by_account_labels)
-    for account_name, value in corrections["ACCOUNT_CORRECTIONS"].items():
+    for account_name, value in corrections_by_label.items():
         if account_name not in balances_by_account_labels:
             raise RuntimeError(
                 "%r not in balances_by_account_labels" % account_name
@@ -87,17 +41,22 @@ def apply_corrections(
 
     balances_by_account_labels = dict(balances_by_account_labels)
 
-    for month in corrections["MONTHLY_INCOME_CORRECTIONS"]:
-        for label, value in corrections["MONTHLY_INCOME_CORRECTIONS"][
-            month
-        ].items():
+
+def apply_monthly_corrections(
+    monthly_income_corrections: Dict[str, Dict[str, float]],
+    monthly_expense_corrections: Dict[str, Dict[str, float]],
+    monthly_income: Dict[str, Dict[str, float]],
+    monthly_expenses: Dict[str, Dict[str, float]],
+) -> None:
+    """Apply a specified set of corrections to monthly_income and
+    monthly_expenses."""
+    for month in monthly_income_corrections:
+        for label, value in monthly_income_corrections[month].items():
             monthly_income.setdefault(month, {}).setdefault(label, 0)
             monthly_income[month][label] += value
 
-    for month in corrections["MONTHLY_EXPENSE_CORRECTIONS"]:
-        for label, value in corrections["MONTHLY_EXPENSE_CORRECTIONS"][
-            month
-        ].items():
+    for month in monthly_expense_corrections:
+        for label, value in monthly_expense_corrections[month].items():
             monthly_expenses.setdefault(month, {}).setdefault(label, 0)
             monthly_expenses[month][label] += value
 
@@ -127,13 +86,12 @@ def determine_category(action: MbankAction) -> str:
 def apply_d33tah_dues(
     monthly_income: Dict[str, Dict[str, float]],
     balances_by_account_labels: Dict[str, float],
+    first_200pln_d33tah_due_date: datetime.datetime,
+    last_200pln_d33tah_due_date: datetime.datetime,
 ) -> None:
     """Applies dues paid by d33tah to monthly_income. This is here because
     the banking system didn't notify about self-transfers, so they needed to
     be added explicitly."""
-    first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
-    # After this day, this hack isn't requried anymore:
-    last_200pln_d33tah_due_date = datetime.datetime(year=2021, month=5, day=5)
     for timestamp in dateutil.rrule.rrule(
         dateutil.rrule.MONTHLY,
         dtstart=first_200pln_d33tah_due_date,
@@ -151,6 +109,7 @@ def apply_positive_transfers(
     last_updated: datetime.datetime,
     positive_actions: Iterable[MbankAction],
     balances_by_account_labels: Dict[str, float],
+    account_labels: Dict[str, str],
 ) -> Tuple[float, int, datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all positive transfers both to balances_by_account_labels and
     monthly_income. Returns newly built monthly_expenses, as well as total
@@ -165,10 +124,10 @@ def apply_positive_transfers(
     month_ago = now - datetime.timedelta(days=31)
     for action in positive_actions:
         balances_by_account_labels.setdefault(
-            ACCOUNT_LABELS[action.out_acc_no], 0.0
+            account_labels[action.out_acc_no], 0.0
         )
         balances_by_account_labels[
-            ACCOUNT_LABELS[action.out_acc_no]
+            account_labels[action.out_acc_no]
         ] += action.amount_pln
 
         month = (
@@ -201,6 +160,7 @@ def apply_positive_transfers(
 def apply_expenses(
     expenses: Iterable[MbankAction],
     balances_by_account_labels: Dict[str, float],
+    account_labels: Dict[str, str],
 ) -> Tuple[datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all expenses both to balances_by_account_labels and
     monthly_expenses. Returns newly built monthly_expenses."""
@@ -208,10 +168,10 @@ def apply_expenses(
     monthly_expenses: Dict[str, Dict[str, float]] = {}
     for action in expenses:
         balances_by_account_labels.setdefault(
-            ACCOUNT_LABELS[action.in_acc_no], 0.0
+            account_labels[action.in_acc_no], 0.0
         )
         balances_by_account_labels[
-            ACCOUNT_LABELS[action.in_acc_no]
+            account_labels[action.in_acc_no]
         ] -= action.amount_pln
         month = (
             f"{action.get_timestamp().year}-{action.get_timestamp().month:02d}"
@@ -259,7 +219,10 @@ def build_monthly_balance(
     }
 
 
-def build_extra_monthly_reservations(now: datetime.datetime) -> int:
+def build_extra_monthly_reservations(
+    now: datetime.datetime,
+    extra_monthly_reservations_started_date: datetime.datetime,
+) -> int:
     """Returns all extra monthly reservations collected until now.
     On 24 November 2020, we agreed that we'll be continuing to increase our
     reserves by 200 PLN each month."""
@@ -269,7 +232,7 @@ def build_extra_monthly_reservations(now: datetime.datetime) -> int:
             for _ in dateutil.rrule.rrule(
                 dateutil.rrule.MONTHLY,
                 # https://pad.hs-ldz.pl/aPQpWcUbTvWwEdwsxB0ulQ#Kwestia-sk%C5%82adek
-                dtstart=datetime.datetime(year=2020, month=11, day=24),
+                dtstart=extra_monthly_reservations_started_date,
                 until=now,
             )
         ]
@@ -305,7 +268,7 @@ def get_current_report(
     now: datetime.datetime,
     expenses: Iterable[MbankAction],
     positive_actions: Iterable[MbankAction],
-    corrections: Optional[T_CORRECTIONS] = None,
+    report_builder_config: ReportBuilderConfig,
 ) -> T_CURRENT_REPORT:
     """Module's entry point. Given time, expenses, income and corrections,
     generates a monthly summary of actions that happened on the accounts."""
@@ -315,6 +278,7 @@ def get_current_report(
     last_updated, monthly_expenses = apply_expenses(
         expenses,
         balances_by_account_labels,
+        report_builder_config.account_labels,
     )
 
     (
@@ -323,14 +287,28 @@ def get_current_report(
         last_updated,
         monthly_income,
     ) = apply_positive_transfers(
-        now, last_updated, positive_actions, balances_by_account_labels
+        now,
+        last_updated,
+        positive_actions,
+        balances_by_account_labels,
+        report_builder_config.account_labels,
     )
 
-    if corrections is None:
-        corrections = CORRECTIONS
-    apply_corrections(
-        corrections,
+    apply_d33tah_dues(
+        monthly_income,
         balances_by_account_labels,
+        report_builder_config.first_200pln_d33tah_due_date,
+        report_builder_config.last_200pln_d33tah_due_date,
+    )
+
+    apply_global_corrections(
+        report_builder_config.corrections_by_label,
+        balances_by_account_labels,
+    )
+
+    apply_monthly_corrections(
+        report_builder_config.monthly_income_corrections,
+        report_builder_config.monthly_expense_corrections,
         monthly_income,
         monthly_expenses,
     )
@@ -345,7 +323,9 @@ def get_current_report(
         "dues_total_lastmonth": total,
         "dues_last_updated": last_updated.strftime("%d-%m-%Y"),
         "dues_num_subscribers": num_subscribers,
-        "extra_monthly_reservations": build_extra_monthly_reservations(now),
+        "extra_monthly_reservations": build_extra_monthly_reservations(
+            now, report_builder_config.extra_monthly_reservations_started_date
+        ),
         "balance_so_far": balance_so_far,
         "balances_by_account_labels": balances_by_account_labels,
         "monthly": {

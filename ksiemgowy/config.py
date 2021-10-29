@@ -1,12 +1,15 @@
 """Groups together all code related to the handling of ksiemgowy's
 configuration."""
 
+import datetime
 import smtplib
 import imaplib
 import contextlib
 import typing as T
 
 from dataclasses import dataclass
+
+import dateutil.parser
 import yaml
 
 
@@ -38,14 +41,16 @@ class MailConfig:
 
 
 @dataclass(frozen=True)
-class GitUpdaterConfig:
+class HomepageUpdaterConfig:
     """Stores information tied to the Git part of the homepage updater module.
-    Basically: where's the repo, which credentials to use and which file to
-    update."""
+    Basically: where's the repo, which credentials to use, which file to
+    update and Grafana credentials."""
 
     git_url: str
     deploy_key_path: str
     dues_file_path: str
+    graphite_host: str
+    graphite_port: int
 
 
 @dataclass(frozen=True)
@@ -58,6 +63,20 @@ class KsiemgowyAccount:
 
 
 @dataclass(frozen=True)
+class ReportBuilderConfig:
+    """Stores extra state needed for correction of reports build by
+    Ksiemgowy."""
+
+    account_labels: T.Dict[str, str]
+    corrections_by_label: T.Dict[str, float]
+    monthly_income_corrections: T.Dict[str, T.Dict[str, float]]
+    monthly_expense_corrections: T.Dict[str, T.Dict[str, float]]
+    first_200pln_d33tah_due_date: datetime.datetime
+    last_200pln_d33tah_due_date: datetime.datetime
+    extra_monthly_reservations_started_date: datetime.datetime
+
+
+@dataclass(frozen=True)
 class KsiemgowyConfig:
     """Stores information required to start Ksiemgowy. This includes
     database, e-mail and website credentials, as well as cryptographic pepper
@@ -67,14 +86,36 @@ class KsiemgowyConfig:
     accounts: T.List[KsiemgowyAccount]
     mbank_anonymization_key: bytes
     should_send_mail: bool
-    git_updater_config: GitUpdaterConfig
-    graphite_host: str
-    graphite_port: int
+    homepage_updater_config: HomepageUpdaterConfig
+    report_builder_config: ReportBuilderConfig
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         """Returns an e-mail account used for overdue notifications. Currently
         it's the last one mentioned in the configuration."""
         return self.accounts[-1]
+
+
+def parse_report_builder(config_section: T.Any) -> ReportBuilderConfig:
+    """Parses the config section related to report_builder module."""
+    return ReportBuilderConfig(
+        account_labels=config_section["ACCOUNT_LABELS"],
+        corrections_by_label=config_section["CORRECTIONS_BY_LABEL"],
+        monthly_income_corrections=config_section[
+            "MONTHLY_INCOME_CORRECTIONS"
+        ],
+        monthly_expense_corrections=config_section[
+            "MONTHLY_EXPENSE_CORRECTIONS"
+        ],
+        first_200pln_d33tah_due_date=dateutil.parser.parse(
+            config_section["FIRST_200PLN_D33TAH_DUE_DATE"]
+        ),
+        last_200pln_d33tah_due_date=dateutil.parser.parse(
+            config_section["LAST_200PLN_D33TAH_DUE_DATE"]
+        ),
+        extra_monthly_reservations_started_date=dateutil.parser.parse(
+            config_section["EXTRA_MONTHLY_RESERVATIONS_STARTED_DATE"]
+        ),
+    )
 
 
 def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
@@ -84,6 +125,7 @@ def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
     deploy_key_path = config["DEPLOY_KEY_PATH"]
     git_url = config["HOMEPAGE_GIT_REPO_URL"]
     dues_file_path = config["DUES_FILE_PATH"]
+    report_builder_config = parse_report_builder(config["REPORT_BUILDER"])
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
         imap_server = account["IMAP_SERVER"]
@@ -107,11 +149,12 @@ def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
         accounts=accounts,
         mbank_anonymization_key=config["MBANK_ANONYMIZATION_KEY"].encode(),
         should_send_mail=config["SEND_MAIL"],
-        git_updater_config=GitUpdaterConfig(
+        homepage_updater_config=HomepageUpdaterConfig(
             deploy_key_path=deploy_key_path,
             git_url=git_url,
             dues_file_path=dues_file_path,
+            graphite_host=config["GRAPHITE_HOST"],
+            graphite_port=int(config["GRAPHITE_PORT"]),
         ),
-        graphite_host=config["GRAPHITE_HOST"],
-        graphite_port=int(config["GRAPHITE_PORT"]),
+        report_builder_config=report_builder_config,
     )

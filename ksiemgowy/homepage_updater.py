@@ -210,7 +210,7 @@ def maybe_update_dues(
     database: ksiemgowy.models.KsiemgowyDB,
     git_env: Dict[str, str],
     dues_file_path: str,
-    corrections: Optional[ksiemgowy.current_report_builder.T_CORRECTIONS],
+    report_builder_config: ksiemgowy.config.ReportBuilderConfig,
 ) -> ksiemgowy.current_report_builder.T_CURRENT_REPORT:
     """Generates the current report, retrieves the one that's accessible online
     and if the current one is later, updates the remote state."""
@@ -219,7 +219,7 @@ def maybe_update_dues(
         now,
         database.list_expenses(),
         database.list_positive_transfers(),
-        corrections,
+        report_builder_config,
     )
     remote_state_path = pathlib.Path(f"homepage/{dues_file_path}")
     remote_state = get_remote_state_dues(remote_state_path)
@@ -244,19 +244,23 @@ def maybe_update_dues(
 
 def maybe_update(
     database: ksiemgowy.models.KsiemgowyDB,
-    git_updater_config: ksiemgowy.config.GitUpdaterConfig,
-    graphite_host: str,
-    graphite_port: int,
-    corrections: Optional[
-        ksiemgowy.current_report_builder.T_CORRECTIONS
-    ] = None,
+    homepage_updater_config: ksiemgowy.config.HomepageUpdaterConfig,
+    report_builder_config: ksiemgowy.config.ReportBuilderConfig,
 ) -> None:
     """Submodule's entry point. Checks out the repository, operates on it and
     cleans up the checked out tree."""
     with git_cloned(
-        git_updater_config.deploy_key_path, git_updater_config.git_url
+        homepage_updater_config.deploy_key_path,
+        homepage_updater_config.git_url,
     ) as git_env:
         current_report = maybe_update_dues(
-            database, git_env, git_updater_config.dues_file_path, corrections
+            database,
+            git_env,
+            homepage_updater_config.dues_file_path,
+            report_builder_config,
         )
-        upload_to_graphite(graphite_host, graphite_port, current_report)
+        upload_to_graphite(
+            homepage_updater_config.graphite_host,
+            homepage_updater_config.graphite_port,
+            current_report,
+        )
