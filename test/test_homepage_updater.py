@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import datetime
 import unittest
 import os
 import subprocess
@@ -40,5 +41,8 @@ class HomepageUpdaterSystemTestCase(unittest.TestCase):
                 corrections_by_label={},
                 monthly_income_corrections={},
                 monthly_expense_corrections={},
+                first_200pln_d33tah_due_date=datetime.datetime.now(),
+                last_200pln_d33tah_due_date=datetime.datetime.now(),
+                extra_monthly_reservations_started_date=datetime.datetime.now(),
             ),
         )

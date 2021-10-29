@@ -68,11 +68,15 @@ class KsiemgowySystemTestCase(unittest.TestCase):
             ),
             report_builder_config=ksiemgowy.config.ReportBuilderConfig(
                 account_labels={
-                    "d66afcd5d08d61a5678dd3dd3fbb6b2f84985c5add8306e6b3a1c2df0e85f840": "Konto Jacka"
+                    "d66afcd5d08d61a5678dd3dd3fbb6b2f8498"
+                    "5c5add8306e6b3a1c2df0e85f840": "Konto Jacka"
                 },
                 corrections_by_label={"Konto Jacka": 0.0},
                 monthly_income_corrections={},
                 monthly_expense_corrections={},
+                first_200pln_d33tah_due_date=datetime.datetime.now(),
+                last_200pln_d33tah_due_date=datetime.datetime.now(),
+                extra_monthly_reservations_started_date=datetime.datetime.now(),
             ),
         )
         self.database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")

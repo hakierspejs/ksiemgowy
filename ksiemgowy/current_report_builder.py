@@ -86,13 +86,12 @@ def determine_category(action: MbankAction) -> str:
 def apply_d33tah_dues(
     monthly_income: Dict[str, Dict[str, float]],
     balances_by_account_labels: Dict[str, float],
+    first_200pln_d33tah_due_date: datetime.datetime,
+    last_200pln_d33tah_due_date: datetime.datetime,
 ) -> None:
     """Applies dues paid by d33tah to monthly_income. This is here because
     the banking system didn't notify about self-transfers, so they needed to
     be added explicitly."""
-    first_200pln_d33tah_due_date = datetime.datetime(year=2020, month=6, day=7)
-    # After this day, this hack isn't requried anymore:
-    last_200pln_d33tah_due_date = datetime.datetime(year=2021, month=5, day=5)
     for timestamp in dateutil.rrule.rrule(
         dateutil.rrule.MONTHLY,
         dtstart=first_200pln_d33tah_due_date,
@@ -220,7 +219,10 @@ def build_monthly_balance(
     }
 
 
-def build_extra_monthly_reservations(now: datetime.datetime) -> int:
+def build_extra_monthly_reservations(
+    now: datetime.datetime,
+    extra_monthly_reservations_started_date: datetime.datetime,
+) -> int:
     """Returns all extra monthly reservations collected until now.
     On 24 November 2020, we agreed that we'll be continuing to increase our
     reserves by 200 PLN each month."""
@@ -230,7 +232,7 @@ def build_extra_monthly_reservations(now: datetime.datetime) -> int:
             for _ in dateutil.rrule.rrule(
                 dateutil.rrule.MONTHLY,
                 # https://pad.hs-ldz.pl/aPQpWcUbTvWwEdwsxB0ulQ#Kwestia-sk%C5%82adek
-                dtstart=datetime.datetime(year=2020, month=11, day=24),
+                dtstart=extra_monthly_reservations_started_date,
                 until=now,
             )
         ]
@@ -292,7 +294,12 @@ def get_current_report(
         report_builder_config.account_labels,
     )
 
-    apply_d33tah_dues(monthly_income, balances_by_account_labels)
+    apply_d33tah_dues(
+        monthly_income,
+        balances_by_account_labels,
+        report_builder_config.first_200pln_d33tah_due_date,
+        report_builder_config.last_200pln_d33tah_due_date,
+    )
 
     apply_global_corrections(
         report_builder_config.corrections_by_label,
@@ -316,7 +323,9 @@ def get_current_report(
         "dues_total_lastmonth": total,
         "dues_last_updated": last_updated.strftime("%d-%m-%Y"),
         "dues_num_subscribers": num_subscribers,
-        "extra_monthly_reservations": build_extra_monthly_reservations(now),
+        "extra_monthly_reservations": build_extra_monthly_reservations(
+            now, report_builder_config.extra_monthly_reservations_started_date
+        ),
         "balance_so_far": balance_so_far,
         "balances_by_account_labels": balances_by_account_labels,
         "monthly": {
