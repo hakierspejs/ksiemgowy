@@ -20,30 +20,22 @@ class KsiemgowyDB:
         self.database = sqlalchemy.create_engine(database_uri)
         metadata = sqlalchemy.MetaData(self.database)
 
-        self.positive_actions = sqlalchemy.Table(
-            "positive_actions",
+        self.bank_actions = sqlalchemy.Table(
+            "bank_actions",
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("positive_action", sqlalchemy.JSON),
-        )
-
-        self.expenses = sqlalchemy.Table(
-            "expenses",
-            metadata,
-            sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("positive_action", sqlalchemy.JSON),
+            sqlalchemy.Column("in_acc_no", sqlalchemy.String),
+            sqlalchemy.Column("out_acc_no", sqlalchemy.String),
+            sqlalchemy.Column("amount_pln", sqlalchemy.Float, index=True),
+            sqlalchemy.Column("in_person", sqlalchemy.String),
+            sqlalchemy.Column("in_desc", sqlalchemy.String),
+            sqlalchemy.Column("balance", sqlalchemy.Float),
+            sqlalchemy.Column("timestamp", sqlalchemy.String),
+            sqlalchemy.Column("action_type", sqlalchemy.String),
         )
 
         try:
-            self.positive_actions.create()
-        except (
-            sqlalchemy.exc.OperationalError,
-            sqlalchemy.exc.ProgrammingError,
-        ):
-            pass
-
-        try:
-            self.expenses.create()
+            self.bank_actions.create()
         except (
             sqlalchemy.exc.OperationalError,
             sqlalchemy.exc.ProgrammingError,
@@ -71,9 +63,6 @@ class KsiemgowyDB:
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
             sqlalchemy.Column("imap_id", sqlalchemy.String, unique=True),
-        )
-        sqlalchemy.Index(
-            "observed_email_ids_idx", self.observed_email_ids.c.imap_id
         )
 
         try:
@@ -120,25 +109,34 @@ class KsiemgowyDB:
     def list_positive_transfers(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all positive transfers that were
         observed so far."""
-        for entry in self.positive_actions.select().execute().fetchall():
-            ret = entry.positive_action
-            yield ksiemgowy.mbankmail.MbankAction(**ret)
+        for entry in (
+            self.bank_actions.select()
+            .where(self.bank_actions.c.amount_pln > 0)
+            .execute()
+            .fetchall()
+        ):
+            entry = {k: v for k, v in dict(entry).items() if k != "id"}
+            yield ksiemgowy.mbankmail.MbankAction(**entry)
 
     def add_positive_transfer(self, positive_action: MbankAction) -> None:
         """Adds a positive transfer to the database."""
-        self.positive_actions.insert(None).execute(
-            positive_action=positive_action.asdict()
-        )
+        self.bank_actions.insert(None).execute(**positive_action.asdict())
 
-    def add_expense(self, positive_action: MbankAction) -> None:
+    def add_expense(self, bank_action: MbankAction) -> None:
         """Adds an expense to the database."""
-        self.expenses.insert(None).execute(
-            positive_action=positive_action.asdict()
-        )
+        bank_action.amount_pln *= -1
+        self.bank_actions.insert(None).execute(**bank_action.asdict())
 
     def list_expenses(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all expenses transfers that were
         observed so far."""
-        for entry in self.expenses.select().execute().fetchall():
-            ret = entry.positive_action
-            yield ksiemgowy.mbankmail.MbankAction(**ret)
+        for entry in (
+            self.bank_actions.select()
+            .where(self.bank_actions.c.amount_pln < 0)
+            .execute()
+            .fetchall()
+        ):
+            entry = {k: v for k, v in dict(entry).items() if k != "id"}
+            bank_action = ksiemgowy.mbankmail.MbankAction(**entry)
+            bank_action.amount_pln *= -1
+            yield bank_action
