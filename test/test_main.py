@@ -77,6 +77,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
                 first_200pln_d33tah_due_date=datetime.datetime.now(),
                 last_200pln_d33tah_due_date=datetime.datetime.now(),
                 extra_monthly_reservations_started_date=datetime.datetime.now(),
+                categories=[],
             ),
         )
         self.database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")

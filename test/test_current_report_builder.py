@@ -5,7 +5,7 @@ import unittest
 
 from ksiemgowy.mbankmail import MbankAction
 
-from ksiemgowy.config import ReportBuilderConfig
+from ksiemgowy.config import ReportBuilderConfig, CategoryCriteria
 import ksiemgowy.current_report_builder as M
 
 
@@ -68,6 +68,33 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
             first_200pln_d33tah_due_date=datetime.datetime.now(),
             last_200pln_d33tah_due_date=datetime.datetime.now(),
             extra_monthly_reservations_started_date=datetime.datetime.now(),
+            categories=[
+                CategoryCriteria(
+                    category_name="Czynsz",
+                    out_acc_no="5c0de18baddf47952002df587685dea"
+                    "519f06b639051ea3e4749ef058f6782bf",
+                    amount_pln=800.0,
+                ),
+                CategoryCriteria(
+                    category_name="Media (głównie prąd) i inne"
+                    " rozliczenia w zw. z lokalem",
+                    out_acc_no="5c0de18baddf47952002df587685de"
+                    "a519f06b639051ea3e4749ef058f6782bf",
+                    amount_pln=None,
+                ),
+                CategoryCriteria(
+                    category_name="Internet",
+                    out_acc_no="62eb7121a7ba81754aa746762dbc"
+                    "364e9ed961b8d1cf61a94d6531c92c81e56f",
+                    amount_pln=None,
+                ),
+                CategoryCriteria(
+                    category_name="Księgowość",
+                    out_acc_no="8f8340d7434997c052cc56f0191"
+                    "ed23d12a16ab1f2cba091c433539c13b7049c",
+                    amount_pln=None,
+                ),
+            ],
         )
 
         current_report = M.get_current_report(
@@ -85,7 +112,8 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
                 "Wydatki": {
                     "2021-09": {
                         "Czynsz": 800.0,
-                        "Media (głównie prąd) i inne rozliczenia w zw. z lokalem": 177.5,
+                        "Media (głównie prąd) i inne "
+                        "rozliczenia w zw. z lokalem": 177.5,
                     }
                 },
                 "Przychody": {

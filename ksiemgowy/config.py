@@ -12,6 +12,8 @@ from dataclasses import dataclass
 import dateutil.parser
 import yaml
 
+from ksiemgowy.mbankmail import MbankAction
+
 
 @dataclass(frozen=True)
 class MailConfig:
@@ -63,10 +65,29 @@ class KsiemgowyAccount:
 
 
 @dataclass(frozen=True)
+class CategoryCriteria:
+    """Stores criteria by which a given transfer can be assigned a category."""
+
+    out_acc_no: str
+    amount_pln: T.Optional[float]
+    category_name: str
+
+    def matches(self, bank_action: MbankAction) -> bool:
+        """Checks whether a given bank action matches this specific set of
+        criteria."""
+        if bank_action.out_acc_no != self.out_acc_no:
+            return False
+        if self.amount_pln and bank_action.amount_pln != self.amount_pln:
+            return False
+        return True
+
+
+@dataclass(frozen=True)
 class ReportBuilderConfig:
     """Stores extra state needed for correction of reports build by
     Ksiemgowy."""
 
+    # pylint: disable=too-many-instance-attributes
     account_labels: T.Dict[str, str]
     corrections_by_label: T.Dict[str, float]
     monthly_income_corrections: T.Dict[str, T.Dict[str, float]]
@@ -74,6 +95,7 @@ class ReportBuilderConfig:
     first_200pln_d33tah_due_date: datetime.datetime
     last_200pln_d33tah_due_date: datetime.datetime
     extra_monthly_reservations_started_date: datetime.datetime
+    categories: T.List[CategoryCriteria]
 
 
 @dataclass(frozen=True)
@@ -97,6 +119,15 @@ class KsiemgowyConfig:
 
 def parse_report_builder(config_section: T.Any) -> ReportBuilderConfig:
     """Parses the config section related to report_builder module."""
+    categories = []
+    for category_name, subsection in config_section["CATEGORIES"].items():
+        categories.append(
+            CategoryCriteria(
+                category_name=category_name,
+                amount_pln=subsection.get("amount_pln", None),
+                out_acc_no=subsection["out_acc_no"],
+            )
+        )
     return ReportBuilderConfig(
         account_labels=config_section["ACCOUNT_LABELS"],
         corrections_by_label=config_section["CORRECTIONS_BY_LABEL"],
@@ -115,6 +146,7 @@ def parse_report_builder(config_section: T.Any) -> ReportBuilderConfig:
         extra_monthly_reservations_started_date=dateutil.parser.parse(
             config_section["EXTRA_MONTHLY_RESERVATIONS_STARTED_DATE"]
         ),
+        categories=categories,
     )
 
 

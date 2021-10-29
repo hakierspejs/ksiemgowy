@@ -7,6 +7,7 @@ import datetime
 import logging
 
 from typing import (
+    List,
     Dict,
     Set,
     Tuple,
@@ -18,7 +19,7 @@ from typing import (
 import dateutil.rrule
 
 from ksiemgowy.mbankmail import MbankAction
-from ksiemgowy.config import ReportBuilderConfig
+from ksiemgowy.config import CategoryCriteria, ReportBuilderConfig
 
 
 LOGGER = logging.getLogger("homepage_updater")
@@ -61,25 +62,14 @@ def apply_monthly_corrections(
             monthly_expenses[month][label] += value
 
 
-def determine_category(action: MbankAction) -> str:
+def determine_category(
+    action: MbankAction, categories: List[CategoryCriteria]
+) -> str:
     """Given an incoming action, determine what label to assign to it."""
-    if (
-        action.out_acc_no == "5c0de18baddf47952"
-        "002df587685dea519f06b639051ea3e4749ef058f6782bf"
-    ):
-        if int(action.amount_pln) == 800:
-            return "Czynsz"
-        return "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
-    if (
-        action.out_acc_no == "62eb7121a7ba81754aa746762dbc364e9ed961b"
-        "8d1cf61a94d6531c92c81e56f"
-    ):
-        return "Internet"
-    if (
-        action.out_acc_no == "8f8340d7434997c052cc56f0191ed23d12a16ab1"
-        "f2cba091c433539c13b7049c"
-    ):
-        return "Księgowość"
+
+    for category_criteria in categories:
+        if category_criteria.matches(action):
+            return category_criteria.category_name
     return "Pozostałe"
 
 
@@ -161,6 +151,7 @@ def apply_expenses(
     expenses: Iterable[MbankAction],
     balances_by_account_labels: Dict[str, float],
     account_labels: Dict[str, str],
+    categories: List[CategoryCriteria],
 ) -> Tuple[datetime.datetime, Dict[str, Dict[str, float]]]:
     """Apply all expenses both to balances_by_account_labels and
     monthly_expenses. Returns newly built monthly_expenses."""
@@ -176,7 +167,7 @@ def apply_expenses(
         month = (
             f"{action.get_timestamp().year}-{action.get_timestamp().month:02d}"
         )
-        category = determine_category(action)
+        category = determine_category(action, categories)
         monthly_expenses.setdefault(month, {}).setdefault(category, 0)
         monthly_expenses[month][category] += action.amount_pln
         if last_updated is None or action.get_timestamp() > last_updated:
@@ -279,6 +270,7 @@ def get_current_report(
         expenses,
         balances_by_account_labels,
         report_builder_config.account_labels,
+        report_builder_config.categories,
     )
 
     (
