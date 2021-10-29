@@ -127,7 +127,9 @@ def parse_mbank_email(msg: Message) -> Dict[str, List[MbankAction]]:
 
 def parse_args() -> Dict[str, str]:
     """Parses command-line arguments and returns them in a form usable as
-    **kwargs."""
+    **kwargs.
+
+    Test"""
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("-i", "--input-fpath", required=True)
     parser.add_argument("-L", "--loglevel", default="DEBUG")
