@@ -5,6 +5,7 @@ import unittest
 
 from ksiemgowy.mbankmail import MbankAction
 
+from ksiemgowy.config import ReportBuilderConfig
 import ksiemgowy.current_report_builder as M
 
 
@@ -17,8 +18,7 @@ LANDLORD_ACC_NO = (
 )
 
 
-class SecondCurrentReportBuilderTestCase(unittest.TestCase):
-
+class SecondReportBuilderBuilderTestCase(unittest.TestCase):
     def test_system(self):
         now = datetime.datetime(2021, 9, 4, 12, 14, 6, 812646)
 
@@ -57,14 +57,18 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
             )
         ]
 
-        corrections: M.T_CORRECTIONS = {
-            "ACCOUNT_CORRECTIONS": {"Konto Jacka": 0.0},
-            "MONTHLY_INCOME_CORRECTIONS": {},
-            "MONTHLY_EXPENSE_CORRECTIONS": {},
-        }
+        current_builder_config = ReportBuilderConfig(
+            account_labels={
+                "d66afcd5d08d61a5678dd3dd3f"
+                "bb6b2f84985c5add8306e6b3a1c2df0e85f840": "Konto Jacka"
+            },
+            corrections_by_label={"Konto Jacka": 0.0},
+            monthly_income_corrections={},
+            monthly_expense_corrections={},
+        )
 
         current_report = M.get_current_report(
-            now, expenses, positive_actions, corrections
+            now, expenses, positive_actions, current_builder_config
         )
 
         expected_output = {
@@ -73,16 +77,13 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
             "dues_num_subscribers": 1,
             "extra_monthly_reservations": 2000,
             "balance_so_far": 2222.5,
-            "balances_by_account_labels": {
-                "Konto stowarzyszenia": 22.5,
-                "Konto Jacka": 2200.0,
-            },
+            "balances_by_account_labels": {"Konto Jacka": 2222.5},
             "monthly": {
                 "Wydatki": {
                     "2021-09": {
                         "Czynsz": 800.0,
-                        "Media (głównie prąd) i "
-                        "inne rozliczenia w zw. z lokalem": 177.5,
+                        "Media (głównie prąd) i inne rozliczenia"
+                        " w zw. z lokalem": 177.5,
                     }
                 },
                 "Przychody": {
@@ -100,31 +101,31 @@ class SecondCurrentReportBuilderTestCase(unittest.TestCase):
                     "2021-04": {"Suma": 200},
                 },
                 "Bilans": {
-                    "2020-08": {"Suma": 200},
+                    "2020-06": {"Suma": 200},
                     "2020-11": {"Suma": 200},
                     "2020-07": {"Suma": 200},
-                    "2021-03": {"Suma": 200},
-                    "2020-09": {"Suma": 200},
-                    "2020-06": {"Suma": 200},
                     "2020-12": {"Suma": 200},
-                    "2020-10": {"Suma": 200},
-                    "2021-04": {"Suma": 200},
-                    "2021-01": {"Suma": 200},
                     "2021-02": {"Suma": 200},
+                    "2020-09": {"Suma": 200},
                     "2021-09": {"Suma": 22.5},
+                    "2020-08": {"Suma": 200},
+                    "2021-01": {"Suma": 200},
+                    "2021-03": {"Suma": 200},
+                    "2021-04": {"Suma": 200},
+                    "2020-10": {"Suma": 200},
                 },
                 "Saldo": {
-                    "2020-06": {"Suma": 200},
-                    "2020-07": {"Suma": 400},
-                    "2020-08": {"Suma": 600},
-                    "2020-09": {"Suma": 800},
-                    "2020-10": {"Suma": 1000},
-                    "2020-11": {"Suma": 1200},
-                    "2020-12": {"Suma": 1400},
-                    "2021-01": {"Suma": 1600},
-                    "2021-02": {"Suma": 1800},
-                    "2021-03": {"Suma": 2000},
-                    "2021-04": {"Suma": 2200},
+                    "2020-06": {"Suma": 200.0},
+                    "2020-07": {"Suma": 400.0},
+                    "2020-08": {"Suma": 600.0},
+                    "2020-09": {"Suma": 800.0},
+                    "2020-10": {"Suma": 1000.0},
+                    "2020-11": {"Suma": 1200.0},
+                    "2020-12": {"Suma": 1400.0},
+                    "2021-01": {"Suma": 1600.0},
+                    "2021-02": {"Suma": 1800.0},
+                    "2021-03": {"Suma": 2000.0},
+                    "2021-04": {"Suma": 2200.0},
                     "2021-09": {"Suma": 2222.5},
                 },
             },

@@ -56,9 +56,8 @@ def main(
     homepage_update: T.Callable[
         [
             ksiemgowy.models.KsiemgowyDB,
-            ksiemgowy.config.GitUpdaterConfig,
-            str,
-            int,
+            ksiemgowy.config.HomepageUpdaterConfig,
+            ksiemgowy.config.ReportBuilderConfig
         ],
         None,
     ],
@@ -118,17 +117,15 @@ def main(
         homepage_update,
         [
             database,
-            config.git_updater_config,
-            config.graphite_host,
-            config.graphite_port,
+            config.homepage_updater_config,
+            config.report_builder_config,
         ],
         {},
     )
     homepage_update(
         database,
-        config.git_updater_config,
-        config.graphite_host,
-        config.graphite_port,
+        config.homepage_updater_config,
+        config.report_builder_config,
     )
 
     main_loop_fn()

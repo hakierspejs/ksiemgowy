@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-import datetime
 import unittest
 import os
 import subprocess
 
 import ksiemgowy.models
 import ksiemgowy.homepage_updater as M
+
+from ksiemgowy.config import ReportBuilderConfig
 
 EXAMPLE_SSH_KEY = """-----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
@@ -27,16 +28,17 @@ class HomepageUpdaterSystemTestCase(unittest.TestCase):
         database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
         M.maybe_update(
             database_mock,
-            git_updater_config=ksiemgowy.config.GitUpdaterConfig(
+            homepage_updater_config=ksiemgowy.config.HomepageUpdaterConfig(
                 deploy_key_path="/tmp/zxc",
                 git_url="/tmp/qwe3",
                 dues_file_path="data.yml",
+                graphite_host="127.0.0.1",
+                graphite_port=31337,
             ),
-            corrections={
-                "ACCOUNT_CORRECTIONS": {},
-                "MONTHLY_INCOME_CORRECTIONS": {},
-                "MONTHLY_EXPENSE_CORRECTIONS": {},
-            },
-            graphite_host="127.0.0.1",
-            graphite_port=31337,
+            report_builder_config=ReportBuilderConfig(
+                account_labels={},
+                corrections_by_label={},
+                monthly_income_corrections={},
+                monthly_expense_corrections={},
+            ),
         )

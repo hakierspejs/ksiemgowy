@@ -59,13 +59,21 @@ class KsiemgowySystemTestCase(unittest.TestCase):
             ],
             mbank_anonymization_key=b"",
             should_send_mail=True,
-            git_updater_config=ksiemgowy.config.GitUpdaterConfig(
+            homepage_updater_config=ksiemgowy.config.HomepageUpdaterConfig(
                 deploy_key_path="",
                 git_url="",
                 dues_file_path="/",
+                graphite_host="127.0.0.1",
+                graphite_port=31337,
             ),
-            graphite_host="127.0.0.1",
-            graphite_port=31337,
+            report_builder_config=ksiemgowy.config.ReportBuilderConfig(
+                account_labels={
+                    "d66afcd5d08d61a5678dd3dd3fbb6b2f84985c5add8306e6b3a1c2df0e85f840": "Konto Jacka"
+                },
+                corrections_by_label={"Konto Jacka": 0.0},
+                monthly_income_corrections={},
+                monthly_expense_corrections={},
+            ),
         )
         self.database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
 
