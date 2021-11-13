@@ -410,13 +410,6 @@ that were derived from it.</p>
 <p>A class that groups together all models that describe the state of
 ksiemgowy.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.acc_no_to_email">
-<span class="sig-name descname"><span class="pre">acc_no_to_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">notification_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.acc_no_to_email" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builds a mapping between banking accounts an e-mail addresses for
-people interested in a given type of a notification.</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.add_expense">
 <span class="sig-name descname"><span class="pre">add_expense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank_action</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">ksiemgowy.mbankmail.MbankAction</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.add_expense" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds an expense to the database.</p>
@@ -426,6 +419,19 @@ people interested in a given type of a notification.</p>
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.add_positive_transfer">
 <span class="sig-name descname"><span class="pre">add_positive_transfer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positive_action</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">ksiemgowy.mbankmail.MbankAction</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.add_positive_transfer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a positive transfer to the database.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.get_email_for_in_acc_no">
+<span class="sig-name descname"><span class="pre">get_email_for_in_acc_no</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_acc_no</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.get_email_for_in_acc_no" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an e-mail address for a given in_acc_no.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.get_potentially_overdue_accounts">
+<span class="sig-name descname"><span class="pre">get_potentially_overdue_accounts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">now</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">datetime.datetime</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.get_potentially_overdue_accounts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of accounts that might be overdue and can be
+notified.</p>
 </dd></dl>
 
 <dl class="py method">
