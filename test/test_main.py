@@ -194,7 +194,5 @@ class BuildConfirmationMailTestCase(unittest.TestCase):
             fromaddr="from@address",
             toaddr="to_address",
             positive_action=positive_action,
-            emails={},
-            mbank_anonymization_key=b"ad",
         )
         self.assertEqual(msg["To"], "to_address")

@@ -1,7 +1,7 @@
 """This module describes data structures used in ksiemgowy."""
 
 import logging
-from typing import Dict, Iterator
+from typing import Dict, Iterator, Optional
 
 import sqlalchemy
 
@@ -98,6 +98,22 @@ class KsiemgowyDB:
         """Marks a given IMAP ID as already processed by ksiemgowy."""
         LOGGER.debug("mark_imap_id_already_handled(%r)", imap_id)
         self.observed_email_ids.insert(None).execute(imap_id=imap_id)
+
+    def get_email_for_in_acc_no(self, in_acc_no: str) -> Optional[str]:
+        """Builds a mapping between banking accounts an e-mail addresses for
+        people interested in a given type of a notification."""
+
+        row = (
+            self.in_acc_no_to_email.select()
+            .where(self.in_acc_no_to_email.c.in_acc_no == in_acc_no)
+            .execute()
+            .fetchone()
+        )
+
+        if row:
+            ret: str = row['email']
+            return ret
+        return None
 
     def acc_no_to_email(self, notification_type: str) -> Dict[str, str]:
         """Builds a mapping between banking accounts an e-mail addresses for
