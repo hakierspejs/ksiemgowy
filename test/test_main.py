@@ -90,13 +90,16 @@ class KsiemgowySystemTestCase(unittest.TestCase):
             for action in positive_actions_fixtures:
                 self.database_mock.add_positive_transfer(action)
 
+        minute_ago = datetime.datetime.now() - datetime.timedelta(minutes=1)
         if in_acc_no_to_email_fixtures:
             for (
                 in_acc_no,
                 email_address,
             ) in in_acc_no_to_email_fixtures.items():
                 self.database_mock.in_acc_no_to_email.insert(None).execute(
-                    in_acc_no=in_acc_no, email=email_address
+                    in_acc_no=in_acc_no,
+                    email=email_address,
+                    notify_overdue_no_earlier_than=minute_ago,
                 )
 
         ksiemgowy_main.main(
@@ -156,7 +159,6 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         self.assertEqual(len(self.sent_messages), 0)
 
     def test_entrypoint_sends_a_reminder_if_somebody_is_overdue(self):
-
         now = datetime.datetime.now()
         some_time_ago = now - datetime.timedelta(days=40)
 
@@ -177,6 +179,28 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         )
         self.assertEqual(len(self.sent_messages), 1)
 
+    def test_entrypoint_sends_only_one_ondue_reminder_after_restart(self):
+        now = datetime.datetime.now()
+        some_time_ago = now - datetime.timedelta(days=40)
+
+        self.run_entrypoint(
+            [
+                MbankAction(
+                    in_acc_no="a",
+                    out_acc_no="b",
+                    amount_pln=100.0,
+                    in_person="asd",
+                    in_desc="e",
+                    balance="100",
+                    timestamp=str(some_time_ago),
+                    action_type="in_transfer",
+                )
+            ],
+            {"a": "example@example.com"},
+        )
+        self.run_entrypoint()
+        self.assertEqual(len(self.sent_messages), 1)
+
 
 class BuildConfirmationMailTestCase(unittest.TestCase):
     def test_build_confirmation_mail_copies_email_if_not_in_mapping(self):
@@ -194,7 +218,5 @@ class BuildConfirmationMailTestCase(unittest.TestCase):
             fromaddr="from@address",
             toaddr="to_address",
             positive_action=positive_action,
-            emails={},
-            mbank_anonymization_key=b"ad",
         )
         self.assertEqual(msg["To"], "to_address")

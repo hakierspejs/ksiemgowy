@@ -1,7 +1,8 @@
 """This module describes data structures used in ksiemgowy."""
 
 import logging
-from typing import Dict, Iterator
+import datetime
+from typing import Dict, Iterator, Optional
 
 import sqlalchemy
 
@@ -55,6 +56,10 @@ class KsiemgowyDB:
             sqlalchemy.Column(
                 "notify_overdue", sqlalchemy.String, default="y"
             ),
+            sqlalchemy.Column(
+                "notify_overdue_no_earlier_than",
+                sqlalchemy.DateTime,
+            ),
             sqlalchemy.Column("is_member", sqlalchemy.String, default="n"),
         )
 
@@ -96,15 +101,68 @@ class KsiemgowyDB:
         LOGGER.debug("mark_imap_id_already_handled(%r)", imap_id)
         self.observed_email_ids.insert(None).execute(imap_id=imap_id)
 
-    def acc_no_to_email(self, notification_type: str) -> Dict[str, str]:
-        """Builds a mapping between banking accounts an e-mail addresses for
-        people interested in a given type of a notification."""
+    def get_email_for_in_acc_no(self, in_acc_no: str) -> Optional[str]:
+        """Returns an e-mail address for a given in_acc_no."""
+
+        row = (
+            self.in_acc_no_to_email.select()
+            .where(self.in_acc_no_to_email.c.in_acc_no == in_acc_no)
+            .execute()
+            .fetchone()
+        )
+
+        if row:
+            ret: str = row["email"]
+            return ret
+        return None
+
+    def get_potentially_overdue_accounts(
+        self, now: datetime.datetime
+    ) -> Dict[str, str]:
+        """Returns a list of accounts that might be overdue and can be
+        notified."""
         ret = {}
-        for entry in self.in_acc_no_to_email.select().execute().fetchall():
-            if entry["notify_" + notification_type] == "y":
+        cols = self.in_acc_no_to_email.c
+        for entry in (
+            self.in_acc_no_to_email.select()
+            .where(
+                sqlalchemy.or_(
+                    cols.notify_overdue_no_earlier_than.is_(None),
+                    cols.notify_overdue_no_earlier_than < now,
+                )
+            )
+            .execute()
+            .fetchall()
+        ):
+            if entry["notify_overdue"] == "y":
                 ret[entry["in_acc_no"]] = entry["email"]
 
         return ret
+
+    def postpone_next_notification(
+        self, in_acc_no: str, now: datetime.datetime
+    ) -> None:
+        """Postpone next overdue notification for an account with a given
+        in_acc_no."""
+        cols = self.in_acc_no_to_email.c
+        row = (
+            self.in_acc_no_to_email.select()
+            .where(cols.in_acc_no == in_acc_no)
+            .execute()
+            .fetchone()
+        )
+
+        base_date = now
+        if row["notify_overdue_no_earlier_than"] is not None:
+            base_date = row["notify_overdue_no_earlier_than"]
+        new_date = base_date + datetime.timedelta(days=3, hours=5)
+
+        (
+            self.in_acc_no_to_email.update()
+            .where(self.in_acc_no_to_email.c.in_acc_no == in_acc_no)
+            .values(notify_overdue_no_earlier_than=new_date)
+            .execute()
+        )
 
     def list_positive_transfers(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all positive transfers that were

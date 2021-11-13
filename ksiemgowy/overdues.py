@@ -66,7 +66,8 @@ https://github.com/hakierspejs/wiki/wiki/Finanse#przypomnienie-o-sk%C5%82adkach
 
 
 def notify_about_overdues(
-    database: KsiemgowyDB, mail_config: ksiemgowy.config.MailConfig,
+    database: KsiemgowyDB,
+    mail_config: ksiemgowy.config.MailConfig,
 ) -> None:
     """Checks whether any of the organization members is overdue and notifies
     them about that fact."""
@@ -80,17 +81,20 @@ def notify_about_overdues(
         ):
             latest_dues[action.in_acc_no] = action
 
-    ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
-    ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
+    now = datetime.datetime.now()
+    ago_35d = now - datetime.timedelta(days=35)
+    ago_55d = now - datetime.timedelta(days=55)
     overdues = []
-    emails = database.acc_no_to_email("overdue")
+    emails = database.get_potentially_overdue_accounts(now)
     for payment in latest_dues.values():
         if ago_55d < payment.get_timestamp() < ago_35d:
             if payment.in_acc_no in emails:
-                overdues.append(emails[payment.in_acc_no])
+                overdues.append(payment.in_acc_no)
 
     with mail_config.smtp_login() as server:
-        for overdue in overdues:
-            send_overdue_email(server, mail_config.login, overdue)
+        for in_acc_no in overdues:
+            email = emails[in_acc_no]
+            send_overdue_email(server, mail_config.login, email)
+            database.postpone_next_notification(in_acc_no, now)
 
     LOGGER.info("done notify_about_overdues()")

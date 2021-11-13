@@ -18,22 +18,19 @@ LOGGER = logging.getLogger("ksiemgowy.__main__")
 
 
 def build_confirmation_mail(
-    mbank_anonymization_key: bytes,
     fromaddr: str,
-    toaddr: str,
     positive_action: MbankAction,
-    emails: T.Dict[str, str],
+    toaddr: T.Optional[str] = None,
 ) -> MIMEMultipart:
     """Sends an e-mail confirming that a membership due has arrived and was
     accounted for."""
     msg = MIMEMultipart("alternative")
     msg["From"] = fromaddr
-    acc_no = positive_action.anonymized(mbank_anonymization_key).in_acc_no
-    if acc_no in emails:
-        msg["To"] = emails[acc_no]
-        msg["Cc"] = toaddr
-    else:
+    if toaddr:
         msg["To"] = toaddr
+        msg["Cc"] = fromaddr
+    else:
+        msg["To"] = fromaddr
     msg["Subject"] = "ksiemgowyd: zaksiemgowano przelew! :)"
     message_text = f"""Dziękuję za wspieranie Hakierspejsu! ❤
 
@@ -105,13 +102,13 @@ def check_for_updates(
                 )
                 if should_send_mail:
                     with mail_config.smtp_login() as smtp_conn:
-                        emails = database.acc_no_to_email("arrived")
+                        to_email = database.get_email_for_in_acc_no(
+                            action.in_acc_no
+                        )
                         msg = build_confirmation_mail(
-                            mbank_anonymization_key,
-                            mail_config.login,
                             mail_config.login,
                             action,
-                            emails,
+                            to_email,
                         )
                         smtp_conn.send_message(msg)
 
