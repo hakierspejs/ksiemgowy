@@ -126,7 +126,7 @@ class KsiemgowyDB:
         for entry in (
             self.in_acc_no_to_email.select()
             .where(
-                sqlalchemy.or_(  # type: ignore
+                sqlalchemy.or_(
                     cols.notify_overdue_no_earlier_than.is_(None),
                     cols.notify_overdue_no_earlier_than < now,
                 )
