@@ -83,7 +83,7 @@ def notify_about_overdues(
     ago_35d = datetime.datetime.now() - datetime.timedelta(days=35)
     ago_55d = datetime.datetime.now() - datetime.timedelta(days=55)
     overdues = []
-    emails = database.acc_no_to_email("overdue")
+    emails = database.get_potentially_overdue_accounts()
     for payment in latest_dues.values():
         if ago_55d < payment.get_timestamp() < ago_35d:
             if payment.in_acc_no in emails:

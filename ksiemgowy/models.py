@@ -115,12 +115,12 @@ class KsiemgowyDB:
             return ret
         return None
 
-    def acc_no_to_email(self, notification_type: str) -> Dict[str, str]:
+    def get_potentially_overdue_accounts(self) -> Dict[str, str]:
         """Builds a mapping between banking accounts an e-mail addresses for
         people interested in a given type of a notification."""
         ret = {}
         for entry in self.in_acc_no_to_email.select().execute().fetchall():
-            if entry["notify_" + notification_type] == "y":
+            if entry["notify_overdue"] == "y":
                 ret[entry["in_acc_no"]] = entry["email"]
 
         return ret

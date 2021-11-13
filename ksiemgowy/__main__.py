@@ -68,8 +68,6 @@ def main(
 
     LOGGER.info("ksiemgowyd started")
 
-    # pylint:disable=unused-variable
-    emails = database.acc_no_to_email("arrived")  # noqa
     for account in config.accounts:
         args = account.__dict__
         args["mbank_anonymization_key"] = config.mbank_anonymization_key
