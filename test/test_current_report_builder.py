@@ -65,9 +65,9 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
             corrections_by_label={"Konto Jacka": 0.0},
             monthly_income_corrections={},
             monthly_expense_corrections={},
-            first_200pln_d33tah_due_date=datetime.datetime.now(),
-            last_200pln_d33tah_due_date=datetime.datetime.now(),
-            extra_monthly_reservations_started_date=datetime.datetime.now(),
+            first_200pln_d33tah_due_date=now,
+            last_200pln_d33tah_due_date=now,
+            extra_monthly_reservations_started_date=now,
             categories=[
                 CategoryCriteria(
                     category_name="Czynsz",
@@ -105,29 +105,20 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
             "dues_total_lastmonth": 1000.0,
             "dues_last_updated": "02-09-2021",
             "dues_num_subscribers": 1,
-            "extra_monthly_reservations": 0,
+            "extra_monthly_reservations": 200,
             "balance_so_far": 222.5,
             "balances_by_account_labels": {"Konto Jacka": 222.5},
             "monthly": {
                 "Wydatki": {
                     "2021-09": {
                         "Czynsz": 800.0,
-                        "Media (głównie prąd) i inne "
-                        "rozliczenia w zw. z lokalem": 177.5,
+                        "Media (głównie prąd) i inne rozliczenia"
+                        " w zw. z lokalem": 177.5,
                     }
                 },
-                "Przychody": {
-                    "2021-09": {"Suma": 1000.0},
-                    "2021-10": {"Suma": 200},
-                },
-                "Bilans": {
-                    "2021-10": {"Suma": 200},
-                    "2021-09": {"Suma": 22.5},
-                },
-                "Saldo": {
-                    "2021-09": {"Suma": 22.5},
-                    "2021-10": {"Suma": 222.5},
-                },
+                "Przychody": {"2021-09": {"Suma": 1200.0}},
+                "Bilans": {"2021-09": {"Suma": 222.5}},
+                "Saldo": {"2021-09": {"Suma": 222.5}},
             },
         }
 
