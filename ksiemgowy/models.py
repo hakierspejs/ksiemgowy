@@ -1,6 +1,7 @@
 """This module describes data structures used in ksiemgowy."""
 
 import logging
+import datetime
 from typing import Dict, Iterator, Optional
 
 import sqlalchemy
@@ -100,8 +101,7 @@ class KsiemgowyDB:
         self.observed_email_ids.insert(None).execute(imap_id=imap_id)
 
     def get_email_for_in_acc_no(self, in_acc_no: str) -> Optional[str]:
-        """Builds a mapping between banking accounts an e-mail addresses for
-        people interested in a given type of a notification."""
+        """Returns an e-mail address for a given in_acc_no."""
 
         row = (
             self.in_acc_no_to_email.select()
@@ -111,15 +111,22 @@ class KsiemgowyDB:
         )
 
         if row:
-            ret: str = row['email']
+            ret: str = row["email"]
             return ret
         return None
 
     def get_potentially_overdue_accounts(self) -> Dict[str, str]:
-        """Builds a mapping between banking accounts an e-mail addresses for
-        people interested in a given type of a notification."""
+        """Returns a list of accounts that might be overdue and can be
+        notified."""
         ret = {}
-        for entry in self.in_acc_no_to_email.select().execute().fetchall():
+        for entry in (
+            self.in_acc_no_to_email.select(
+                self.in_acc_no_to_email.c.notify_overdue_no_earlier_than
+                < datetime.datetime.utcnow()
+            )
+            .execute()
+            .fetchall()
+        ):
             if entry["notify_overdue"] == "y":
                 ret[entry["in_acc_no"]] = entry["email"]
 
