@@ -57,7 +57,8 @@ class KsiemgowyDB:
                 "notify_overdue", sqlalchemy.String, default="y"
             ),
             sqlalchemy.Column(
-                "notify_overdue_no_earlier_than", sqlalchemy.DateTime
+                "notify_overdue_no_earlier_than",
+                sqlalchemy.DateTime,
             ),
             sqlalchemy.Column("is_member", sqlalchemy.String, default="n"),
         )
@@ -115,14 +116,20 @@ class KsiemgowyDB:
             return ret
         return None
 
-    def get_potentially_overdue_accounts(self) -> Dict[str, str]:
+    def get_potentially_overdue_accounts(
+        self, now: datetime.datetime
+    ) -> Dict[str, str]:
         """Returns a list of accounts that might be overdue and can be
         notified."""
         ret = {}
+        cols = self.in_acc_no_to_email.c
         for entry in (
-            self.in_acc_no_to_email.select(
-                self.in_acc_no_to_email.c.notify_overdue_no_earlier_than
-                < datetime.datetime.utcnow()
+            self.in_acc_no_to_email.select()
+            .where(
+                sqlalchemy.or_(  # type: ignore
+                    cols.notify_overdue_no_earlier_than.is_(None),
+                    cols.notify_overdue_no_earlier_than < now,
+                )
             )
             .execute()
             .fetchall()

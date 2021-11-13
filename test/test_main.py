@@ -90,13 +90,16 @@ class KsiemgowySystemTestCase(unittest.TestCase):
             for action in positive_actions_fixtures:
                 self.database_mock.add_positive_transfer(action)
 
+        minute_ago = datetime.datetime.now() - datetime.timedelta(minutes=1)
         if in_acc_no_to_email_fixtures:
             for (
                 in_acc_no,
                 email_address,
             ) in in_acc_no_to_email_fixtures.items():
                 self.database_mock.in_acc_no_to_email.insert(None).execute(
-                    in_acc_no=in_acc_no, email=email_address
+                    in_acc_no=in_acc_no,
+                    email=email_address,
+                    notify_overdue_no_earlier_than=minute_ago,
                 )
 
         ksiemgowy_main.main(
