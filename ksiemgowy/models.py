@@ -55,6 +55,9 @@ class KsiemgowyDB:
             sqlalchemy.Column(
                 "notify_overdue", sqlalchemy.String, default="y"
             ),
+            sqlalchemy.Column(
+                "notify_overdue_no_earlier_than", sqlalchemy.DateTime
+            ),
             sqlalchemy.Column("is_member", sqlalchemy.String, default="n"),
         )
 
