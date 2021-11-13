@@ -139,6 +139,31 @@ class KsiemgowyDB:
 
         return ret
 
+    def postpone_next_notification(
+        self, in_acc_no: str, now: datetime.datetime
+    ) -> None:
+        """Postpone next overdue notification for an account with a given
+        in_acc_no."""
+        cols = self.in_acc_no_to_email.c
+        row = (
+            self.in_acc_no_to_email.select()
+            .where(cols.in_acc_no == in_acc_no)
+            .execute()
+            .fetchone()
+        )
+
+        base_date = now
+        if row["notify_overdue_no_earlier_than"] is not None:
+            base_date = row["notify_overdue_no_earlier_than"]
+        new_date = base_date + datetime.timedelta(days=3, hours=5)
+
+        (
+            self.in_acc_no_to_email.update()
+            .where(self.in_acc_no_to_email.c.in_acc_no == in_acc_no)
+            .values(notify_overdue_no_earlier_than=new_date)
+            .execute()
+        )
+
     def list_positive_transfers(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all positive transfers that were
         observed so far."""

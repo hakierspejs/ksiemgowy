@@ -159,7 +159,6 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         self.assertEqual(len(self.sent_messages), 0)
 
     def test_entrypoint_sends_a_reminder_if_somebody_is_overdue(self):
-
         now = datetime.datetime.now()
         some_time_ago = now - datetime.timedelta(days=40)
 
@@ -178,6 +177,28 @@ class KsiemgowySystemTestCase(unittest.TestCase):
             ],
             {"a": "example@example.com"},
         )
+        self.assertEqual(len(self.sent_messages), 1)
+
+    def test_entrypoint_sends_only_one_ondue_reminder_after_restart(self):
+        now = datetime.datetime.now()
+        some_time_ago = now - datetime.timedelta(days=40)
+
+        self.run_entrypoint(
+            [
+                MbankAction(
+                    in_acc_no="a",
+                    out_acc_no="b",
+                    amount_pln=100.0,
+                    in_person="asd",
+                    in_desc="e",
+                    balance="100",
+                    timestamp=str(some_time_ago),
+                    action_type="in_transfer",
+                )
+            ],
+            {"a": "example@example.com"},
+        )
+        self.run_entrypoint()
         self.assertEqual(len(self.sent_messages), 1)
 
 

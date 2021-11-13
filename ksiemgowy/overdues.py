@@ -89,10 +89,12 @@ def notify_about_overdues(
     for payment in latest_dues.values():
         if ago_55d < payment.get_timestamp() < ago_35d:
             if payment.in_acc_no in emails:
-                overdues.append(emails[payment.in_acc_no])
+                overdues.append(payment.in_acc_no)
 
     with mail_config.smtp_login() as server:
-        for overdue in overdues:
-            send_overdue_email(server, mail_config.login, overdue)
+        for in_acc_no in overdues:
+            email = emails[in_acc_no]
+            send_overdue_email(server, mail_config.login, email)
+            database.postpone_next_notification(in_acc_no, now)
 
     LOGGER.info("done notify_about_overdues()")
