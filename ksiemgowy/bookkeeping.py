@@ -1,6 +1,7 @@
 """Handles the task of finding out about new wire transfers and notifying the
 users once they're observed."""
 
+import datetime
 import typing as T
 import logging
 import imaplib
@@ -75,51 +76,180 @@ def gen_unseen_mbank_emails(
             database.mark_imap_id_already_handled(mail_key)
 
 
+def apply_autocorrections(
+    database: KsiemgowyDB,
+    acc_no: str,
+    difference: float,
+    mbank_anonymization_key: bytes,
+    last_action: MbankAction,
+) -> None:
+    """Create a database entry correcting for a given discrepancy."""
+    if difference < 0:
+        action = MbankAction(
+            in_acc_no="AUTOCORRECTION",
+            out_acc_no=acc_no,
+            amount_pln=difference,
+            in_person="AUTOCORRECTION",
+            in_desc="AUTOCORRECTION",
+            balance=last_action.balance,
+            timestamp=last_action.timestamp,
+            action_type="out_transfer",
+        )
+        database.add_expense(action.anonymized(mbank_anonymization_key))
+    else:
+        action = MbankAction(
+            in_acc_no="AUTOCORRECTION",
+            out_acc_no=acc_no,
+            amount_pln=difference,
+            in_person="AUTOCORRECTION",
+            in_desc="AUTOCORRECTION",
+            balance=last_action.balance,
+            timestamp=last_action.timestamp,
+            action_type="in_transfer",
+        )
+        database.add_positive_transfer(
+            action.anonymized(mbank_anonymization_key)
+        )
+
+
+def get_expected_balance_before(
+    database: KsiemgowyDB, acc_no: str, before: datetime.datetime
+) -> float:
+    """Calculates expected balance for a given account, as of given date. Bases
+    the calculations on data stored in the database."""
+    balance_so_far = 0.0
+    for action in database.list_positive_transfers():
+        if action.out_acc_no != acc_no:
+            continue
+        if action.get_timestamp() > before:
+            continue
+        balance_so_far += action.amount_pln
+
+    for action in database.list_positive_transfers():
+        if action.in_acc_no != acc_no:
+            continue
+        if action.get_timestamp() > before:
+            continue
+        balance_so_far -= action.amount_pln
+
+    return balance_so_far
+
+
+def maybe_apply_autocorrections(
+    database: KsiemgowyDB,
+    actions_per_accno: T.Dict[str, T.List[MbankAction]],
+    mbank_anonymization_key: bytes,
+) -> None:
+    """For each account that only observed a single transfer in the
+    notification e-mail, see if the reported balance contradicts the state
+    visible in the system. If it does, attempt to autocorrect the discrepancy.
+    """
+    for acc_no in actions_per_accno:
+        if len(actions_per_accno[acc_no]) != 1:
+            continue
+        last_action = actions_per_accno[acc_no].pop()
+        actual_balance = last_action.balance
+        expected_balance = get_expected_balance_before(
+            database, acc_no, last_action.get_timestamp()
+        )
+        if actual_balance != expected_balance:
+            difference = expected_balance - actual_balance
+            apply_autocorrections(
+                database,
+                acc_no,
+                difference,
+                mbank_anonymization_key,
+                last_action,
+            )
+
+
+def maybe_add_negative_action(
+    action: MbankAction,
+    actions_per_accno: T.Dict[str, T.List[MbankAction]],
+    mbank_anonymization_key: bytes,
+    database: KsiemgowyDB,
+    observed_acc_number: str,
+) -> None:
+    """Adds a transfer to the database, if it's a negative one and the account
+    is observed."""
+    if action.action_type == "out_transfer" and str(action.in_acc_no) == str(
+        observed_acc_number
+    ):
+        actions_per_accno[observed_acc_number].append(action)
+        database.add_expense(action.anonymized(mbank_anonymization_key))
+        LOGGER.info("added an expense")
+    else:
+        LOGGER.info("Skipping an action due to criteria not matched.")
+
+
+def add_positive_action(
+    action: MbankAction,
+    mbank_anonymization_key: bytes,
+    database: KsiemgowyDB,
+    mail_config: ksiemgowy.config.MailConfig,
+    should_send_mail: bool,
+) -> None:
+    """Adds a positive action to the base. If mail sending is enabled,
+    a notification is also sent."""
+    database.add_positive_transfer(action.anonymized(mbank_anonymization_key))
+    LOGGER.info("added an action")
+    if not should_send_mail:
+        return
+    with mail_config.smtp_login() as smtp_conn:
+        to_email = database.get_email_for_in_acc_no(action.in_acc_no)
+        msg = build_confirmation_mail(
+            mail_config.login,
+            action,
+            to_email,
+        )
+        smtp_conn.send_message(msg)
+    LOGGER.info("sent an e-mail")
+
+
 def check_for_updates(
     mbank_anonymization_key: bytes,
     database: KsiemgowyDB,
     mail_config: ksiemgowy.config.MailConfig,
-    acc_number: str,
+    observed_acc_number: str,
     should_send_mail: bool,
 ) -> None:
-    """Program's entry point."""
+    """Checks for updates coming from the bank. If any new transfers are
+    observed, they are handled according to the configuration."""
     LOGGER.info("checking for updates...")
     mail = mail_config.imap_connect()
     for msg in gen_unseen_mbank_emails(
         database, mail, mail_config.imap_filter
     ):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
+        actions_per_accno: T.Dict[str, T.List[MbankAction]] = {
+            observed_acc_number: []
+        }
         for action in parsed.get("actions", []):
             LOGGER.info(
                 "Observed an action: %r",
                 action.anonymized(mbank_anonymization_key),
             )
+
             if action.action_type == "in_transfer" and str(
                 action.out_acc_no
-            ) == str(acc_number):
-                database.add_positive_transfer(
-                    action.anonymized(mbank_anonymization_key)
+            ) == str(observed_acc_number):
+                actions_per_accno[observed_acc_number].append(action)
+                add_positive_action(
+                    action,
+                    mbank_anonymization_key,
+                    database,
+                    mail_config,
+                    should_send_mail,
                 )
-                if should_send_mail:
-                    with mail_config.smtp_login() as smtp_conn:
-                        to_email = database.get_email_for_in_acc_no(
-                            action.in_acc_no
-                        )
-                        msg = build_confirmation_mail(
-                            mail_config.login,
-                            action,
-                            to_email,
-                        )
-                        smtp_conn.send_message(msg)
 
-                LOGGER.info("added an action")
-            elif action.action_type == "out_transfer" and str(
-                action.in_acc_no
-            ) == str(acc_number):
-                database.add_expense(
-                    action.anonymized(mbank_anonymization_key)
-                )
-                LOGGER.info("added an expense")
-            else:
-                LOGGER.info("Skipping an action due to criteria not matched.")
+            maybe_add_negative_action(
+                action,
+                actions_per_accno,
+                mbank_anonymization_key,
+                database,
+                observed_acc_number,
+            )
+        maybe_apply_autocorrections(
+            database, actions_per_accno, mbank_anonymization_key
+        )
     LOGGER.info("check_for_updates: done")
