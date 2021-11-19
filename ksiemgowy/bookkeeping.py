@@ -1,6 +1,7 @@
 """Handles the task of finding out about new wire transfers and notifying the
 users once they're observed."""
 
+import math
 import datetime
 import typing as T
 import logging
@@ -11,7 +12,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 import ksiemgowy.config
-from ksiemgowy.mbankmail import MbankAction
+from ksiemgowy.mbankmail import MbankAction, anonymize
 from ksiemgowy.models import KsiemgowyDB
 
 
@@ -93,23 +94,26 @@ def apply_autocorrections(
             in_desc="AUTOCORRECTION",
             balance=last_action.balance,
             timestamp=last_action.timestamp,
-            action_type="out_transfer",
-        )
-        database.add_expense(action.anonymized(mbank_anonymization_key))
-    else:
-        action = MbankAction(
-            in_acc_no="AUTOCORRECTION",
-            out_acc_no=acc_no,
-            amount_pln=difference,
-            in_person="AUTOCORRECTION",
-            in_desc="AUTOCORRECTION",
-            balance=last_action.balance,
-            timestamp=last_action.timestamp,
             action_type="in_transfer",
         )
         database.add_positive_transfer(
             action.anonymized(mbank_anonymization_key)
         )
+
+    else:
+        action = MbankAction(
+            in_acc_no="AUTOCORRECTION",
+            out_acc_no=acc_no,
+            amount_pln=-difference,
+            in_person="AUTOCORRECTION",
+            in_desc="AUTOCORRECTION",
+            balance=last_action.balance,
+            timestamp=last_action.timestamp,
+            action_type="out_transfer",
+        )
+        database.add_expense(action.anonymized(mbank_anonymization_key))
+
+    LOGGER.info("*** apply_autocorrections: action=%r", action)
 
 
 def get_expected_balance_before(
@@ -118,19 +122,19 @@ def get_expected_balance_before(
     """Calculates expected balance for a given account, as of given date. Bases
     the calculations on data stored in the database."""
     balance_so_far = 0.0
+    for action in database.list_expenses():
+        if action.out_acc_no != acc_no:
+            continue
+        if action.get_timestamp() > before:
+            continue
+        balance_so_far -= action.amount_pln
+
     for action in database.list_positive_transfers():
         if action.out_acc_no != acc_no:
             continue
         if action.get_timestamp() > before:
             continue
         balance_so_far += action.amount_pln
-
-    for action in database.list_positive_transfers():
-        if action.in_acc_no != acc_no:
-            continue
-        if action.get_timestamp() > before:
-            continue
-        balance_so_far -= action.amount_pln
 
     return balance_so_far
 
@@ -149,11 +153,25 @@ def maybe_apply_autocorrections(
             continue
         last_action = actions_per_accno[acc_no].pop()
         actual_balance = last_action.balance
-        expected_balance = get_expected_balance_before(
-            database, acc_no, last_action.get_timestamp()
+        LOGGER.info(
+            "maybe_apply_autocorrections: "
+            "last_action.balance=%r, actual_balance=%r",
+            last_action.balance,
+            actual_balance,
         )
-        if actual_balance != expected_balance:
-            difference = expected_balance - actual_balance
+        hashed_acc_no = anonymize(acc_no, mbank_anonymization_key)
+        expected_balance = get_expected_balance_before(
+            database, hashed_acc_no, last_action.get_timestamp()
+        )
+        if not math.isclose(actual_balance, expected_balance):
+            difference = actual_balance - expected_balance
+            LOGGER.info(
+                "autocorrections: expected %r, got %r on %r [difference=%r]",
+                expected_balance,
+                actual_balance,
+                last_action.timestamp,
+                difference,
+            )
             apply_autocorrections(
                 database,
                 acc_no,
