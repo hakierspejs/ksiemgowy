@@ -201,11 +201,10 @@ class KsiemgowyDB:
         observed so far."""
         for entry in (
             self.bank_actions.select()
-            .where(self.bank_actions.c.amount_pln < 0)
+            .where(self.bank_actions.c.amount_pln > 0)
             .execute()
             .fetchall()
         ):
             entry = {k: v for k, v in dict(entry).items() if k != "id"}
             bank_action = ksiemgowy.mbankmail.MbankAction(**entry)
-            bank_action.amount_pln *= -1
             yield bank_action
