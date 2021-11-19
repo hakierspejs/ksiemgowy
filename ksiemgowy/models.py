@@ -179,12 +179,20 @@ class KsiemgowyDB:
     def add_positive_transfer(self, positive_action: MbankAction) -> None:
         """Adds a positive transfer to the database."""
         LOGGER.info("add_positive_transfer(%r)", positive_action)
+        if positive_action.amount_pln <= 0:
+            raise ValueError(
+                "positive_action.amount_pln <= 0: %r" % positive_action
+            )
         self.bank_actions.insert(None).execute(**positive_action.asdict())
 
     def add_expense(self, bank_action: MbankAction) -> None:
         """Adds an expense to the database."""
         bank_action.amount_pln *= -1
         LOGGER.info("add_expense(%r)", bank_action)
+        if bank_action.amount_pln > 0:
+            raise ValueError(
+                "bank_action.amount_pln > 0: %r" % bank_action
+            )
         self.bank_actions.insert(None).execute(**bank_action.asdict())
 
     def list_expenses(self) -> Iterator[MbankAction]:
