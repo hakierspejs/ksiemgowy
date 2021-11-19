@@ -104,7 +104,7 @@ def apply_autocorrections(
         action = MbankAction(
             in_acc_no="AUTOCORRECTION",
             out_acc_no=acc_no,
-            amount_pln=-difference,
+            amount_pln=difference,
             in_person="AUTOCORRECTION",
             in_desc="AUTOCORRECTION",
             balance=last_action.balance,
@@ -127,7 +127,7 @@ def get_expected_balance_before(
             continue
         if action.get_timestamp() > before:
             continue
-        balance_so_far -= action.amount_pln
+        balance_so_far += action.amount_pln
 
     for action in database.list_positive_transfers():
         if action.out_acc_no != acc_no:
