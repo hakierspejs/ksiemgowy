@@ -43,11 +43,11 @@ class KsiemgowyDB:
         ):
             pass
 
-        self.recipient_acc_no_to_email = sqlalchemy.Table(
-            "recipient_acc_no_to_email",
+        self.sender_acc_no_to_email = sqlalchemy.Table(
+            "sender_acc_no_to_email",
             metadata,
             sqlalchemy.Column(
-                "recipient_acc_no", sqlalchemy.String, primary_key=True
+                "sender_acc_no", sqlalchemy.String, primary_key=True
             ),
             sqlalchemy.Column("email", sqlalchemy.String),
             sqlalchemy.Column(
@@ -71,7 +71,7 @@ class KsiemgowyDB:
         )
 
         try:
-            self.recipient_acc_no_to_email.create()
+            self.sender_acc_no_to_email.create()
         except (
             sqlalchemy.exc.OperationalError,
             sqlalchemy.exc.ProgrammingError,
@@ -101,16 +101,13 @@ class KsiemgowyDB:
         LOGGER.debug("mark_imap_id_already_handled(%r)", imap_id)
         self.observed_email_ids.insert(None).execute(imap_id=imap_id)
 
-    def get_email_for_recipient_acc_no(
-        self, recipient_acc_no: str
-    ) -> Optional[str]:
-        """Returns an e-mail address for a given recipient_acc_no."""
+    def get_email_for_sender_acc_no(self, sender_acc_no: str) -> Optional[str]:
+        """Returns an e-mail address for a given sender_acc_no."""
 
         row = (
-            self.recipient_acc_no_to_email.select()
+            self.sender_acc_no_to_email.select()
             .where(
-                self.recipient_acc_no_to_email.c.recipient_acc_no
-                == recipient_acc_no
+                self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no
             )
             .execute()
             .fetchone()
@@ -127,9 +124,9 @@ class KsiemgowyDB:
         """Returns a list of accounts that might be overdue and can be
         notified."""
         ret = {}
-        cols = self.recipient_acc_no_to_email.c
+        cols = self.sender_acc_no_to_email.c
         for entry in (
-            self.recipient_acc_no_to_email.select()
+            self.sender_acc_no_to_email.select()
             .where(
                 sqlalchemy.or_(
                     cols.notify_overdue_no_earlier_than.is_(None),
@@ -140,19 +137,19 @@ class KsiemgowyDB:
             .fetchall()
         ):
             if entry["notify_overdue"] == "y":
-                ret[entry["recipient_acc_no"]] = entry["email"]
+                ret[entry["sender_acc_no"]] = entry["email"]
 
         return ret
 
     def postpone_next_notification(
-        self, recipient_acc_no: str, now: datetime.datetime
+        self, sender_acc_no: str, now: datetime.datetime
     ) -> None:
         """Postpone next overdue notification for an account with a given
-        recipient_acc_no."""
-        cols = self.recipient_acc_no_to_email.c
+        sender_acc_no."""
+        cols = self.sender_acc_no_to_email.c
         row = (
-            self.recipient_acc_no_to_email.select()
-            .where(cols.recipient_acc_no == recipient_acc_no)
+            self.sender_acc_no_to_email.select()
+            .where(cols.sender_acc_no == sender_acc_no)
             .execute()
             .fetchone()
         )
@@ -163,10 +160,9 @@ class KsiemgowyDB:
         new_date = base_date + datetime.timedelta(days=3, hours=5)
 
         (
-            self.recipient_acc_no_to_email.update()
+            self.sender_acc_no_to_email.update()
             .where(
-                self.recipient_acc_no_to_email.c.recipient_acc_no
-                == recipient_acc_no
+                self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no
             )
             .values(notify_overdue_no_earlier_than=new_date)
             .execute()
@@ -195,10 +191,9 @@ class KsiemgowyDB:
 
     def add_expense(self, bank_action: MbankAction) -> None:
         """Adds an expense to the database."""
-        bank_action.amount_pln *= -1
         LOGGER.info("add_expense(%r)", bank_action)
-        if bank_action.amount_pln > 0:
-            raise ValueError("bank_action.amount_pln > 0: %r" % bank_action)
+        if bank_action.amount_pln <= 0:
+            raise ValueError("bank_action.amount_pln <= 0: %r" % bank_action)
         self.bank_actions.insert(None).execute(**bank_action.asdict())
 
     def list_expenses(self) -> Iterator[MbankAction]:

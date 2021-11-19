@@ -88,8 +88,8 @@ def apply_autocorrections(
     if difference < 0:
 
         action = MbankAction(
-            recipient_acc_no="AUTOCORRECTION",
-            sender_acc_no=acc_no,
+            recipient_acc_no=acc_no,
+            sender_acc_no="AUTOCORRECTION",
             amount_pln=-difference,
             in_person="AUTOCORRECTION",
             in_desc="AUTOCORRECTION",
@@ -131,7 +131,7 @@ def get_expected_balance_before(
         balance_so_far += action.amount_pln
 
     for action in database.list_positive_transfers():
-        if action.sender_acc_no != acc_no:
+        if action.recipient_acc_no != acc_no:
             continue
         if action.get_timestamp() > before:
             continue
@@ -215,8 +215,8 @@ def add_positive_action(
     if not should_send_mail:
         return
     with mail_config.smtp_login() as smtp_conn:
-        to_email = database.get_email_for_recipient_acc_no(
-            action.recipient_acc_no
+        to_email = database.get_email_for_sender_acc_no(
+            action.sender_acc_no
         )
         msg = build_confirmation_mail(
             mail_config.login,
@@ -252,7 +252,7 @@ def check_for_updates(
             )
 
             if action.action_type == "in_transfer" and str(
-                action.sender_acc_no
+                action.recipient_acc_no
             ) == str(observed_acc_number):
                 actions_per_accno[observed_acc_number].append(action)
                 add_positive_action(

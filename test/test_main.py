@@ -83,7 +83,9 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         self.database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
 
     def run_entrypoint(
-        self, positive_actions_fixtures=None, recipient_acc_no_to_email_fixtures=None
+        self,
+        positive_actions_fixtures=None,
+        sender_acc_no_to_email_fixtures=None,
     ):
 
         if positive_actions_fixtures:
@@ -91,13 +93,13 @@ class KsiemgowySystemTestCase(unittest.TestCase):
                 self.database_mock.add_positive_transfer(action)
 
         minute_ago = datetime.datetime.now() - datetime.timedelta(minutes=1)
-        if recipient_acc_no_to_email_fixtures:
+        if sender_acc_no_to_email_fixtures:
             for (
-                recipient_acc_no,
+                sender_acc_no,
                 email_address,
-            ) in recipient_acc_no_to_email_fixtures.items():
-                self.database_mock.recipient_acc_no_to_email.insert(None).execute(
-                    recipient_acc_no=recipient_acc_no,
+            ) in sender_acc_no_to_email_fixtures.items():
+                self.database_mock.sender_acc_no_to_email.insert(None).execute(
+                    sender_acc_no=sender_acc_no,
                     email=email_address,
                     notify_overdue_no_earlier_than=minute_ago,
                 )

@@ -20,8 +20,8 @@ import lxml.html
 
 INCOMING_RE = re.compile(
     "^mBank: Przelew (?P<action_type>przych|wych)\\."
-    " z rach\\. (?P<recipient_acc_no>[0-9.]{8,14})"
-    " na rach\\. (?P<sender_acc_no>[0-9.]{8,14})"
+    " z rach\\. (?P<sender_acc_no>[0-9.]{8,14})"
+    " na rach\\. (?P<recipient_acc_no>[0-9.]{8,14})"
     " kwota (?P<amount_pln>\\d+,\\d{2}) PLN"
     " (od|dla) (?P<in_person>[^;]+); "
     "(?P<in_desc>.+); "
