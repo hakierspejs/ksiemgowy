@@ -68,14 +68,14 @@ class KsiemgowyAccount:
 class CategoryCriteria:
     """Stores criteria by which a given transfer can be assigned a category."""
 
-    out_acc_no: str
+    sender_acc_no: str
     amount_pln: T.Optional[float]
     category_name: str
 
     def matches(self, bank_action: MbankAction) -> bool:
         """Checks whether a given bank action matches this specific set of
         criteria."""
-        if bank_action.out_acc_no != self.out_acc_no:
+        if bank_action.sender_acc_no != self.sender_acc_no:
             return False
         if self.amount_pln and bank_action.amount_pln != self.amount_pln:
             return False
@@ -125,7 +125,7 @@ def parse_report_builder(config_section: T.Any) -> ReportBuilderConfig:
             CategoryCriteria(
                 category_name=category_name,
                 amount_pln=subsection.get("amount_pln", None),
-                out_acc_no=subsection["out_acc_no"],
+                sender_acc_no=subsection["sender_acc_no"],
             )
         )
     return ReportBuilderConfig(

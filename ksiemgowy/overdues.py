@@ -75,11 +75,11 @@ def notify_about_overdues(
     latest_dues: T.Dict[str, MbankAction] = {}
     for action in database.list_positive_transfers():
         if (
-            action.in_acc_no not in latest_dues
-            or latest_dues[action.in_acc_no].get_timestamp()
+            action.recipient_acc_no not in latest_dues
+            or latest_dues[action.recipient_acc_no].get_timestamp()
             < action.get_timestamp()
         ):
-            latest_dues[action.in_acc_no] = action
+            latest_dues[action.recipient_acc_no] = action
 
     now = datetime.datetime.now()
     ago_35d = now - datetime.timedelta(days=35)
@@ -88,13 +88,13 @@ def notify_about_overdues(
     emails = database.get_potentially_overdue_accounts(now)
     for payment in latest_dues.values():
         if ago_55d < payment.get_timestamp() < ago_35d:
-            if payment.in_acc_no in emails:
-                overdues.append(payment.in_acc_no)
+            if payment.recipient_acc_no in emails:
+                overdues.append(payment.recipient_acc_no)
 
     with mail_config.smtp_login() as server:
-        for in_acc_no in overdues:
-            email = emails[in_acc_no]
+        for recipient_acc_no in overdues:
+            email = emails[recipient_acc_no]
             send_overdue_email(server, mail_config.login, email)
-            database.postpone_next_notification(in_acc_no, now)
+            database.postpone_next_notification(recipient_acc_no, now)
 
     LOGGER.info("done notify_about_overdues()")

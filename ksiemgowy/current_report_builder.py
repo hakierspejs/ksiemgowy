@@ -114,10 +114,10 @@ def apply_positive_transfers(
     month_ago = now - datetime.timedelta(days=31)
     for action in positive_actions:
         balances_by_account_labels.setdefault(
-            account_labels[action.out_acc_no], 0.0
+            account_labels[action.sender_acc_no], 0.0
         )
         balances_by_account_labels[
-            account_labels[action.out_acc_no]
+            account_labels[action.sender_acc_no]
         ] += action.amount_pln
 
         month = (
@@ -131,11 +131,11 @@ def apply_positive_transfers(
         if last_updated is None or action.get_timestamp() > last_updated:
             last_updated = action.get_timestamp()
         if (
-            action.in_acc_no not in observed_acc_numbers
+            action.recipient_acc_no not in observed_acc_numbers
             and action.in_person not in observed_acc_owners
         ):
             num_subscribers += 1
-            observed_acc_numbers.add(action.in_acc_no)
+            observed_acc_numbers.add(action.recipient_acc_no)
             observed_acc_owners.add(action.in_person)
         total += action.amount_pln
 
@@ -159,10 +159,10 @@ def apply_expenses(
     monthly_expenses: Dict[str, Dict[str, float]] = {}
     for action in expenses:
         balances_by_account_labels.setdefault(
-            account_labels[action.in_acc_no], 0.0
+            account_labels[action.recipient_acc_no], 0.0
         )
         balances_by_account_labels[
-            account_labels[action.in_acc_no]
+            account_labels[action.recipient_acc_no]
         ] -= action.amount_pln
         month = (
             f"{action.get_timestamp().year}-{action.get_timestamp().month:02d}"

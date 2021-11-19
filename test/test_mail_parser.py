@@ -14,8 +14,8 @@ class MailParserTestCase(unittest.TestCase):
         expected = {
             "actions": [
                 ksiemgowy.mbankmail.MbankAction(
-                    in_acc_no="3511...075800",
-                    out_acc_no="81089394",
+                    recipient_acc_no="3511...075800",
+                    sender_acc_no="81089394",
                     amount_pln=200.00,
                     in_person="JACEK WIELEMBOREK UL",
                     in_desc="SKŁADKA CZŁO...",

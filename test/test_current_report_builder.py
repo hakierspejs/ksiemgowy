@@ -24,8 +24,8 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
 
         expenses = [
             MbankAction(
-                in_acc_no=HAKIERSPEJS_ACC_NO,
-                out_acc_no=LANDLORD_ACC_NO,
+                recipient_acc_no=HAKIERSPEJS_ACC_NO,
+                sender_acc_no=LANDLORD_ACC_NO,
                 amount_pln=800.0,
                 in_person="b5d99033edf432cf08ab35d3e47cfeb4e7af370cd3f",
                 in_desc="09564e96eabee7aaddac31c2b7dc11ffe23ca3be4bb",
@@ -34,8 +34,8 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
                 action_type="out_transfer",
             ),
             MbankAction(
-                in_acc_no=HAKIERSPEJS_ACC_NO,
-                out_acc_no=LANDLORD_ACC_NO,
+                recipient_acc_no=HAKIERSPEJS_ACC_NO,
+                sender_acc_no=LANDLORD_ACC_NO,
                 amount_pln=177.5,
                 in_person="b5d99033edf432cfb35d3e47cfeb4e7af370cd3f",
                 in_desc="c66a1e94465f724a5a893af5ce8e38666d3fe304",
@@ -46,8 +46,8 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
         ]
         positive_actions = [
             MbankAction(
-                in_acc_no="totallyFake",
-                out_acc_no=HAKIERSPEJS_ACC_NO,
+                recipient_acc_no="totallyFake",
+                sender_acc_no=HAKIERSPEJS_ACC_NO,
                 amount_pln=1000.0,
                 in_person="alsoFake",
                 in_desc="fakeDesc",
@@ -71,26 +71,26 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
             categories=[
                 CategoryCriteria(
                     category_name="Czynsz",
-                    out_acc_no="5c0de18baddf47952002df587685dea"
+                    sender_acc_no="5c0de18baddf47952002df587685dea"
                     "519f06b639051ea3e4749ef058f6782bf",
                     amount_pln=800.0,
                 ),
                 CategoryCriteria(
                     category_name="Media (głównie prąd) i inne"
                     " rozliczenia w zw. z lokalem",
-                    out_acc_no="5c0de18baddf47952002df587685de"
+                    sender_acc_no="5c0de18baddf47952002df587685de"
                     "a519f06b639051ea3e4749ef058f6782bf",
                     amount_pln=None,
                 ),
                 CategoryCriteria(
                     category_name="Internet",
-                    out_acc_no="62eb7121a7ba81754aa746762dbc"
+                    sender_acc_no="62eb7121a7ba81754aa746762dbc"
                     "364e9ed961b8d1cf61a94d6531c92c81e56f",
                     amount_pln=None,
                 ),
                 CategoryCriteria(
                     category_name="Księgowość",
-                    out_acc_no="8f8340d7434997c052cc56f0191"
+                    sender_acc_no="8f8340d7434997c052cc56f0191"
                     "ed23d12a16ab1f2cba091c433539c13b7049c",
                     amount_pln=None,
                 ),
