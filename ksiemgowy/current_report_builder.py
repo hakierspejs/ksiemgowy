@@ -77,7 +77,7 @@ def apply_positive_transfers(
             and action.in_person not in observed_acc_owners
         ):
             num_subscribers += 1
-            observed_acc_numbers.add(action.recipient_acc_no)
+            observed_acc_numbers.add(action.sender_acc_no)
             observed_acc_owners.add(action.in_person)
         total += action.amount_pln
 
