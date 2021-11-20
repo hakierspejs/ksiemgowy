@@ -19,32 +19,6 @@ REPORT_BUILDER:
         "76561893": "Konto Jacka"
         "1f328d38b05ea11998bac3ee0a4a2c6c9595e6848d22f66a47aa4a68f3b781ed": "Konto Jacka"
         "d66afcd5d08d61a5678dd3dd3fbb6b2f84985c5add8306e6b3a1c2df0e85f840": "Konto stowarzyszenia"
-    CORRECTIONS_BY_LABEL:
-        "Konto Jacka": -347.53
-        "Konto stowarzyszenia": -727.53
-    MONTHLY_INCOME_CORRECTIONS:
-        "2020-04":
-            Suma: 200.0
-        "2020-05":
-            Suma: 100.0
-    MONTHLY_EXPENSE_CORRECTIONS:
-        "2020-08":
-            Meetup: 294.36
-        "2020-10":
-            Remont: 1145.0
-        "2020-11":
-            Pozostałe: 139.80
-        "2021-01":
-            "Drukarka HP": 314.00
-            "Meetup (za 6 mies.)": 285.43
-        "2021-02":
-            "Domena": 55.34
-        "2021-05":
-            "Pozostałe": 200.0
-        "2021-07":
-            "Meetup (za 6 mies.)": 301.07
-        "2021-08":
-            "Zakupy": 840.04
     CATEGORIES:
         "Czynsz":
             recipient_acc_no: "5c0de18baddf47952002df587685dea519f06b639051ea3e4749ef058f6782bf"

@@ -84,14 +84,10 @@ class CategoryCriteria:
 
 @dataclass(frozen=True)
 class ReportBuilderConfig:
-    """Stores extra state needed for correction of reports build by
-    Ksiemgowy."""
+    """Stores extra state needed for the creation of financial reports."""
 
     # pylint: disable=too-many-instance-attributes
     account_labels: T.Dict[str, str]
-    corrections_by_label: T.Dict[str, float]
-    monthly_income_corrections: T.Dict[str, T.Dict[str, float]]
-    monthly_expense_corrections: T.Dict[str, T.Dict[str, float]]
     extra_monthly_reservations_started_date: datetime.datetime
     categories: T.List[CategoryCriteria]
 
@@ -128,13 +124,6 @@ def parse_report_builder(config_section: T.Any) -> ReportBuilderConfig:
         )
     return ReportBuilderConfig(
         account_labels=config_section["ACCOUNT_LABELS"],
-        corrections_by_label=config_section["CORRECTIONS_BY_LABEL"],
-        monthly_income_corrections=config_section[
-            "MONTHLY_INCOME_CORRECTIONS"
-        ],
-        monthly_expense_corrections=config_section[
-            "MONTHLY_EXPENSE_CORRECTIONS"
-        ],
         extra_monthly_reservations_started_date=dateutil.parser.parse(
             config_section["EXTRA_MONTHLY_RESERVATIONS_STARTED_DATE"]
         ),

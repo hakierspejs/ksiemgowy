@@ -25,43 +25,6 @@ from ksiemgowy.config import CategoryCriteria, ReportBuilderConfig
 LOGGER = logging.getLogger("homepage_updater")
 
 
-def apply_global_corrections(
-    corrections_by_label: Dict[str, float],
-    balances_by_account_labels: Dict[str, float],
-) -> None:
-    """Apply a specified set of corrections to balances_by_account_labels."""
-    # Te hacki wynikają z bugów w powiadomieniach mBanku i braku powiadomień
-    # związanych z przelewami własnymi:
-    for account_name, value in corrections_by_label.items():
-        if account_name not in balances_by_account_labels:
-            raise RuntimeError(
-                "%r not in balances_by_account_labels" % account_name
-            )
-        balances_by_account_labels.setdefault(account_name, 0.0)
-        balances_by_account_labels[account_name] += value
-
-    balances_by_account_labels = dict(balances_by_account_labels)
-
-
-def apply_monthly_corrections(
-    monthly_income_corrections: Dict[str, Dict[str, float]],
-    monthly_expense_corrections: Dict[str, Dict[str, float]],
-    monthly_income: Dict[str, Dict[str, float]],
-    monthly_expenses: Dict[str, Dict[str, float]],
-) -> None:
-    """Apply a specified set of corrections to monthly_income and
-    monthly_expenses."""
-    for month in monthly_income_corrections:
-        for label, value in monthly_income_corrections[month].items():
-            monthly_income.setdefault(month, {}).setdefault(label, 0)
-            monthly_income[month][label] += value
-
-    for month in monthly_expense_corrections:
-        for label, value in monthly_expense_corrections[month].items():
-            monthly_expenses.setdefault(month, {}).setdefault(label, 0)
-            monthly_expenses[month][label] += value
-
-
 def determine_category(
     action: MbankAction, categories: List[CategoryCriteria]
 ) -> str:
@@ -240,7 +203,7 @@ def get_current_report(
     positive_actions: Iterable[MbankAction],
     report_builder_config: ReportBuilderConfig,
 ) -> T_CURRENT_REPORT:
-    """Module's entry point. Given time, expenses, income and corrections,
+    """Module's entry point. Given time, expenses and income,
     generates a monthly summary of actions that happened on the accounts."""
 
     balances_by_account_labels: Dict[str, float] = {}
@@ -263,18 +226,6 @@ def get_current_report(
         positive_actions,
         balances_by_account_labels,
         report_builder_config.account_labels,
-    )
-
-    apply_global_corrections(
-        report_builder_config.corrections_by_label,
-        balances_by_account_labels,
-    )
-
-    apply_monthly_corrections(
-        report_builder_config.monthly_income_corrections,
-        report_builder_config.monthly_expense_corrections,
-        monthly_income,
-        monthly_expenses,
     )
 
     months = set(monthly_income.keys()).union(set(monthly_expenses.keys()))

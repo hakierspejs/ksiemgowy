@@ -38,9 +38,6 @@ class HomepageUpdaterSystemTestCase(unittest.TestCase):
             ),
             report_builder_config=ReportBuilderConfig(
                 account_labels={},
-                corrections_by_label={},
-                monthly_income_corrections={},
-                monthly_expense_corrections={},
                 extra_monthly_reservations_started_date=datetime.datetime.now(),
                 categories=[],
             ),

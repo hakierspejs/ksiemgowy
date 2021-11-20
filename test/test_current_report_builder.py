@@ -59,9 +59,6 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
 
         current_builder_config = ReportBuilderConfig(
             account_labels={HAKIERSPEJS_ACC_NO: "Konto Jacka"},
-            corrections_by_label={"Konto Jacka": 0.0},
-            monthly_income_corrections={},
-            monthly_expense_corrections={},
             extra_monthly_reservations_started_date=now,
             categories=[
                 CategoryCriteria(

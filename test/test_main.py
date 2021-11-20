@@ -71,9 +71,6 @@ class KsiemgowySystemTestCase(unittest.TestCase):
                     "d66afcd5d08d61a5678dd3dd3fbb6b2f8498"
                     "5c5add8306e6b3a1c2df0e85f840": "Konto Jacka"
                 },
-                corrections_by_label={"Konto Jacka": 0.0},
-                monthly_income_corrections={},
-                monthly_expense_corrections={},
                 extra_monthly_reservations_started_date=datetime.datetime.now(),
                 categories=[],
             ),
