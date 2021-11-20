@@ -92,8 +92,6 @@ class ReportBuilderConfig:
     corrections_by_label: T.Dict[str, float]
     monthly_income_corrections: T.Dict[str, T.Dict[str, float]]
     monthly_expense_corrections: T.Dict[str, T.Dict[str, float]]
-    first_200pln_d33tah_due_date: datetime.datetime
-    last_200pln_d33tah_due_date: datetime.datetime
     extra_monthly_reservations_started_date: datetime.datetime
     categories: T.List[CategoryCriteria]
 
@@ -137,12 +135,6 @@ def parse_report_builder(config_section: T.Any) -> ReportBuilderConfig:
         monthly_expense_corrections=config_section[
             "MONTHLY_EXPENSE_CORRECTIONS"
         ],
-        first_200pln_d33tah_due_date=dateutil.parser.parse(
-            config_section["FIRST_200PLN_D33TAH_DUE_DATE"]
-        ),
-        last_200pln_d33tah_due_date=dateutil.parser.parse(
-            config_section["LAST_200PLN_D33TAH_DUE_DATE"]
-        ),
         extra_monthly_reservations_started_date=dateutil.parser.parse(
             config_section["EXTRA_MONTHLY_RESERVATIONS_STARTED_DATE"]
         ),

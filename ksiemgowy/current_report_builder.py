@@ -73,27 +73,6 @@ def determine_category(
     return "Pozostałe"
 
 
-def apply_d33tah_dues(
-    monthly_income: Dict[str, Dict[str, float]],
-    balances_by_account_labels: Dict[str, float],
-    first_200pln_d33tah_due_date: datetime.datetime,
-    last_200pln_d33tah_due_date: datetime.datetime,
-) -> None:
-    """Applies dues paid by d33tah to monthly_income. This is here because
-    the banking system didn't notify about self-transfers, so they needed to
-    be added explicitly."""
-    for timestamp in dateutil.rrule.rrule(
-        dateutil.rrule.MONTHLY,
-        dtstart=first_200pln_d33tah_due_date,
-        until=last_200pln_d33tah_due_date,
-    ):
-        month = f"{timestamp.year}-{timestamp.month:02d}"
-        monthly_income.setdefault(month, {}).setdefault("Suma", 0)
-        monthly_income[month]["Suma"] += 200
-        balances_by_account_labels.setdefault("Konto Jacka", 0.0)
-        balances_by_account_labels["Konto Jacka"] += 200.0
-
-
 def apply_positive_transfers(
     now: datetime.datetime,
     last_updated: datetime.datetime,
@@ -284,13 +263,6 @@ def get_current_report(
         positive_actions,
         balances_by_account_labels,
         report_builder_config.account_labels,
-    )
-
-    apply_d33tah_dues(
-        monthly_income,
-        balances_by_account_labels,
-        report_builder_config.first_200pln_d33tah_due_date,
-        report_builder_config.last_200pln_d33tah_due_date,
     )
 
     apply_global_corrections(
