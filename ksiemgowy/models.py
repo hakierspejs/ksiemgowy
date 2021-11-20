@@ -173,7 +173,7 @@ class KsiemgowyDB:
         observed so far."""
         for entry in (
             self.bank_actions.select()
-            .where(self.bank_actions.c.amount_pln > 0)
+            .where(self.bank_actions.c.action_type == "in_transfer")
             .execute()
             .fetchall()
         ):
@@ -201,7 +201,7 @@ class KsiemgowyDB:
         observed so far."""
         for entry in (
             self.bank_actions.select()
-            .where(self.bank_actions.c.amount_pln > 0)
+            .where(self.bank_actions.c.action_type == "out_transfer")
             .execute()
             .fetchall()
         ):
