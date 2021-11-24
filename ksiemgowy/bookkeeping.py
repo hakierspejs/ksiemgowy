@@ -11,12 +11,15 @@ from email.message import Message
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import holidays  # type: ignore
+
 import ksiemgowy.config
 from ksiemgowy.mbankmail import MbankAction, anonymize
 from ksiemgowy.models import KsiemgowyDB
 
 
 LOGGER = logging.getLogger("ksiemgowy.__main__")
+POLISH_HOLIDAYS = holidays.Poland()
 
 
 def build_confirmation_mail(
@@ -140,6 +143,44 @@ def get_expected_balance_before(
     return balance_so_far
 
 
+def date_acceptable_for_autocorrection(date: datetime.datetime) -> bool:
+    """
+    Returns a boolean saying whether the given date is acceptable for
+    the potential generation of any autocorrections.
+
+    There's a likelihood that autocorrections code triggers too early
+    if a transfer was sent during the weekend. This is because
+    incoming transfers within the same bank could arrive and trigger
+    a notification with a changed balance, resulting in an
+    autocorrection because some money was "suspended" because of the
+    weekend transfer. Now, on the workday the money would actually
+    arrive, adding a transfer for which an autocorrection already
+    took place.
+
+    There's also a risk that a day before or after is a holiday and in this
+    case we might want to decide to be on the safe side as well. As for
+    handling the relationship of any international transfers and their
+    holidays, I explicitly refuse to try to handle that. For the use cases
+    of Hakierspejs, this already seems to be more than enough.
+    """
+
+    if date.weekday() not in [1, 2, 3]:
+        return False
+
+    if date.date() in POLISH_HOLIDAYS:
+        return False
+
+    day_before = (date - datetime.timedelta(days=1)).date()
+    if day_before in POLISH_HOLIDAYS:
+        return False
+
+    day_after = (date + datetime.timedelta(days=1)).date()
+    if day_after in POLISH_HOLIDAYS:
+        return False
+
+    return True
+
+
 def maybe_apply_autocorrections(
     database: KsiemgowyDB,
     actions_per_accno: T.Dict[str, T.List[MbankAction]],
@@ -153,6 +194,8 @@ def maybe_apply_autocorrections(
         if len(actions_per_accno[acc_no]) != 1:
             continue
         last_action = actions_per_accno[acc_no].pop()
+        if not date_acceptable_for_autocorrection(last_action.get_timestamp()):
+            continue
         actual_balance = last_action.balance
         hashed_acc_no = anonymize(acc_no, mbank_anonymization_key)
         expected_balance = get_expected_balance_before(
