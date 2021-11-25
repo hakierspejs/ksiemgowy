@@ -132,13 +132,13 @@ def main(
 def entrypoint() -> None:
     """Program's entry point. Loads config, instantiates required objects
     and then runs the main function."""
-    logging_format = "[%(asctime)s] " + logging.BASIC_FORMAT
-    logging.basicConfig(level="INFO", format=logging_format)
     with open(
         os.environ.get("KSIEMGOWYD_CFG_FILE", "/etc/ksiemgowy/config.yaml"),
         encoding="utf8",
     ) as config_file:
         config = ksiemgowy.config.load_config(config_file)
+    logging_format = "[%(asctime)s] " + logging.BASIC_FORMAT
+    logging.basicConfig(level=config.log_level, format=logging_format)
     main(
         config,
         ksiemgowy.models.KsiemgowyDB(config.database_uri),

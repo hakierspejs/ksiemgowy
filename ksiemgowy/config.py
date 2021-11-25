@@ -104,6 +104,7 @@ class KsiemgowyConfig:
     should_send_mail: bool
     homepage_updater_config: HomepageUpdaterConfig
     report_builder_config: ReportBuilderConfig
+    log_level: str
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         """Returns an e-mail account used for overdue notifications. Currently
@@ -138,6 +139,7 @@ def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
     deploy_key_path = config["DEPLOY_KEY_PATH"]
     git_url = config["HOMEPAGE_GIT_REPO_URL"]
     dues_file_path = config["DUES_FILE_PATH"]
+    log_level = config["LOG_LEVEL"]
     report_builder_config = parse_report_builder(config["REPORT_BUILDER"])
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
@@ -158,6 +160,7 @@ def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
         )
 
     return KsiemgowyConfig(
+        log_level=log_level,
         database_uri=config["DATABASE_URI"],
         accounts=accounts,
         mbank_anonymization_key=config["MBANK_ANONYMIZATION_KEY"].encode(),

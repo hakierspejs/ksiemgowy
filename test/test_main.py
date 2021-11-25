@@ -51,6 +51,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         mail_mock.smtp_login = smtp_login_mock
 
         self.config_mock = ksiemgowy.config.KsiemgowyConfig(
+            log_level="INFO",
             database_uri="",
             accounts=[
                 ksiemgowy.config.KsiemgowyAccount(
