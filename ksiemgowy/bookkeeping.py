@@ -75,7 +75,7 @@ def gen_unseen_mbank_emails(
             mail_key = f'{msg["Date"]}_{mail_number}'
             if database.was_imap_id_already_handled(mail_key):
                 continue
-            LOGGER.info("Handling e-mail id: %r", mail_id)
+            LOGGER.debug("Handling e-mail id: %r", mail_id)
             yield msg
             database.mark_imap_id_already_handled(mail_key)
 
@@ -117,7 +117,7 @@ def apply_autocorrections(
         )
         database.add_expense(action.anonymized(mbank_anonymization_key))
 
-    LOGGER.info("*** apply_autocorrections: action=%r", action)
+    LOGGER.debug("*** apply_autocorrections: action=%r", action)
 
 
 def get_expected_balance_before(
@@ -203,7 +203,7 @@ def maybe_apply_autocorrections(
         )
         if not math.isclose(actual_balance, expected_balance):
             difference = actual_balance - expected_balance
-            LOGGER.info(
+            LOGGER.debug(
                 "autocorrections: expected %r, got %r on %r [difference=%r]",
                 expected_balance,
                 actual_balance,
@@ -233,9 +233,9 @@ def maybe_add_negative_action(
     if str(action.sender_acc_no) == str(observed_acc_number):
         actions_per_accno[observed_acc_number].append(action)
         database.add_expense(action.anonymized(mbank_anonymization_key))
-        LOGGER.info("added an expense")
+        LOGGER.debug("added an expense")
     else:
-        LOGGER.info("Skipping an action due to criteria not matched.")
+        LOGGER.debug("Skipping an action due to criteria not matched.")
 
 
 def add_positive_action(
@@ -248,7 +248,7 @@ def add_positive_action(
     """Adds a positive action to the base. If mail sending is enabled,
     a notification is also sent."""
     database.add_positive_transfer(action.anonymized(mbank_anonymization_key))
-    LOGGER.info("added an action")
+    LOGGER.debug("added an action")
     if not should_send_mail:
         return
     with mail_config.smtp_login() as smtp_conn:
@@ -259,7 +259,7 @@ def add_positive_action(
             to_email,
         )
         smtp_conn.send_message(msg)
-    LOGGER.info("sent an e-mail")
+    LOGGER.info("sent an e-mail to %r regarding a new transfer", to_email)
 
 
 def check_for_updates(
@@ -271,7 +271,7 @@ def check_for_updates(
 ) -> None:
     """Checks for updates coming from the bank. If any new transfers are
     observed, they are handled according to the configuration."""
-    LOGGER.info("checking for updates...")
+    LOGGER.info("checking for updates on %r...", mail_config.login)
     mail = mail_config.imap_connect()
     for msg in gen_unseen_mbank_emails(
         database, mail, mail_config.imap_filter
@@ -281,7 +281,7 @@ def check_for_updates(
             observed_acc_number: []
         }
         for action in parsed.get("actions", []):
-            LOGGER.info(
+            LOGGER.debug(
                 "Observed an action: %r",
                 action.anonymized(mbank_anonymization_key),
             )
