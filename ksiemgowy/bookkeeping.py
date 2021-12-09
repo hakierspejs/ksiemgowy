@@ -247,12 +247,15 @@ def add_positive_action(
 ) -> None:
     """Adds a positive action to the base. If mail sending is enabled,
     a notification is also sent."""
-    database.add_positive_transfer(action.anonymized(mbank_anonymization_key))
+    anonymized_action = action.anonymized(mbank_anonymization_key)
+    database.add_positive_transfer(anonymized_action)
     LOGGER.debug("added an action")
     if not should_send_mail:
         return
     with mail_config.smtp_login() as smtp_conn:
-        to_email = database.get_email_for_sender_acc_no(action.sender_acc_no)
+        to_email = database.get_email_for_sender_acc_no(
+            anonymized_action.sender_acc_no
+        )
         msg = build_confirmation_mail(
             mail_config.login,
             action,
