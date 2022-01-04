@@ -23,6 +23,7 @@ from ksiemgowy.config import CategoryCriteria, ReportBuilderConfig
 
 
 LOGGER = logging.getLogger("homepage_updater")
+PERIOD_TYPE = "monthly"
 
 
 def determine_category(
@@ -68,8 +69,10 @@ def apply_positive_transfers(
         ] += action.amount_pln
 
         period = get_period(action.get_timestamp())
-        periodic_income.setdefault(period, {}).setdefault("Suma", 0)
-        periodic_income[period]["Suma"] += action.amount_pln
+        periodic_income.setdefault(PERIOD_TYPE, {}).setdefault(
+            period, {}
+        ).setdefault("Suma", 0)
+        periodic_income[PERIOD_TYPE][period]["Suma"] += action.amount_pln
 
         if action.get_timestamp() >= month_ago:
             if last_updated is None or action.get_timestamp() > last_updated:
@@ -110,8 +113,10 @@ def apply_expenses(
         ] -= action.amount_pln
         period = get_period(action.get_timestamp())
         category = determine_category(action, categories)
-        periodic_expenses.setdefault(period, {}).setdefault(category, 0)
-        periodic_expenses[period][category] += action.amount_pln
+        periodic_expenses.setdefault(PERIOD_TYPE, {}).setdefault(
+            period, {}
+        ).setdefault(category, 0)
+        periodic_expenses[PERIOD_TYPE][period][category] += action.amount_pln
         if last_updated is None or action.get_timestamp() > last_updated:
             last_updated = action.get_timestamp()
 
@@ -128,11 +133,17 @@ def build_periodic_final_balance(
     balance_so_far = 0.0
     periodic_final_balance: Dict[str, Dict[str, float]] = {}
     for period in sorted(periods):
-        _periodic_income = sum(periodic_income.get(period, {}).values())
-        _periodic_expenses = sum(periodic_expenses.get(period, {}).values())
+        _periodic_income = sum(
+            periodic_income.get(PERIOD_TYPE, {}).get(period, {}).values()
+        )
+        _periodic_expenses = sum(
+            periodic_expenses.get(PERIOD_TYPE, {}).get(period, {}).values()
+        )
         balance_so_far += _periodic_income - _periodic_expenses
-        periodic_final_balance.setdefault(period, {}).setdefault("Suma", 0)
-        periodic_final_balance[period]["Suma"] = balance_so_far
+        periodic_final_balance.setdefault(PERIOD_TYPE, {}).setdefault(
+            period, {}
+        ).setdefault("Suma", 0)
+        periodic_final_balance[PERIOD_TYPE][period]["Suma"] = balance_so_far
     return periodic_final_balance, balance_so_far
 
 
@@ -145,8 +156,18 @@ def build_periodic_balance(
     on all of our accounts at the end of the period."""
     return {
         period: {
-            "Suma": sum(x for x in periodic_income.get(period, {}).values())
-            - sum(x for x in periodic_expenses.get(period, {}).values())
+            "Suma": sum(
+                x
+                for x in periodic_income.get(PERIOD_TYPE)
+                .get(period, {})
+                .values()
+            )
+            - sum(
+                x
+                for x in periodic_expenses.get(PERIOD_TYPE)
+                .get(period, {})
+                .values()
+            )
         }
         for period in periods
     }
@@ -228,7 +249,9 @@ def get_current_report(
         report_builder_config.account_labels,
     )
 
-    periods = set(periodic_income.keys()).union(set(periodic_expenses.keys()))
+    periods = set(periodic_income.get(PERIOD_TYPE, {}).keys()).union(
+        set(periodic_expenses.get(PERIOD_TYPE, {}).keys())
+    )
 
     periodic_final_balance, balance_so_far = build_periodic_final_balance(
         periods, periodic_income, periodic_expenses
