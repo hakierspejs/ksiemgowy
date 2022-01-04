@@ -100,7 +100,7 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
             "extra_monthly_reservations": 200,
             "balance_so_far": 22.5,
             "balances_by_account_labels": {"Konto Jacka": 22.5},
-            "monthly": {
+            "by_period": {
                 "Wydatki": {
                     "2021-09": {
                         "Czynsz": 800.0,
