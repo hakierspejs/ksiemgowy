@@ -163,8 +163,8 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         self.run_entrypoint(
             [
                 MbankAction(
-                    recipient_acc_no="a",
-                    sender_acc_no="b",
+                    recipient_acc_no="b",
+                    sender_acc_no="a",
                     amount_pln=100.0,
                     in_person="asd",
                     in_desc="e",
@@ -184,8 +184,8 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         self.run_entrypoint(
             [
                 MbankAction(
-                    recipient_acc_no="a",
-                    sender_acc_no="b",
+                    recipient_acc_no="b",
+                    sender_acc_no="a",
                     amount_pln=100.0,
                     in_person="asd",
                     in_desc="e",
