@@ -37,7 +37,7 @@ def determine_category(
     return "Pozostałe"
 
 
-def get_period(timestamp: datetime.datetime) -> str:
+def get_period(timestamp: datetime.datetime, period_type: str) -> str:
     """Returns a period which a given timestamp belongs to, as a string."""
     return f"{timestamp.year}-{timestamp.month:02d}"
 
@@ -68,7 +68,7 @@ def apply_positive_transfers(
             account_labels[action.recipient_acc_no]
         ] += action.amount_pln
 
-        period = get_period(action.get_timestamp())
+        period = get_period(action.get_timestamp(), PERIOD_TYPE)
         periodic_income.setdefault(PERIOD_TYPE, {}).setdefault(
             period, {}
         ).setdefault("Suma", 0)
@@ -111,7 +111,7 @@ def apply_expenses(
         balances_by_account_labels[
             account_labels[action.sender_acc_no]
         ] -= action.amount_pln
-        period = get_period(action.get_timestamp())
+        period = get_period(action.get_timestamp(), PERIOD_TYPE)
         category = determine_category(action, categories)
         periodic_expenses.setdefault(PERIOD_TYPE, {}).setdefault(
             period, {}
@@ -155,21 +155,23 @@ def build_periodic_balance(
     """Calculates balances for each of the periods - the final amount of money
     on all of our accounts at the end of the period."""
     return {
-        period: {
-            "Suma": sum(
-                x
-                for x in periodic_income.get(PERIOD_TYPE)
-                .get(period, {})
-                .values()
-            )
-            - sum(
-                x
-                for x in periodic_expenses.get(PERIOD_TYPE)
-                .get(period, {})
-                .values()
-            )
+        PERIOD_TYPE: {
+            period: {
+                "Suma": sum(
+                    x
+                    for x in periodic_income.get(PERIOD_TYPE)
+                    .get(period, {})
+                    .values()
+                )
+                - sum(
+                    x
+                    for x in periodic_expenses.get(PERIOD_TYPE)
+                    .get(period, {})
+                    .values()
+                )
+            }
+            for period in periods
         }
-        for period in periods
     }
 
 
