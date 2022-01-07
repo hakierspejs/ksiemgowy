@@ -9,7 +9,6 @@ import logging
 from typing import (
     List,
     Dict,
-    Set,
     Tuple,
     Union,
     TypedDict,
@@ -23,7 +22,7 @@ from ksiemgowy.config import CategoryCriteria, ReportBuilderConfig
 
 
 LOGGER = logging.getLogger("homepage_updater")
-PERIOD_TYPE = "monthly"
+PERIOD_TYPES = ["monthly", "yearly", "quarterly"]
 
 
 def determine_category(
@@ -39,7 +38,14 @@ def determine_category(
 
 def get_period(timestamp: datetime.datetime, period_type: str) -> str:
     """Returns a period which a given timestamp belongs to, as a string."""
-    return f"{timestamp.year}-{timestamp.month:02d}"
+    if period_type == "yearly":
+        return f"{timestamp.year}"
+    if period_type == "monthly":
+        return f"{timestamp.year}-{timestamp.month:02d}"
+    if period_type == "quarterly":
+        quarter = ((timestamp.month - 1) // 3) + 1
+        return f"{timestamp.year}Q{quarter}"
+    raise ValueError("Unexpected period_type: %r" % get_period)
 
 
 def apply_positive_transfers(
@@ -68,11 +74,12 @@ def apply_positive_transfers(
             account_labels[action.recipient_acc_no]
         ] += action.amount_pln
 
-        period = get_period(action.get_timestamp(), PERIOD_TYPE)
-        periodic_income.setdefault(PERIOD_TYPE, {}).setdefault(
-            period, {}
-        ).setdefault("Suma", 0)
-        periodic_income[PERIOD_TYPE][period]["Suma"] += action.amount_pln
+        for period_type in PERIOD_TYPES:
+            period = get_period(action.get_timestamp(), period_type)
+            periodic_income.setdefault(period_type, {}).setdefault(
+                period, {}
+            ).setdefault("Suma", 0)
+            periodic_income[period_type][period]["Suma"] += action.amount_pln
 
         if action.get_timestamp() >= month_ago:
             if last_updated is None or action.get_timestamp() > last_updated:
@@ -111,12 +118,15 @@ def apply_expenses(
         balances_by_account_labels[
             account_labels[action.sender_acc_no]
         ] -= action.amount_pln
-        period = get_period(action.get_timestamp(), PERIOD_TYPE)
-        category = determine_category(action, categories)
-        periodic_expenses.setdefault(PERIOD_TYPE, {}).setdefault(
-            period, {}
-        ).setdefault(category, 0)
-        periodic_expenses[PERIOD_TYPE][period][category] += action.amount_pln
+        for period_type in PERIOD_TYPES:
+            period = get_period(action.get_timestamp(), period_type)
+            category = determine_category(action, categories)
+            periodic_expenses.setdefault(period_type, {}).setdefault(
+                period, {}
+            ).setdefault(category, 0)
+            periodic_expenses[period_type][period][
+                category
+            ] += action.amount_pln
         if last_updated is None or action.get_timestamp() > last_updated:
             last_updated = action.get_timestamp()
 
@@ -124,55 +134,68 @@ def apply_expenses(
 
 
 def build_periodic_final_balance(
-    periods: Set[str],
     periodic_income: Dict[str, Dict[str, float]],
     periodic_expenses: Dict[str, Dict[str, float]],
 ) -> Tuple[Dict[str, Dict[str, float]], float]:
     """Calculates periodic final balances, given all of the actions - an amount
     that specifies whether we accumulated more than we spent, or otherwise."""
-    balance_so_far = 0.0
     periodic_final_balance: Dict[str, Dict[str, float]] = {}
-    for period in sorted(periods):
-        _periodic_income = sum(
-            periodic_income.get(PERIOD_TYPE, {}).get(period, {}).values()
+
+    for period_type in PERIOD_TYPES:
+        balance_so_far = 0.0
+        periods = set(periodic_income.get(period_type, {}).keys()).union(
+            set(periodic_expenses.get(period_type, {}).keys())
         )
-        _periodic_expenses = sum(
-            periodic_expenses.get(PERIOD_TYPE, {}).get(period, {}).values()
-        )
-        balance_so_far += _periodic_income - _periodic_expenses
-        periodic_final_balance.setdefault(PERIOD_TYPE, {}).setdefault(
-            period, {}
-        ).setdefault("Suma", 0)
-        periodic_final_balance[PERIOD_TYPE][period]["Suma"] = balance_so_far
+
+        for period in sorted(periods):
+            _periodic_income = sum(
+                periodic_income.get(period_type, {}).get(period, {}).values()
+            )
+            _periodic_expenses = sum(
+                periodic_expenses.get(period_type, {}).get(period, {}).values()
+            )
+            balance_so_far += _periodic_income - _periodic_expenses
+            periodic_final_balance.setdefault(period_type, {}).setdefault(
+                period, {}
+            ).setdefault("Suma", 0)
+            periodic_final_balance[period_type][period][
+                "Suma"
+            ] = balance_so_far
     return periodic_final_balance, balance_so_far
 
 
 def build_periodic_balance(
-    periods: Set[str],
     periodic_income: Dict[str, Dict[str, Union[float, int]]],
     periodic_expenses: Dict[str, Dict[str, float]],
 ) -> Dict[str, Dict[str, Union[float, int]]]:
     """Calculates balances for each of the periods - the final amount of money
     on all of our accounts at the end of the period."""
-    return {
-        PERIOD_TYPE: {
+
+    ret = {}
+    for period_type in PERIOD_TYPES:
+        periods = set(periodic_income.get(period_type, {}).keys()).union(
+            set(periodic_expenses.get(period_type, {}).keys())
+        )
+
+        ret[period_type] = {
             period: {
                 "Suma": sum(
                     x
-                    for x in periodic_income.get(PERIOD_TYPE)
+                    for x in periodic_income.get(period_type)
                     .get(period, {})
                     .values()
                 )
                 - sum(
                     x
-                    for x in periodic_expenses.get(PERIOD_TYPE)
+                    for x in periodic_expenses.get(period_type)
                     .get(period, {})
                     .values()
                 )
             }
             for period in periods
         }
-    }
+
+    return ret
 
 
 def build_extra_monthly_reservations(
@@ -251,12 +274,8 @@ def get_current_report(
         report_builder_config.account_labels,
     )
 
-    periods = set(periodic_income.get(PERIOD_TYPE, {}).keys()).union(
-        set(periodic_expenses.get(PERIOD_TYPE, {}).keys())
-    )
-
     periodic_final_balance, balance_so_far = build_periodic_final_balance(
-        periods, periodic_income, periodic_expenses
+        periodic_income, periodic_expenses
     )
 
     ret: T_CURRENT_REPORT = {
@@ -272,7 +291,7 @@ def get_current_report(
             "Wydatki": periodic_expenses,
             "Przychody": periodic_income,
             "Bilans": build_periodic_balance(
-                periods, periodic_income, periodic_expenses
+                periodic_income, periodic_expenses
             ),
             "Saldo": periodic_final_balance,
         },

@@ -102,15 +102,43 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
             "balances_by_account_labels": {"Konto Jacka": 22.5},
             "by_period": {
                 "Wydatki": {
-                    "2021-09": {
-                        "Czynsz": 800.0,
-                        "Media (głównie prąd) i inne "
-                        "rozliczenia w zw. z lokalem": 177.5,
-                    }
+                    "monthly": {
+                        "2021-09": {
+                            "Czynsz": 800.0,
+                            "Media (głównie prąd) i inne rozliczenia w zw. z "
+                            "lokalem": 177.5,
+                        }
+                    },
+                    "yearly": {
+                        "2021": {
+                            "Czynsz": 800.0,
+                            "Media (głównie prąd) i inne rozliczenia w zw. z "
+                            "lokalem": 177.5,
+                        }
+                    },
+                    "quarterly": {
+                        "2021Q3": {
+                            "Czynsz": 800.0,
+                            "Media (głównie prąd) i inne rozliczenia w zw. z "
+                            "lokalem": 177.5,
+                        }
+                    },
                 },
-                "Przychody": {"2021-09": {"Suma": 1000.0}},
-                "Bilans": {"2021-09": {"Suma": 22.5}},
-                "Saldo": {"2021-09": {"Suma": 22.5}},
+                "Przychody": {
+                    "monthly": {"2021-09": {"Suma": 1000.0}},
+                    "yearly": {"2021": {"Suma": 1000.0}},
+                    "quarterly": {"2021Q3": {"Suma": 1000.0}},
+                },
+                "Bilans": {
+                    "monthly": {"2021-09": {"Suma": 22.5}},
+                    "yearly": {"2021": {"Suma": 22.5}},
+                    "quarterly": {"2021Q3": {"Suma": 22.5}},
+                },
+                "Saldo": {
+                    "monthly": {"2021-09": {"Suma": 22.5}},
+                    "yearly": {"2021": {"Suma": 22.5}},
+                    "quarterly": {"2021Q3": {"Suma": 22.5}},
+                },
             },
         }
 
