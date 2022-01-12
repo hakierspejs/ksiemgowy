@@ -54,12 +54,14 @@ def apply_positive_transfers(
     positive_actions: Iterable[MbankAction],
     balances_by_account_labels: Dict[str, float],
     account_labels: Dict[str, str],
-) -> Tuple[float, int, datetime.datetime, Dict[str, Dict[str, float]]]:
+) -> Tuple[
+    float, int, datetime.datetime, Dict[str, Dict[str, Dict[str, float]]]
+]:
     """Apply all positive transfers both to balances_by_account_labels and
     periodic_income. Returns newly built periodic_expenses, as well as total
     money raised and current information about the number of members who
     paid dues and the datestamp of due last paid."""
-    periodic_income: Dict[str, Dict[str, float]] = {}
+    periodic_income: Dict[str, Dict[str, Dict[str, float]]] = {}
     observed_acc_numbers = set()
     observed_acc_owners = set()
 
@@ -106,11 +108,11 @@ def apply_expenses(
     balances_by_account_labels: Dict[str, float],
     account_labels: Dict[str, str],
     categories: List[CategoryCriteria],
-) -> Tuple[datetime.datetime, Dict[str, Dict[str, float]]]:
+) -> Tuple[datetime.datetime, Dict[str, Dict[str, Dict[str, float]]]]:
     """Apply all expenses both to balances_by_account_labels and
     periodic_expenses. Returns newly built periodic_expenses."""
     last_updated = datetime.datetime(year=1970, month=1, day=1)
-    periodic_expenses: Dict[str, Dict[str, float]] = {}
+    periodic_expenses: Dict[str, Dict[str, Dict[str, float]]] = {}
     for action in expenses:
         balances_by_account_labels.setdefault(
             account_labels[action.sender_acc_no], 0.0
@@ -134,12 +136,12 @@ def apply_expenses(
 
 
 def build_periodic_final_balance(
-    periodic_income: Dict[str, Dict[str, float]],
-    periodic_expenses: Dict[str, Dict[str, float]],
-) -> Tuple[Dict[str, Dict[str, float]], float]:
+    periodic_income: Dict[str, Dict[str, Dict[str, float]]],
+    periodic_expenses: Dict[str, Dict[str, Dict[str, float]]],
+) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], float]:
     """Calculates periodic final balances, given all of the actions - an amount
     that specifies whether we accumulated more than we spent, or otherwise."""
-    periodic_final_balance: Dict[str, Dict[str, float]] = {}
+    periodic_final_balance: Dict[str, Dict[str, Dict[str, float]]] = {}
 
     for period_type in PERIOD_TYPES:
         balance_so_far = 0.0
@@ -165,9 +167,9 @@ def build_periodic_final_balance(
 
 
 def build_periodic_balance(
-    periodic_income: Dict[str, Dict[str, Union[float, int]]],
-    periodic_expenses: Dict[str, Dict[str, float]],
-) -> Dict[str, Dict[str, Union[float, int]]]:
+    periodic_income: Dict[str, Dict[str, Dict[str, Union[float, int]]]],
+    periodic_expenses: Dict[str, Dict[str, Dict[str, float]]],
+) -> Dict[str, Dict[str, Dict[str, Union[float, int]]]]:
     """Calculates balances for each of the periods - the final amount of money
     on all of our accounts at the end of the period."""
 
@@ -181,13 +183,13 @@ def build_periodic_balance(
             period: {
                 "Suma": sum(
                     x
-                    for x in periodic_income.get(period_type)
+                    for x in periodic_income.get(period_type, {})
                     .get(period, {})
                     .values()
                 )
                 - sum(
                     x
-                    for x in periodic_expenses.get(period_type)
+                    for x in periodic_expenses.get(period_type, {})
                     .get(period, {})
                     .values()
                 )
@@ -221,10 +223,10 @@ def build_extra_monthly_reservations(
 T_PERIODIC_REPORT = TypedDict(
     "T_PERIODIC_REPORT",
     {
-        "Wydatki": Dict[str, Dict[str, float]],
-        "Przychody": Dict[str, Dict[str, float]],
-        "Bilans": Dict[str, Dict[str, float]],
-        "Saldo": Dict[str, Dict[str, float]],
+        "Wydatki": Dict[str, Dict[str, Dict[str, float]]],
+        "Przychody": Dict[str, Dict[str, Dict[str, float]]],
+        "Bilans": Dict[str, Dict[str, Dict[str, float]]],
+        "Saldo": Dict[str, Dict[str, Dict[str, float]]],
     },
 )
 
