@@ -101,7 +101,7 @@ def main(
         # the weird schedule is supposed to try to accomodate different
         # lifestyles
         register_fn(
-            60,
+            3600,
             ksiemgowy.overdues.notify_about_overdues,
             [
                 database,
