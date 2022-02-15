@@ -156,17 +156,15 @@ class KsiemgowyDB:
 
         base_date = now
         if row["notify_overdue_no_earlier_than"] is not None:
-            base_date = row["notify_overdue_no_earlier_than"]
+            alternative_base_date = row["notify_overdue_no_earlier_than"]
+            if alternative_base_date > base_date:
+                base_date = alternative_base_date
         new_date = base_date + datetime.timedelta(days=3, hours=5)
 
-        (
-            self.sender_acc_no_to_email.update()
-            .where(
-                self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no
-            )
-            .values(notify_overdue_no_earlier_than=new_date)
-            .execute()
-        )
+        ret = self.sender_acc_no_to_email.update().where(
+            self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no
+        ).values(notify_overdue_no_earlier_than=new_date).execute()
+        LOGGER.info("postpone_next_notification: update ret=%r", ret)
 
     def list_positive_transfers(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all positive transfers that were
