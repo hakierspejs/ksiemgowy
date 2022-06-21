@@ -11,7 +11,7 @@ from email.message import Message
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-import holidays  # type: ignore
+import holidays
 
 import ksiemgowy.config
 from ksiemgowy.mbankmail import MbankAction, anonymize
@@ -19,7 +19,7 @@ from ksiemgowy.models import KsiemgowyDB
 
 
 LOGGER = logging.getLogger("ksiemgowy.__main__")
-POLISH_HOLIDAYS = holidays.Poland()
+POLISH_HOLIDAYS = holidays.Poland()  # type: ignore
 
 
 def build_confirmation_mail(
