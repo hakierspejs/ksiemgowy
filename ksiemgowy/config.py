@@ -115,10 +115,10 @@ class KsiemgowyConfig:
 def parse_report_builder(config_section: T.Any) -> ReportBuilderConfig:
     """Parses the config section related to report_builder module."""
     categories = []
-    for category_name, subsection in config_section["CATEGORIES"].items():
+    for subsection in config_section["CATEGORIES"]:
         categories.append(
             CategoryCriteria(
-                category_name=category_name,
+                category_name=subsection["category_name"],
                 amount_pln=subsection.get("amount_pln", None),
                 recipient_acc_no=subsection["recipient_acc_no"],
             )

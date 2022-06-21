@@ -21,13 +21,13 @@ REPORT_BUILDER:
         "1f328d38b05ea11998bac3ee0a4a2c6c9595e6848d22f66a47aa4a68f3b781ed": "Konto Jacka"
         "d66afcd5d08d61a5678dd3dd3fbb6b2f84985c5add8306e6b3a1c2df0e85f840": "Konto stowarzyszenia"
     CATEGORIES:
-        "Czynsz":
-            recipient_acc_no: "5c0de18baddf47952002df587685dea519f06b639051ea3e4749ef058f6782bf"
-            amount_pln: 800.0
-        "Media (głównie prąd) i inne rozliczenia w zw. z lokalem":
-            recipient_acc_no: "5c0de18baddf47952002df587685dea519f06b639051ea3e4749ef058f6782bf"
-            amount_pln: 800.0
-        "Internet":
-            recipient_acc_no: "62eb7121a7ba81754aa746762dbc364e9ed961b8d1cf61a94d6531c92c81e56f"
-        "Księgowość":
-            recipient_acc_no: "8f8340d7434997c052cc56f0191ed23d12a16ab1f2cba091c433539c13b7049c"
+      - category_name: "Czynsz"
+        recipient_acc_no: "5c0de18baddf47952002df587685dea519f06b639051ea3e4749ef058f6782bf"
+        amount_pln: 800.0
+      - category_name: "Media (głównie prąd) i inne rozliczenia w zw. z lokalem"
+        recipient_acc_no: "5c0de18baddf47952002df587685dea519f06b639051ea3e4749ef058f6782bf"
+        amount_pln: 800.0
+      - category_name: "Internet"
+        recipient_acc_no: "62eb7121a7ba81754aa746762dbc364e9ed961b8d1cf61a94d6531c92c81e56f"
+      - category_name: "Księgowość"
+        recipient_acc_no: "8f8340d7434997c052cc56f0191ed23d12a16ab1f2cba091c433539c13b7049c"
