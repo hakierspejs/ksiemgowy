@@ -45,7 +45,7 @@ def get_period(timestamp: datetime.datetime, period_type: str) -> str:
     if period_type == "quarterly":
         quarter = ((timestamp.month - 1) // 3) + 1
         return f"{timestamp.year}Q{quarter}"
-    raise ValueError("Unexpected period_type: %r" % get_period)
+    raise ValueError(f"Unexpected period_type: {get_period!r}")
 
 
 def apply_positive_transfers(

@@ -149,7 +149,7 @@ def main(input_fpath: str, mode: str, loglevel: str) -> None:
     if mode == "html":
         result = parse_mbank_html(input_string)
     else:
-        raise RuntimeError("Unexpected mode: %s" % mode)
+        raise RuntimeError(f"Unexpected mode: {mode}")
     pprint.pprint(result)
 
 
