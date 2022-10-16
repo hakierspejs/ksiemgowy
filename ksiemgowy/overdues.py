@@ -41,7 +41,7 @@ Zalecana składka: 100 zł
 Tytuł: darowizna na cele statutowe
 
 (jeżeli jesteś członkiem Hakierspejsu, w tytule napisz zamiast tego "składka
-członkowska - 1mies - pełna miesięczna" oraz Twój nick lub imię i nazwisko)
+członkowska - 1 mies. - pełna miesięczna" oraz Twój nick lub imię i nazwisko)
 
 Mam nadzieję, że udział w Hakierspejsie dalej Cię interesuje. Daj
 proszę znać, jeżeli masz jakiekolwiek pytania lub sugestie.
