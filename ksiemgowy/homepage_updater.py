@@ -48,7 +48,7 @@ def deserialize(
         "extra_monthly_reservations": loaded["extra_monthly_reservations"],
         "balance_so_far": loaded["balance_so_far"],
         "balances_by_account_labels": loaded["balances_by_account_labels"],
-        "monthly": loaded["monthly"],
+        "by_period": loaded["by_period"],
     }
 
 

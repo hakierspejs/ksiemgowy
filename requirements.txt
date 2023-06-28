@@ -1,5 +1,6 @@
 lxml
-sqlalchemy[mypy]
+sqlalchemy[mypy]==1.4.48
 schedule
 python-dateutil
 pyyaml
+holidays

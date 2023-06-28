@@ -39,8 +39,22 @@ every (usually long) time.
 
 ## Known bugs / design flaws / missing functionality
 
-1. Currently, there is no support for internal transfers (belonging to the same owner).
+* Currently, there is no support for internal transfers (belonging to the same owner).
 This means that the money wired by the account owner is not going to be visible to the system.
+* BLIK transfers have the same caveats
+
+Unaccounted for transfers might be detected and result in an autocorrection
+to be created though, so there is a chance that the account balance will
+converge to a sane number. The way it is implemented though, there are multiple
+caveats:
+
+* the autocorrection will only happen if a single transfer was observed on the
+day the discrepancy was detected and,
+* the day might neither be a weekend, nor a public holiday. The same applies
+to the day before and after.
+
+The conditions might someday be relaxed if I come up with a better way to
+handle those issues.
 
 A more comprehensive list of accountant's imperfections can be found here:
 
