@@ -1,5 +1,8 @@
 """This module describes data structures used in ksiemgowy."""
 
+# This is here because we're accessing _mapping attribute of a row object
+# pylint: disable=protected-access
+
 import logging
 import datetime
 from typing import Dict, Iterator, Optional
