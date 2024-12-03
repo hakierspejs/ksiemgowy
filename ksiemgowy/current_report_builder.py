@@ -114,10 +114,10 @@ def apply_positive_transfers(
     month_ago = now - datetime.timedelta(days=31)
     for action in positive_actions:
         balances_by_account_labels.setdefault(
-            account_labels[action.out_acc_no], 0.0
+            account_labels[action.recipient_acc_no], 0.0
         )
         balances_by_account_labels[
-            account_labels[action.out_acc_no]
+            account_labels[action.recipient_acc_no]
         ] += action.amount_pln
 
         month = (

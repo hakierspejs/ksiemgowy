@@ -95,7 +95,7 @@ def check_for_updates(
                 action.anonymized(mbank_anonymization_key),
             )
             if action.action_type == "in_transfer" and str(
-                action.out_acc_no
+                action.recipient_acc_no
             ) == str(acc_number):
                 database.add_positive_transfer(
                     action.anonymized(mbank_anonymization_key)
