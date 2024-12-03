@@ -16,15 +16,13 @@ from ksiemgowy.mbankmail import MbankAction
 LOGGER = logging.getLogger(__name__)
 
 
-def transactional(method):
+def transactional(method: T.Callable[..., T.Any]) -> T.Callable[..., T.Any]:
     @wraps(method)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: T.Any, *args: T.Any, **kwargs: T.Any) -> T.Any:
         with self.connection.begin():
             result = method(self, *args, **kwargs)
         return result
     return wrapper
-
-
 
 
 class KsiemgowyDB:
