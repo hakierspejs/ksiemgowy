@@ -149,7 +149,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
             [
                 MbankAction(
                     sender_acc_no="a",
-                    out_acc_no="b",
+                    recipient_acc_no="b",
                     amount_pln=100.0,
                     in_person="asd",
                     in_desc="e",
@@ -170,7 +170,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
             [
                 MbankAction(
                     sender_acc_no="a",
-                    out_acc_no="b",
+                    recipient_acc_no="b",
                     amount_pln=100.0,
                     in_person="asd",
                     in_desc="e",
@@ -191,7 +191,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
             [
                 MbankAction(
                     sender_acc_no="a",
-                    out_acc_no="b",
+                    recipient_acc_no="b",
                     amount_pln=100.0,
                     in_person="asd",
                     in_desc="e",
@@ -210,7 +210,7 @@ class BuildConfirmationMailTestCase(unittest.TestCase):
     def test_build_confirmation_mail_copies_email_if_not_in_mapping(self):
         positive_action = MbankAction(
             sender_acc_no="a",
-            out_acc_no="b",
+            recipient_acc_no="b",
             amount_pln=100.0,
             in_person="asd",
             in_desc="e",

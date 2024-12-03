@@ -29,7 +29,7 @@ class KsiemgowyDB:
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
             sqlalchemy.Column("sender_acc_no", sqlalchemy.String),
-            sqlalchemy.Column("out_acc_no", sqlalchemy.String),
+            sqlalchemy.Column("recipient_acc_no", sqlalchemy.String),
             sqlalchemy.Column("amount_pln", sqlalchemy.Float, index=True),
             sqlalchemy.Column("in_person", sqlalchemy.String),
             sqlalchemy.Column("in_desc", sqlalchemy.String),

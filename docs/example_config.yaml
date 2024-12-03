@@ -49,12 +49,12 @@ REPORT_BUILDER:
             "Zakupy": 840.04
     CATEGORIES:
         "Czynsz":
-            out_acc_no: "5c0de18baddf47952002df587685dea519f06b639051ea3e4749ef058f6782bf"
+            recipient_acc_no: "5c0de18baddf47952002df587685dea519f06b639051ea3e4749ef058f6782bf"
             amount_pln: 800.0
         "Media (głównie prąd) i inne rozliczenia w zw. z lokalem":
-            out_acc_no: "5c0de18baddf47952002df587685dea519f06b639051ea3e4749ef058f6782bf"
+            recipient_acc_no: "5c0de18baddf47952002df587685dea519f06b639051ea3e4749ef058f6782bf"
             amount_pln: 800.0
         "Internet":
-            out_acc_no: "62eb7121a7ba81754aa746762dbc364e9ed961b8d1cf61a94d6531c92c81e56f"
+            recipient_acc_no: "62eb7121a7ba81754aa746762dbc364e9ed961b8d1cf61a94d6531c92c81e56f"
         "Księgowość":
-            out_acc_no: "8f8340d7434997c052cc56f0191ed23d12a16ab1f2cba091c433539c13b7049c"
+            recipient_acc_no: "8f8340d7434997c052cc56f0191ed23d12a16ab1f2cba091c433539c13b7049c"

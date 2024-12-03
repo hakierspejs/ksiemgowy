@@ -1,6 +1,6 @@
 CREATE VIEW positive_actions_unpacked AS SELECT id,
         positive_action ->> 'sender_acc_no' AS sender_acc_no,
-        positive_action ->> 'out_acc_no' AS out_acc_no,
+        positive_action ->> 'recipient_acc_no' AS recipient_acc_no,
         replace(positive_action ->> 'amount_pln', ',', '.')::real AS amount_pln,
         positive_action ->> 'in_person' AS in_person,
         positive_action ->> 'in_desc' AS in_desc,
