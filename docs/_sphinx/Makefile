@@ -1,2 +1,2 @@
 all:
-	python -m sphinx . ..
+	python3.13 -m sphinx . ..

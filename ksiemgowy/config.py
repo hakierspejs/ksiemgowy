@@ -84,16 +84,10 @@ class CategoryCriteria:
 
 @dataclass(frozen=True)
 class ReportBuilderConfig:
-    """Stores extra state needed for correction of reports build by
-    Ksiemgowy."""
+    """Stores extra state needed for the creation of financial reports."""
 
     # pylint: disable=too-many-instance-attributes
     account_labels: T.Dict[str, str]
-    corrections_by_label: T.Dict[str, float]
-    monthly_income_corrections: T.Dict[str, T.Dict[str, float]]
-    monthly_expense_corrections: T.Dict[str, T.Dict[str, float]]
-    first_200pln_d33tah_due_date: datetime.datetime
-    last_200pln_d33tah_due_date: datetime.datetime
     extra_monthly_reservations_started_date: datetime.datetime
     categories: T.List[CategoryCriteria]
 
@@ -110,6 +104,7 @@ class KsiemgowyConfig:
     should_send_mail: bool
     homepage_updater_config: HomepageUpdaterConfig
     report_builder_config: ReportBuilderConfig
+    log_level: str
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         """Returns an e-mail account used for overdue notifications. Currently
@@ -120,29 +115,16 @@ class KsiemgowyConfig:
 def parse_report_builder(config_section: T.Any) -> ReportBuilderConfig:
     """Parses the config section related to report_builder module."""
     categories = []
-    for category_name, subsection in config_section["CATEGORIES"].items():
+    for subsection in config_section["CATEGORIES"]:
         categories.append(
             CategoryCriteria(
-                category_name=category_name,
+                category_name=subsection["category_name"],
                 amount_pln=subsection.get("amount_pln", None),
                 recipient_acc_no=subsection["recipient_acc_no"],
             )
         )
     return ReportBuilderConfig(
         account_labels=config_section["ACCOUNT_LABELS"],
-        corrections_by_label=config_section["CORRECTIONS_BY_LABEL"],
-        monthly_income_corrections=config_section[
-            "MONTHLY_INCOME_CORRECTIONS"
-        ],
-        monthly_expense_corrections=config_section[
-            "MONTHLY_EXPENSE_CORRECTIONS"
-        ],
-        first_200pln_d33tah_due_date=dateutil.parser.parse(
-            config_section["FIRST_200PLN_D33TAH_DUE_DATE"]
-        ),
-        last_200pln_d33tah_due_date=dateutil.parser.parse(
-            config_section["LAST_200PLN_D33TAH_DUE_DATE"]
-        ),
         extra_monthly_reservations_started_date=dateutil.parser.parse(
             config_section["EXTRA_MONTHLY_RESERVATIONS_STARTED_DATE"]
         ),
@@ -157,6 +139,7 @@ def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
     deploy_key_path = config["DEPLOY_KEY_PATH"]
     git_url = config["HOMEPAGE_GIT_REPO_URL"]
     dues_file_path = config["DUES_FILE_PATH"]
+    log_level = config["LOG_LEVEL"]
     report_builder_config = parse_report_builder(config["REPORT_BUILDER"])
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
@@ -177,6 +160,7 @@ def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
         )
 
     return KsiemgowyConfig(
+        log_level=log_level,
         database_uri=config["DATABASE_URI"],
         accounts=accounts,
         mbank_anonymization_key=config["MBANK_ANONYMIZATION_KEY"].encode(),

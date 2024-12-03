@@ -10,9 +10,9 @@ import copy
 import hashlib
 import logging
 import datetime
+import typing as T
 
 from email.message import Message
-from typing import Dict, List
 
 import dateutil.parser
 import lxml.html
@@ -29,6 +29,12 @@ INCOMING_RE = re.compile(
 )
 
 
+def _expect_type(expected_type: T.Type[T.Any], item: T.Any) -> T.Any:
+    if not isinstance(item, expected_type):
+        raise ValueError(f"Expected {expected_type}, got {item!r}")
+    return item
+
+
 def anonymize(hashed_string: str, mbank_anonymization_key: bytes) -> str:
     """Anonymizes an input string using mbank_anonymization_key as
     cryptographic pepper."""
@@ -42,8 +48,8 @@ def anonymize(hashed_string: str, mbank_anonymization_key: bytes) -> str:
 class MbankAction:
     """A container for all transfers, positive or negative."""
 
-    sender_acc_no: str
     recipient_acc_no: str
+    sender_acc_no: str
     amount_pln: float
     in_person: str
     in_desc: str
@@ -55,8 +61,12 @@ class MbankAction:
         """Anonymizes all potentially sensitive fields using
         mbank_anonymization_key as cryptographic pepper."""
         new = copy.copy(self)
-        new.sender_acc_no = anonymize(self.sender_acc_no, mbank_anonymization_key)
-        new.recipient_acc_no = anonymize(self.recipient_acc_no, mbank_anonymization_key)
+        new.recipient_acc_no = anonymize(
+            self.recipient_acc_no, mbank_anonymization_key
+        )
+        new.sender_acc_no = anonymize(
+            self.sender_acc_no, mbank_anonymization_key
+        )
         new.in_person = anonymize(self.in_person, mbank_anonymization_key)
         new.in_desc = anonymize(self.in_desc, mbank_anonymization_key)
         return new
@@ -69,13 +79,14 @@ class MbankAction:
     asdict = dataclasses.asdict
 
 
-def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
+def parse_mbank_html(mbank_html: bytes) -> T.Dict[str, T.List[MbankAction]]:
     """Parses mBank .htm attachment file and generates a list of actions
     that were derived from it."""
     html = lxml.html.fromstring(mbank_html)
-    date = html.xpath("//h5/text()")[0].split(" - ")[0]
+    h5_texts = _expect_type(list, html.xpath("//h5/text()"))
+    date: str = h5_texts[0].split(" - ")[0]
     actions = []
-    rows = html.xpath("//tr")[2:]
+    rows = _expect_type(list, html.xpath("//tr"))[2:]
     logging.debug("len(rows)=%r", len(rows))
     for row in rows:
         desc_e = row.xpath(".//td[2]/text()")
@@ -98,8 +109,8 @@ def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
         action["balance"] = action["balance"].replace(",", ".")
         actions.append(
             MbankAction(
-                sender_acc_no=action["sender_acc_no"],
                 recipient_acc_no=action["recipient_acc_no"],
+                sender_acc_no=action["sender_acc_no"],
                 amount_pln=float(action["amount_pln"]),
                 in_person=action["in_person"],
                 in_desc=action["in_desc"],
@@ -111,21 +122,25 @@ def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
     return {"actions": actions}
 
 
-def parse_mbank_email(msg: Message) -> Dict[str, List[MbankAction]]:
+def parse_mbank_email(msg: Message) -> T.Dict[str, T.List[MbankAction]]:
     """Finds attachment with mBank account update in an .eml mBank email,
     then behaves like parse_mbank_html."""
     parsed = {}
     for part in msg.walk():
-        params = dict(part.get_params())
+        params_raw = part.get_params()
+        if params_raw is None:
+            continue
+        params = dict(params_raw)
         if "name" not in params or part.get_content_type() != "text/html":
             continue
-        parsed = parse_mbank_html(part.get_payload(decode=True))
+        b = _expect_type(bytes, part.get_payload(decode=True))
+        parsed = parse_mbank_html(b)
         if parsed["actions"]:
             break
     return parsed
 
 
-def parse_args() -> Dict[str, str]:
+def parse_args() -> T.Dict[str, str]:
     """Parses command-line arguments and returns them in a form usable as
     **kwargs."""
     parser = argparse.ArgumentParser(__doc__)
@@ -145,7 +160,7 @@ def main(input_fpath: str, mode: str, loglevel: str) -> None:
     if mode == "html":
         result = parse_mbank_html(input_string)
     else:
-        raise RuntimeError("Unexpected mode: %s" % mode)
+        raise RuntimeError(f"Unexpected mode: {mode}")
     pprint.pprint(result)
 
 

@@ -48,7 +48,7 @@ def deserialize(
         "extra_monthly_reservations": loaded["extra_monthly_reservations"],
         "balance_so_far": loaded["balance_so_far"],
         "balances_by_account_labels": loaded["balances_by_account_labels"],
-        "monthly": loaded["monthly"],
+        "by_period": loaded["by_period"],
     }
 
 
@@ -215,10 +215,12 @@ def maybe_update_dues(
     """Generates the current report, retrieves the one that's accessible online
     and if the current one is later, updates the remote state."""
     now = datetime.datetime.now()
+    positive_transfers = list(database.list_positive_transfers())
+    expenses = list(database.list_expenses())
     current_report = ksiemgowy.current_report_builder.get_current_report(
         now,
-        database.list_expenses(),
-        database.list_positive_transfers(),
+        expenses,
+        positive_transfers,
         report_builder_config,
     )
     remote_state_path = pathlib.Path(f"homepage/{dues_file_path}")
@@ -235,7 +237,7 @@ def maybe_update_dues(
         if remote_state is None:
             remote_state = current_report
         else:
-            remote_state.update(current_report)  # type: ignore
+            remote_state.update(current_report)
         LOGGER.info("maybe_update_dues: updating dues")
         update_git_remote_state(remote_state_path, remote_state, git_env)
     LOGGER.info("maybe_update_dues: done")
