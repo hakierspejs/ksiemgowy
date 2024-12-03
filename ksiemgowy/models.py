@@ -28,7 +28,7 @@ class KsiemgowyDB:
             "bank_actions",
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("in_acc_no", sqlalchemy.String),
+            sqlalchemy.Column("sender_acc_no", sqlalchemy.String),
             sqlalchemy.Column("out_acc_no", sqlalchemy.String),
             sqlalchemy.Column("amount_pln", sqlalchemy.Float, index=True),
             sqlalchemy.Column("in_person", sqlalchemy.String),
@@ -46,11 +46,11 @@ class KsiemgowyDB:
         ):
             pass
 
-        self.in_acc_no_to_email = sqlalchemy.Table(
-            "in_acc_no_to_email",
+        self.sender_acc_no_to_email = sqlalchemy.Table(
+            "sender_acc_no_to_email",
             metadata,
             sqlalchemy.Column(
-                "in_acc_no", sqlalchemy.String, primary_key=True
+                "sender_acc_no", sqlalchemy.String, primary_key=True
             ),
             sqlalchemy.Column("email", sqlalchemy.String),
             sqlalchemy.Column(
@@ -74,7 +74,7 @@ class KsiemgowyDB:
         )
 
         try:
-            self.in_acc_no_to_email.create(bind=self.database)
+            self.sender_acc_no_to_email.create(bind=self.database)
         except (
             sqlalchemy.exc.OperationalError,
             sqlalchemy.exc.ProgrammingError,
@@ -109,13 +109,13 @@ class KsiemgowyDB:
                 self.observed_email_ids.insert(), {"imap_id": imap_id}
             )
 
-    def get_email_for_in_acc_no(self, in_acc_no: str) -> Optional[str]:
-        """Returns an e-mail address for a given in_acc_no."""
+    def get_email_for_sender_acc_no(self, sender_acc_no: str) -> Optional[str]:
+        """Returns an e-mail address for a given sender_acc_no."""
 
         with self.connection.begin():
             row = self.connection.execute(
-                self.in_acc_no_to_email.select().where(
-                    self.in_acc_no_to_email.c.in_acc_no == in_acc_no
+                self.sender_acc_no_to_email.select().where(
+                    self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no
                 )
             ).fetchone()
 
@@ -130,10 +130,10 @@ class KsiemgowyDB:
         """Returns a list of accounts that might be overdue and can be
         notified."""
         ret = {}
-        cols = self.in_acc_no_to_email.c
+        cols = self.sender_acc_no_to_email.c
         with self.connection.begin():
             for entry in self.connection.execute(
-                self.in_acc_no_to_email.select().where(
+                self.sender_acc_no_to_email.select().where(
                     sqlalchemy.or_(
                         cols.notify_overdue_no_earlier_than.is_(None),
                         cols.notify_overdue_no_earlier_than < now,
@@ -141,33 +141,33 @@ class KsiemgowyDB:
                 )
             ).mappings():
                 if entry["notify_overdue"] == "y":
-                    ret[entry["in_acc_no"]] = entry["email"]
+                    ret[entry["sender_acc_no"]] = entry["email"]
 
             return ret
 
     def postpone_next_notification(
-        self, in_acc_no: str, now: datetime.datetime
+        self, sender_acc_no: str, now: datetime.datetime
     ) -> None:
         """Postpone next overdue notification for an account with a given
-        in_acc_no."""
-        cols = self.in_acc_no_to_email.c
+        sender_acc_no."""
+        cols = self.sender_acc_no_to_email.c
         with self.connection.begin():
             row = self.connection.execute(
-                self.in_acc_no_to_email.select().where(
-                    cols.in_acc_no == in_acc_no
+                self.sender_acc_no_to_email.select().where(
+                    cols.sender_acc_no == sender_acc_no
                 )
             ).fetchone()
 
             base_date = now
             if row is None:
-                raise ValueError(f"Account {in_acc_no} not found in DB.")
+                raise ValueError(f"Account {sender_acc_no} not found in DB.")
             if row._mapping["notify_overdue_no_earlier_than"] is not None:
                 base_date = row._mapping["notify_overdue_no_earlier_than"]
             new_date = base_date + datetime.timedelta(days=3, hours=5)
 
             self.connection.execute(
-                self.in_acc_no_to_email.update()
-                .where(self.in_acc_no_to_email.c.in_acc_no == in_acc_no)
+                self.sender_acc_no_to_email.update()
+                .where(self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no)
                 .values(notify_overdue_no_earlier_than=new_date)
             )
 
