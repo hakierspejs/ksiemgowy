@@ -208,15 +208,13 @@ def build_extra_monthly_reservations(
     On 24 November 2020, we agreed that we'll be continuing to increase our
     reserves by 200 PLN each month."""
     return sum(
-        [
-            200
-            for _ in dateutil.rrule.rrule(
-                dateutil.rrule.MONTHLY,
-                # https://pad.hs-ldz.pl/aPQpWcUbTvWwEdwsxB0ulQ#Kwestia-sk%C5%82adek
-                dtstart=extra_monthly_reservations_started_date,
-                until=now,
-            )
-        ]
+        200
+        for _ in dateutil.rrule.rrule(
+            dateutil.rrule.MONTHLY,
+            # https://pad.hs-ldz.pl/aPQpWcUbTvWwEdwsxB0ulQ#Kwestia-sk%C5%82adek
+            dtstart=extra_monthly_reservations_started_date,
+            until=now,
+        )
     )
 
 
