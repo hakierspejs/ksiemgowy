@@ -13,22 +13,22 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
-            - name: Set up Python 3.8
-              uses: actions/setup-python@v1
+            - name: Set up Python 3.13
+              uses: actions/setup-python@v5
               with:
-                  python-version: 3.8
+                  python-version: 3.13
             - name: Install dependencies
               run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
-                  pip install -r requirements-dev.txt
+                  python3.13 -m pip install --upgrade pip
+                  python3.13 -m pip install -r requirements.txt
+                  python3.13 -m pip install -r requirements-dev.txt
             - name: Run unit tests and generate coverage
               run: |
-                  COVERAGE_PATH=$(python -c 'print(__import__("importlib").util.find_spec("coverage").origin)' | xargs dirname)
+                  COVERAGE_PATH=$(python3.13 -c 'print(__import__("importlib").util.find_spec("coverage").origin)' | xargs dirname)
                   find $COVERAGE_PATH -name index.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
                   find $COVERAGE_PATH -name pyfile.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
-                  python -m coverage run --source=ksiemgowy --branch -m unittest -v
-                  python -m coverage html
+                  python3.13 -m coverage run --source=ksiemgowy --branch -m unittest -v
+                  python3.13 -m coverage html
                   rm -rf docs/htmlcov
                   mv htmlcov docs
             - name: regenerage docs
@@ -42,52 +42,52 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
-            - name: Set up Python 3.8
-              uses: actions/setup-python@v1
+            - name: Set up Python 3.13
+              uses: actions/setup-python@v5
               with:
-                  python-version: 3.8
+                  python-version: 3.13
             - name: Install dependencies
               run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
-                  pip install -r requirements-dev.txt
+                  python3.13 -m pip install --upgrade pip
+                  python3.13 -m pip install -r requirements.txt
+                  python3.13 -m pip install -r requirements-dev.txt
             - name: Lint with flake8
               run: |
-                  flake8 --ignore=W503 ksiemgowy/
+                  python3.13 -m flake8 --ignore=W503 ksiemgowy/
 
     pylint:
         runs-on: ubuntu-latest
 
         steps:
             - uses: actions/checkout@v2
-            - name: Set up Python 3.8
-              uses: actions/setup-python@v1
+            - name: Set up Python 3.13
+              uses: actions/setup-python@v5
               with:
-                  python-version: 3.8
+                  python-version: 3.13
             - name: Install dependencies
               run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
-                  pip install -r requirements-dev.txt
+                  python3.13 -m pip install --upgrade pip
+                  python3.13 -m pip install -r requirements.txt
+                  python3.13 -m pip install -r requirements-dev.txt
             - name: Pylint code analysis
               run: |
-                  pylint ksiemgowy/
+                  python3.13 -m pylint ksiemgowy/
 
     mypy:
         runs-on: ubuntu-latest
 
         steps:
             - uses: actions/checkout@v2
-            - name: Set up Python 3.8
-              uses: actions/setup-python@v1
+            - name: Set up Python 3.13
+              uses: actions/setup-python@v5
               with:
-                  python-version: 3.8
+                  python-version: 3.13
             - name: Install dependencies
               run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
-                  pip install -r requirements-dev.txt
+                  python3.13 -m pip install --upgrade pip
+                  python3.13 -m pip install -r requirements.txt
+                  python3.13 -m pip install -r requirements-dev.txt
             - name: MyPy code analysis
               run: |
-                  mypy --strict ksiemgowy
-                  mypy --config-file=/dev/null test
+                  python3.13 -m mypy --strict ksiemgowy
+                  python3.13 -m mypy --config-file=/dev/null test
