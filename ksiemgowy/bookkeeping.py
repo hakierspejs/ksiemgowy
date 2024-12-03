@@ -102,8 +102,8 @@ def check_for_updates(
                 )
                 if should_send_mail:
                     with mail_config.smtp_login() as smtp_conn:
-                        to_email = database.get_email_for_in_acc_no(
-                            action.in_acc_no
+                        to_email = database.get_email_for_sender_acc_no(
+                            action.sender_acc_no
                         )
                         msg = build_confirmation_mail(
                             mail_config.login,
@@ -114,7 +114,7 @@ def check_for_updates(
 
                 LOGGER.info("added an action")
             elif action.action_type == "out_transfer" and str(
-                action.in_acc_no
+                action.sender_acc_no
             ) == str(acc_number):
                 database.add_expense(
                     action.anonymized(mbank_anonymization_key)
