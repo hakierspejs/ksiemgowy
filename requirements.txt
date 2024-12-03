@@ -3,4 +3,4 @@ sqlalchemy[mypy]
 schedule
 python-dateutil
 pyyaml
-holidays
+holidays>=0.62
