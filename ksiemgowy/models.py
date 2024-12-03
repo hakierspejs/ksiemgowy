@@ -156,6 +156,8 @@ class KsiemgowyDB:
             ).fetchone()
 
             base_date = now
+            if row is None:
+                raise ValueError(f"Account {in_acc_no} not found in DB.")
             if row._mapping["notify_overdue_no_earlier_than"] is not None:
                 base_date = row._mapping["notify_overdue_no_earlier_than"]
             new_date = base_date + datetime.timedelta(days=3, hours=5)
