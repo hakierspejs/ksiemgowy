@@ -20,7 +20,7 @@ import lxml.html
 
 INCOMING_RE = re.compile(
     "^mBank: Przelew (?P<action_type>przych|wych)\\."
-    " z rach\\. (?P<in_acc_no>[0-9.]{8,14})"
+    " z rach\\. (?P<sender_acc_no>[0-9.]{8,14})"
     " na rach\\. (?P<out_acc_no>[0-9.]{8,14})"
     " kwota (?P<amount_pln>\\d+,\\d{2}) PLN"
     " (od|dla) (?P<in_person>[^;]+); "
@@ -42,7 +42,7 @@ def anonymize(hashed_string: str, mbank_anonymization_key: bytes) -> str:
 class MbankAction:
     """A container for all transfers, positive or negative."""
 
-    in_acc_no: str
+    sender_acc_no: str
     out_acc_no: str
     amount_pln: float
     in_person: str
@@ -55,7 +55,7 @@ class MbankAction:
         """Anonymizes all potentially sensitive fields using
         mbank_anonymization_key as cryptographic pepper."""
         new = copy.copy(self)
-        new.in_acc_no = anonymize(self.in_acc_no, mbank_anonymization_key)
+        new.sender_acc_no = anonymize(self.sender_acc_no, mbank_anonymization_key)
         new.out_acc_no = anonymize(self.out_acc_no, mbank_anonymization_key)
         new.in_person = anonymize(self.in_person, mbank_anonymization_key)
         new.in_desc = anonymize(self.in_desc, mbank_anonymization_key)
@@ -98,7 +98,7 @@ def parse_mbank_html(mbank_html: bytes) -> Dict[str, List[MbankAction]]:
         action["balance"] = action["balance"].replace(",", ".")
         actions.append(
             MbankAction(
-                in_acc_no=action["in_acc_no"],
+                sender_acc_no=action["sender_acc_no"],
                 out_acc_no=action["out_acc_no"],
                 amount_pln=float(action["amount_pln"]),
                 in_person=action["in_person"],

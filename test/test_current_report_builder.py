@@ -24,7 +24,7 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
 
         expenses = [
             MbankAction(
-                in_acc_no=HAKIERSPEJS_ACC_NO,
+                sender_acc_no=HAKIERSPEJS_ACC_NO,
                 out_acc_no=LANDLORD_ACC_NO,
                 amount_pln=800.0,
                 in_person="b5d99033edf432cf08ab35d3e47cfeb4e7af370cd3f",
@@ -34,7 +34,7 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
                 action_type="out_transfer",
             ),
             MbankAction(
-                in_acc_no=HAKIERSPEJS_ACC_NO,
+                sender_acc_no=HAKIERSPEJS_ACC_NO,
                 out_acc_no=LANDLORD_ACC_NO,
                 amount_pln=177.5,
                 in_person="b5d99033edf432cfb35d3e47cfeb4e7af370cd3f",
@@ -46,7 +46,7 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
         ]
         positive_actions = [
             MbankAction(
-                in_acc_no="totallyFake",
+                sender_acc_no="totallyFake",
                 out_acc_no=HAKIERSPEJS_ACC_NO,
                 amount_pln=1000.0,
                 in_person="alsoFake",
