@@ -1,5 +1,5 @@
 lxml
-sqlalchemy[mypy] < 2.0
+sqlalchemy[mypy]
 schedule
 python-dateutil
 pyyaml

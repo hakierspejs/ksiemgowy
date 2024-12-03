@@ -19,7 +19,7 @@ class KsiemgowyDB:
     def __init__(self, database_uri: str) -> None:
         """Initializes the database, creating tables if they don't exist."""
         self.database = sqlalchemy.create_engine(database_uri)
-        metadata = sqlalchemy.MetaData(self.database)
+        metadata = sqlalchemy.MetaData()
 
         self.bank_actions = sqlalchemy.Table(
             "bank_actions",
@@ -36,7 +36,7 @@ class KsiemgowyDB:
         )
 
         try:
-            self.bank_actions.create()
+            self.bank_actions.create(bind=self.database)
         except (
             sqlalchemy.exc.OperationalError,
             sqlalchemy.exc.ProgrammingError,
@@ -71,7 +71,7 @@ class KsiemgowyDB:
         )
 
         try:
-            self.in_acc_no_to_email.create()
+            self.in_acc_no_to_email.create(bind=self.database)
         except (
             sqlalchemy.exc.OperationalError,
             sqlalchemy.exc.ProgrammingError,
@@ -79,42 +79,47 @@ class KsiemgowyDB:
             pass
 
         try:
-            self.observed_email_ids.create()
+            self.observed_email_ids.create(bind=self.database)
         except (
             sqlalchemy.exc.OperationalError,
             sqlalchemy.exc.ProgrammingError,
         ):
             pass
 
+        self.connection = self.database.connect()
+
     def was_imap_id_already_handled(self, imap_id: str) -> bool:
         """Tells whether a given IMAP ID was already processed by ksiemgowy."""
-        entries = (
-            self.observed_email_ids.select()
-            .where(self.observed_email_ids.c.imap_id == imap_id)
-            .execute()
-            .fetchone()
-        )
-        return bool(entries)
+        with self.connection.begin():
+            entries = self.connection.execute(
+                self.observed_email_ids.select().where(
+                    self.observed_email_ids.c.imap_id == imap_id
+                )
+            ).fetchone()
+            return bool(entries)
 
     def mark_imap_id_already_handled(self, imap_id: str) -> None:
         """Marks a given IMAP ID as already processed by ksiemgowy."""
         LOGGER.debug("mark_imap_id_already_handled(%r)", imap_id)
-        self.observed_email_ids.insert(None).execute(imap_id=imap_id)
+        with self.connection.begin():
+            self.connection.execute(
+                self.observed_email_ids.insert(None), {"imap_id": imap_id}
+            )
 
     def get_email_for_in_acc_no(self, in_acc_no: str) -> Optional[str]:
         """Returns an e-mail address for a given in_acc_no."""
 
-        row = (
-            self.in_acc_no_to_email.select()
-            .where(self.in_acc_no_to_email.c.in_acc_no == in_acc_no)
-            .execute()
-            .fetchone()
-        )
+        with self.connection.begin():
+            row = self.connection.execute(
+                self.in_acc_no_to_email.select().where(
+                    self.in_acc_no_to_email.c.in_acc_no == in_acc_no
+                )
+            ).fetchone()
 
-        if row:
-            ret: str = row["email"]
-            return ret
-        return None
+            if row:
+                ret: str = row._mapping["email"]
+                return ret
+            return None
 
     def get_potentially_overdue_accounts(
         self, now: datetime.datetime
@@ -123,21 +128,19 @@ class KsiemgowyDB:
         notified."""
         ret = {}
         cols = self.in_acc_no_to_email.c
-        for entry in (
-            self.in_acc_no_to_email.select()
-            .where(
-                sqlalchemy.or_(
-                    cols.notify_overdue_no_earlier_than.is_(None),
-                    cols.notify_overdue_no_earlier_than < now,
+        with self.connection.begin():
+            for entry in self.connection.execute(
+                self.in_acc_no_to_email.select().where(
+                    sqlalchemy.or_(
+                        cols.notify_overdue_no_earlier_than.is_(None),
+                        cols.notify_overdue_no_earlier_than < now,
+                    )
                 )
-            )
-            .execute()
-            .fetchall()
-        ):
-            if entry["notify_overdue"] == "y":
-                ret[entry["in_acc_no"]] = entry["email"]
+            ).mappings():
+                if entry["notify_overdue"] == "y":
+                    ret[entry["in_acc_no"]] = entry["email"]
 
-        return ret
+            return ret
 
     def postpone_next_notification(
         self, in_acc_no: str, now: datetime.datetime
@@ -145,56 +148,61 @@ class KsiemgowyDB:
         """Postpone next overdue notification for an account with a given
         in_acc_no."""
         cols = self.in_acc_no_to_email.c
-        row = (
-            self.in_acc_no_to_email.select()
-            .where(cols.in_acc_no == in_acc_no)
-            .execute()
-            .fetchone()
-        )
+        with self.connection.begin():
+            row = self.connection.execute(
+                self.in_acc_no_to_email.select().where(
+                    cols.in_acc_no == in_acc_no
+                )
+            ).fetchone()
 
-        base_date = now
-        if row["notify_overdue_no_earlier_than"] is not None:
-            base_date = row["notify_overdue_no_earlier_than"]
-        new_date = base_date + datetime.timedelta(days=3, hours=5)
+            base_date = now
+            if row._mapping["notify_overdue_no_earlier_than"] is not None:
+                base_date = row._mapping["notify_overdue_no_earlier_than"]
+            new_date = base_date + datetime.timedelta(days=3, hours=5)
 
-        (
-            self.in_acc_no_to_email.update()
-            .where(self.in_acc_no_to_email.c.in_acc_no == in_acc_no)
-            .values(notify_overdue_no_earlier_than=new_date)
-            .execute()
-        )
+            self.connection.execute(
+                self.in_acc_no_to_email.update()
+                .where(self.in_acc_no_to_email.c.in_acc_no == in_acc_no)
+                .values(notify_overdue_no_earlier_than=new_date)
+            )
 
     def list_positive_transfers(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all positive transfers that were
         observed so far."""
-        for entry in (
-            self.bank_actions.select()
-            .where(self.bank_actions.c.amount_pln > 0)
-            .execute()
-            .fetchall()
-        ):
-            entry = {k: v for k, v in dict(entry).items() if k != "id"}
-            yield ksiemgowy.mbankmail.MbankAction(**entry)
+        with self.connection.begin():
+            for entry in self.connection.execute(
+                self.bank_actions.select().where(
+                    self.bank_actions.c.amount_pln > 0
+                )
+            ).mappings():
+                entry = {k: v for k, v in dict(entry).items() if k != "id"}
+                yield ksiemgowy.mbankmail.MbankAction(**entry)
 
     def add_positive_transfer(self, positive_action: MbankAction) -> None:
         """Adds a positive transfer to the database."""
-        self.bank_actions.insert(None).execute(**positive_action.asdict())
+        with self.connection.begin():
+            self.connection.execute(
+                self.bank_actions.insert(None), positive_action.asdict()
+            )
 
     def add_expense(self, bank_action: MbankAction) -> None:
         """Adds an expense to the database."""
         bank_action.amount_pln *= -1
-        self.bank_actions.insert(None).execute(**bank_action.asdict())
+        with self.connection.begin():
+            self.connection.execute(
+                self.bank_actions.insert(None), **bank_action.asdict()
+            )
 
     def list_expenses(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all expenses transfers that were
         observed so far."""
-        for entry in (
-            self.bank_actions.select()
-            .where(self.bank_actions.c.amount_pln < 0)
-            .execute()
-            .fetchall()
-        ):
-            entry = {k: v for k, v in dict(entry).items() if k != "id"}
-            bank_action = ksiemgowy.mbankmail.MbankAction(**entry)
-            bank_action.amount_pln *= -1
-            yield bank_action
+        with self.connection.begin():
+            for entry in self.connection.execute(
+                self.bank_actions.select().where(
+                    self.bank_actions.c.amount_pln < 0
+                )
+            ).mappings():
+                entry = {k: v for k, v in dict(entry).items() if k != "id"}
+                bank_action = ksiemgowy.mbankmail.MbankAction(**entry)
+                bank_action.amount_pln *= -1
+                yield bank_action
