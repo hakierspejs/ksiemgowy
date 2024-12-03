@@ -18,6 +18,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 def transactional(method: T.Callable[..., T.Any]) -> T.Callable[..., T.Any]:
+    """
+    A decorator that wraps a method in a transaction. The transaction is
+    committed if the method returns without an exception, and rolled back
+    otherwise.
+
+    I mostly wrote it to avoid extra indentation in the code that complicates
+    merging and reading the diffs. Ideally I think we should factor it in.
+    """
     @wraps(method)
     def wrapper(self: T.Any, *args: T.Any, **kwargs: T.Any) -> T.Any:
         with self.connection.begin():
