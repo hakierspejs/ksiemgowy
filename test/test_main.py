@@ -96,11 +96,15 @@ class KsiemgowySystemTestCase(unittest.TestCase):
                 in_acc_no,
                 email_address,
             ) in in_acc_no_to_email_fixtures.items():
-                self.database_mock.in_acc_no_to_email.insert(None).execute(
-                    in_acc_no=in_acc_no,
-                    email=email_address,
-                    notify_overdue_no_earlier_than=minute_ago,
-                )
+                with self.database_mock.connection.begin():
+                    self.database_mock.connection.execute(
+                        self.database_mock.in_acc_no_to_email.insert(),
+                        dict(
+                            in_acc_no=in_acc_no,
+                            email=email_address,
+                            notify_overdue_no_earlier_than=minute_ago,
+                        ),
+                    )
 
         ksiemgowy_main.main(
             self.config_mock,

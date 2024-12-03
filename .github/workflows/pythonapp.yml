@@ -2,6 +2,9 @@ name: ksiemgowy
 
 on:
     - push
+    - schedule:
+          # once in a month
+          - cron: '0 0 1 * *'
 
 jobs:
     unittest_and_docs:
