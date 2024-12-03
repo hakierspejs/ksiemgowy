@@ -13,7 +13,7 @@ import time
 import logging
 
 
-import schedule as schedule_module  # type: ignore
+import schedule as schedule_module
 
 import ksiemgowy.mbankmail
 import ksiemgowy.config

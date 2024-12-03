@@ -1,0 +1,62 @@
+#!/bin/bash
+
+set -euo pipefail
+
+
+function wyswietl() {
+    sqlite3 \
+        /root/ksiemgowy/db_public/db.sqlite \
+        '.width 2 40 5' \
+        '.mode column' \
+        '.headers on' \
+        "select \
+            row_number() over (order by last_paid desc) lp, \
+            j.email, \
+            days_since_last_payment since_last, \
+            printf(\"%.2f\", average_due) average_due, \
+            printf(\"%.2f\", total_paid) total_paid, \
+            printf(\"%.2f\", total_paid/(case when days_since_first_payment < 30 then 30 else days_since_first_payment end)) daily, \
+            days_since_first_payment * (total_paid/(case when days_since_first_payment < 30 then 30 else days_since_first_payment end)) / (num_dues) avg_mo,
+            first_paid, \
+            last_paid, \
+            cast(((julianday() - julianday(first_paid)) / (num_dues-1)) as integer) pay_interval, \
+            num_dues,
+            j.notify_overdue, \
+            j.notify_overdue_no_earlier_than \
+        from members_ever m \
+        left join sender_acc_no_to_email j on j.sender_acc_no=m.sender_acc_no \
+        order by lp asc;"
+#        where days_since_last_payment < 220 \
+}
+
+if [ "$#" -eq 0 ]; then
+    wyswietl
+else
+    set +e
+    wyswietl | head -n2
+    wyswietl | grep "$1"
+    email=$( wyswietl | grep "$1" | tail -n1 | awk '{ print $2 }')
+    if [ -z "$email" ]; then
+        email=$1
+    fi
+
+    echo
+    sqlite3 \
+        /root/ksiemgowy/db_public/db.sqlite \
+        ".mode column" \
+        ".headers on" \
+	".width 10 20 70" \
+        "select \
+            amount_pln, timestamp, sender_acc_no \
+            from bank_actions \
+            where sender_acc_no in (\
+                select \
+                    sender_acc_no \
+                    from sender_acc_no_to_email \
+                    where email='$email'\
+            ) \
+            order by \
+            timestamp desc\
+                ;"
+
+fi

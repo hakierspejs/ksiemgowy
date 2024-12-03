@@ -94,11 +94,15 @@ class KsiemgowySystemTestCase(unittest.TestCase):
                 sender_acc_no,
                 email_address,
             ) in sender_acc_no_to_email_fixtures.items():
-                self.database_mock.sender_acc_no_to_email.insert(None).execute(
-                    sender_acc_no=sender_acc_no,
-                    email=email_address,
-                    notify_overdue_no_earlier_than=minute_ago,
-                )
+                with self.database_mock.connection.begin():
+                    self.database_mock.connection.execute(
+                        self.database_mock.sender_acc_no_to_email.insert(),
+                        dict(
+                            sender_acc_no=sender_acc_no,
+                            email=email_address,
+                            notify_overdue_no_earlier_than=minute_ago,
+                        ),
+                    )
 
         ksiemgowy_main.main(
             self.config_mock,
@@ -142,8 +146,8 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         self.run_entrypoint(
             [
                 MbankAction(
-                    recipient_acc_no="a",
-                    sender_acc_no="b",
+                    sender_acc_no="a",
+                    recipient_acc_no="b",
                     amount_pln=100.0,
                     in_person="asd",
                     in_desc="e",
@@ -163,8 +167,8 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         self.run_entrypoint(
             [
                 MbankAction(
-                    recipient_acc_no="b",
                     sender_acc_no="a",
+                    recipient_acc_no="b",
                     amount_pln=100.0,
                     in_person="asd",
                     in_desc="e",
@@ -184,8 +188,8 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         self.run_entrypoint(
             [
                 MbankAction(
-                    recipient_acc_no="b",
                     sender_acc_no="a",
+                    recipient_acc_no="b",
                     amount_pln=100.0,
                     in_person="asd",
                     in_desc="e",
@@ -203,8 +207,8 @@ class KsiemgowySystemTestCase(unittest.TestCase):
 class BuildConfirmationMailTestCase(unittest.TestCase):
     def test_build_confirmation_mail_copies_email_if_not_in_mapping(self):
         positive_action = MbankAction(
-            recipient_acc_no="a",
-            sender_acc_no="b",
+            sender_acc_no="a",
+            recipient_acc_no="b",
             amount_pln=100.0,
             in_person="asd",
             in_desc="e",
