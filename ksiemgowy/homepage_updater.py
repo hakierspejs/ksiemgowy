@@ -215,10 +215,12 @@ def maybe_update_dues(
     """Generates the current report, retrieves the one that's accessible online
     and if the current one is later, updates the remote state."""
     now = datetime.datetime.now()
+    positive_transfers = list(database.list_positive_transfers())
+    expenses = list(database.list_expenses())
     current_report = ksiemgowy.current_report_builder.get_current_report(
         now,
-        database.list_expenses(),
-        database.list_positive_transfers(),
+        expenses,
+        positive_transfers,
         report_builder_config,
     )
     remote_state_path = pathlib.Path(f"homepage/{dues_file_path}")
