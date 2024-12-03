@@ -103,7 +103,7 @@ class KsiemgowyDB:
         LOGGER.debug("mark_imap_id_already_handled(%r)", imap_id)
         with self.connection.begin():
             self.connection.execute(
-                self.observed_email_ids.insert(None), {"imap_id": imap_id}
+                self.observed_email_ids.insert(), {"imap_id": imap_id}
             )
 
     def get_email_for_in_acc_no(self, in_acc_no: str) -> Optional[str]:
@@ -184,7 +184,7 @@ class KsiemgowyDB:
         """Adds a positive transfer to the database."""
         with self.connection.begin():
             self.connection.execute(
-                self.bank_actions.insert(None), positive_action.asdict()
+                self.bank_actions.insert(), positive_action.asdict()
             )
 
     def add_expense(self, bank_action: MbankAction) -> None:
@@ -192,7 +192,7 @@ class KsiemgowyDB:
         bank_action.amount_pln *= -1
         with self.connection.begin():
             self.connection.execute(
-                self.bank_actions.insert(None), **bank_action.asdict()
+                self.bank_actions.insert(), **bank_action.asdict()
             )
 
     def list_expenses(self) -> Iterator[MbankAction]:

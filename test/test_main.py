@@ -98,7 +98,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
             ) in in_acc_no_to_email_fixtures.items():
                 with self.database_mock.connection.begin():
                     self.database_mock.connection.execute(
-                        self.database_mock.in_acc_no_to_email.insert(None),
+                        self.database_mock.in_acc_no_to_email.insert(),
                         dict(
                             in_acc_no=in_acc_no,
                             email=email_address,
