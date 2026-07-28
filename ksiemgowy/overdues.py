@@ -48,7 +48,7 @@ proszę znać, jeżeli masz jakiekolwiek pytania lub sugestie.
 
 Niezależnie od tego czy uda Ci się przelać kolejną składkę - dziękuję
 za Twój dotychczasowy wkład w działalność HSŁ! Dzięki regularnym
-przelewom możemy zadatabaseać o bezpieczeństwo finansowe naszej organizacji,
+przelewom możemy zadbać o bezpieczeństwo finansowe naszej organizacji,
 w szczególności regularne opłacanie czynszu oraz gromadzenie środków
 na dalszy rozwój :)
 

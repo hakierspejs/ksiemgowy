@@ -51,6 +51,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         mail_mock.smtp_login = smtp_login_mock
 
         self.config_mock = ksiemgowy.config.KsiemgowyConfig(
+            log_level="INFO",
             database_uri="",
             accounts=[
                 ksiemgowy.config.KsiemgowyAccount(
@@ -71,11 +72,6 @@ class KsiemgowySystemTestCase(unittest.TestCase):
                     "d66afcd5d08d61a5678dd3dd3fbb6b2f8498"
                     "5c5add8306e6b3a1c2df0e85f840": "Konto Jacka"
                 },
-                corrections_by_label={"Konto Jacka": 0.0},
-                monthly_income_corrections={},
-                monthly_expense_corrections={},
-                first_200pln_d33tah_due_date=datetime.datetime.now(),
-                last_200pln_d33tah_due_date=datetime.datetime.now(),
                 extra_monthly_reservations_started_date=datetime.datetime.now(),
                 categories=[],
             ),
@@ -83,7 +79,9 @@ class KsiemgowySystemTestCase(unittest.TestCase):
         self.database_mock = ksiemgowy.models.KsiemgowyDB("sqlite://")
 
     def run_entrypoint(
-        self, positive_actions_fixtures=None, sender_acc_no_to_email_fixtures=None
+        self,
+        positive_actions_fixtures=None,
+        sender_acc_no_to_email_fixtures=None,
     ):
 
         if positive_actions_fixtures:

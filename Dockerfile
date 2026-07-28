@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.10
 ADD ./requirements.txt .
 RUN python -m pip install -r requirements.txt
 ADD ./ksiemgowy ksiemgowy

@@ -6,6 +6,8 @@
 import logging
 import datetime
 from typing import Dict, Iterator, Optional
+from functools import wraps
+import typing as T
 
 import sqlalchemy
 
@@ -13,6 +15,23 @@ import ksiemgowy.mbankmail
 from ksiemgowy.mbankmail import MbankAction
 
 LOGGER = logging.getLogger(__name__)
+
+
+def transactional(method: T.Callable[..., T.Any]) -> T.Callable[..., T.Any]:
+    """
+    A decorator that wraps a method in a transaction. The transaction is
+    committed if the method returns without an exception, and rolled back
+    otherwise.
+
+    I mostly wrote it to avoid extra indentation in the code that complicates
+    merging and reading the diffs. Ideally I think we should factor it in.
+    """
+    @wraps(method)
+    def wrapper(self: T.Any, *args: T.Any, **kwargs: T.Any) -> T.Any:
+        with self.connection.begin():
+            result = method(self, *args, **kwargs)
+        return result
+    return wrapper
 
 
 class KsiemgowyDB:
@@ -28,8 +47,8 @@ class KsiemgowyDB:
             "bank_actions",
             metadata,
             sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-            sqlalchemy.Column("sender_acc_no", sqlalchemy.String),
             sqlalchemy.Column("recipient_acc_no", sqlalchemy.String),
+            sqlalchemy.Column("sender_acc_no", sqlalchemy.String),
             sqlalchemy.Column("amount_pln", sqlalchemy.Float, index=True),
             sqlalchemy.Column("in_person", sqlalchemy.String),
             sqlalchemy.Column("in_desc", sqlalchemy.String),
@@ -115,7 +134,8 @@ class KsiemgowyDB:
         with self.connection.begin():
             row = self.connection.execute(
                 self.sender_acc_no_to_email.select().where(
-                    self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no
+                    self.sender_acc_no_to_email.c.sender_acc_no
+                    == sender_acc_no
                 )
             ).fetchone()
 
@@ -145,39 +165,43 @@ class KsiemgowyDB:
 
             return ret
 
+    @transactional
     def postpone_next_notification(
         self, sender_acc_no: str, now: datetime.datetime
     ) -> None:
         """Postpone next overdue notification for an account with a given
         sender_acc_no."""
         cols = self.sender_acc_no_to_email.c
-        with self.connection.begin():
-            row = self.connection.execute(
-                self.sender_acc_no_to_email.select().where(
-                    cols.sender_acc_no == sender_acc_no
-                )
-            ).fetchone()
-
-            base_date = now
-            if row is None:
-                raise ValueError(f"Account {sender_acc_no} not found in DB.")
-            if row._mapping["notify_overdue_no_earlier_than"] is not None:
-                base_date = row._mapping["notify_overdue_no_earlier_than"]
-            new_date = base_date + datetime.timedelta(days=3, hours=5)
-
-            self.connection.execute(
-                self.sender_acc_no_to_email.update()
-                .where(self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no)
-                .values(notify_overdue_no_earlier_than=new_date)
+        row = self.connection.execute(
+            self.sender_acc_no_to_email.select().where(
+                cols.sender_acc_no == sender_acc_no
             )
+        ).fetchone()
+
+        base_date = now
+        if row is None:
+            raise ValueError(f"Account {sender_acc_no} not found in DB.")
+        if row._mapping["notify_overdue_no_earlier_than"] is not None:
+            base_date = row._mapping["notify_overdue_no_earlier_than"]
+        new_date = base_date + datetime.timedelta(days=3, hours=5)
+
+        self.connection.execute(
+            self.sender_acc_no_to_email.update()
+            .where(
+                self.sender_acc_no_to_email.c.sender_acc_no
+                == sender_acc_no
+            )
+            .values(notify_overdue_no_earlier_than=new_date)
+        )
 
     def list_positive_transfers(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all positive transfers that were
         observed so far."""
+
         with self.connection.begin():
             for entry in self.connection.execute(
                 self.bank_actions.select().where(
-                    self.bank_actions.c.amount_pln > 0
+                    self.bank_actions.c.action_type == "in_transfer"
                 )
             ).mappings():
                 entry = {k: v for k, v in dict(entry).items() if k != "id"}
@@ -185,6 +209,11 @@ class KsiemgowyDB:
 
     def add_positive_transfer(self, positive_action: MbankAction) -> None:
         """Adds a positive transfer to the database."""
+        LOGGER.info("add_positive_transfer(%r)", positive_action)
+        if positive_action.amount_pln <= 0:
+            raise ValueError(
+                f"positive_action.amount_pln <= 0: {positive_action!r}"
+            )
         with self.connection.begin():
             self.connection.execute(
                 self.bank_actions.insert(), positive_action.asdict()
@@ -192,22 +221,24 @@ class KsiemgowyDB:
 
     def add_expense(self, bank_action: MbankAction) -> None:
         """Adds an expense to the database."""
-        bank_action.amount_pln *= -1
+        LOGGER.info("add_expense(%r)", bank_action)
+        if bank_action.amount_pln <= 0:
+            raise ValueError(f"bank_action.amount_pln <= 0: {bank_action!r}")
         with self.connection.begin():
             self.connection.execute(
-                self.bank_actions.insert(), **bank_action.asdict()
+                self.bank_actions.insert(), bank_action.asdict()
             )
 
+    @transactional
     def list_expenses(self) -> Iterator[MbankAction]:
         """Returns a generator that lists all expenses transfers that were
         observed so far."""
-        with self.connection.begin():
-            for entry in self.connection.execute(
-                self.bank_actions.select().where(
-                    self.bank_actions.c.amount_pln < 0
-                )
-            ).mappings():
-                entry = {k: v for k, v in dict(entry).items() if k != "id"}
-                bank_action = ksiemgowy.mbankmail.MbankAction(**entry)
-                bank_action.amount_pln *= -1
-                yield bank_action
+        for entry in self.connection.execute(
+            self.bank_actions.select().where(
+                self.bank_actions.c.amount_pln < 0
+            )
+        ).mappings():
+            entry = {k: v for k, v in dict(entry).items() if k != "id"}
+            bank_action = ksiemgowy.mbankmail.MbankAction(**entry)
+            bank_action.amount_pln *= -1
+            yield bank_action

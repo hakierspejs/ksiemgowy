@@ -24,8 +24,8 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
 
         expenses = [
             MbankAction(
-                sender_acc_no=HAKIERSPEJS_ACC_NO,
                 recipient_acc_no=LANDLORD_ACC_NO,
+                sender_acc_no=HAKIERSPEJS_ACC_NO,
                 amount_pln=800.0,
                 in_person="b5d99033edf432cf08ab35d3e47cfeb4e7af370cd3f",
                 in_desc="09564e96eabee7aaddac31c2b7dc11ffe23ca3be4bb",
@@ -34,8 +34,8 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
                 action_type="out_transfer",
             ),
             MbankAction(
-                sender_acc_no=HAKIERSPEJS_ACC_NO,
                 recipient_acc_no=LANDLORD_ACC_NO,
+                sender_acc_no=HAKIERSPEJS_ACC_NO,
                 amount_pln=177.5,
                 in_person="b5d99033edf432cfb35d3e47cfeb4e7af370cd3f",
                 in_desc="c66a1e94465f724a5a893af5ce8e38666d3fe304",
@@ -58,28 +58,18 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
         ]
 
         current_builder_config = ReportBuilderConfig(
-            account_labels={
-                "d66afcd5d08d61a5678dd3dd3f"
-                "bb6b2f84985c5add8306e6b3a1c2df0e85f840": "Konto Jacka"
-            },
-            corrections_by_label={"Konto Jacka": 0.0},
-            monthly_income_corrections={},
-            monthly_expense_corrections={},
-            first_200pln_d33tah_due_date=now,
-            last_200pln_d33tah_due_date=now,
+            account_labels={HAKIERSPEJS_ACC_NO: "Konto Jacka"},
             extra_monthly_reservations_started_date=now,
             categories=[
                 CategoryCriteria(
                     category_name="Czynsz",
-                    recipient_acc_no="5c0de18baddf47952002df587685dea"
-                    "519f06b639051ea3e4749ef058f6782bf",
+                    recipient_acc_no=LANDLORD_ACC_NO,
                     amount_pln=800.0,
                 ),
                 CategoryCriteria(
                     category_name="Media (głównie prąd) i inne"
                     " rozliczenia w zw. z lokalem",
-                    recipient_acc_no="5c0de18baddf47952002df587685de"
-                    "a519f06b639051ea3e4749ef058f6782bf",
+                    recipient_acc_no=LANDLORD_ACC_NO,
                     amount_pln=None,
                 ),
                 CategoryCriteria(
@@ -100,25 +90,55 @@ class SecondReportBuilderBuilderTestCase(unittest.TestCase):
         current_report = M.get_current_report(
             now, expenses, positive_actions, current_builder_config
         )
+        print(current_report)
+        self.maxDiff = None
 
         expected_output = {
             "dues_total_lastmonth": 1000.0,
             "dues_last_updated": "02-09-2021",
             "dues_num_subscribers": 1,
             "extra_monthly_reservations": 200,
-            "balance_so_far": 222.5,
-            "balances_by_account_labels": {"Konto Jacka": 222.5},
-            "monthly": {
+            "balance_so_far": 22.5,
+            "balances_by_account_labels": {"Konto Jacka": 22.5},
+            "by_period": {
                 "Wydatki": {
-                    "2021-09": {
-                        "Czynsz": 800.0,
-                        "Media (głównie prąd) i inne rozliczenia"
-                        " w zw. z lokalem": 177.5,
-                    }
+                    "monthly": {
+                        "2021-09": {
+                            "Czynsz": 800.0,
+                            "Media (głównie prąd) i inne rozliczenia w zw. z "
+                            "lokalem": 177.5,
+                        }
+                    },
+                    "yearly": {
+                        "2021": {
+                            "Czynsz": 800.0,
+                            "Media (głównie prąd) i inne rozliczenia w zw. z "
+                            "lokalem": 177.5,
+                        }
+                    },
+                    "quarterly": {
+                        "2021Q3": {
+                            "Czynsz": 800.0,
+                            "Media (głównie prąd) i inne rozliczenia w zw. z "
+                            "lokalem": 177.5,
+                        }
+                    },
                 },
-                "Przychody": {"2021-09": {"Suma": 1200.0}},
-                "Bilans": {"2021-09": {"Suma": 222.5}},
-                "Saldo": {"2021-09": {"Suma": 222.5}},
+                "Przychody": {
+                    "monthly": {"2021-09": {"Suma": 1000.0}},
+                    "yearly": {"2021": {"Suma": 1000.0}},
+                    "quarterly": {"2021Q3": {"Suma": 1000.0}},
+                },
+                "Bilans": {
+                    "monthly": {"2021-09": {"Suma": 22.5}},
+                    "yearly": {"2021": {"Suma": 22.5}},
+                    "quarterly": {"2021Q3": {"Suma": 22.5}},
+                },
+                "Saldo": {
+                    "monthly": {"2021-09": {"Suma": 22.5}},
+                    "yearly": {"2021": {"Suma": 22.5}},
+                    "quarterly": {"2021Q3": {"Suma": 22.5}},
+                },
             },
         }
 
