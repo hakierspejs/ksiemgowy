@@ -5,7 +5,8 @@
 
 import logging
 import datetime
-from typing import Dict, Iterator, Optional
+import inspect
+from typing import Dict, List, Optional
 from functools import wraps
 import typing as T
 
@@ -25,7 +26,19 @@ def transactional(method: T.Callable[..., T.Any]) -> T.Callable[..., T.Any]:
 
     I mostly wrote it to avoid extra indentation in the code that complicates
     merging and reading the diffs. Ideally I think we should factor it in.
+
+    Generator functions are rejected outright. Calling one merely builds the
+    generator without running a line of its body, so the transaction would
+    open and close before a single row is read, and the body would then
+    autobegin one that nobody ever commits - poisoning the connection for
+    every later caller. Materialise the rows and return a list instead.
     """
+    if inspect.isgeneratorfunction(method):
+        raise TypeError(
+            f"@transactional cannot wrap the generator function "
+            f"{method.__qualname__}; return a list instead"
+        )
+
     @wraps(method)
     def wrapper(self: T.Any, *args: T.Any, **kwargs: T.Any) -> T.Any:
         with self.connection.begin():
@@ -194,18 +207,19 @@ class KsiemgowyDB:
             .values(notify_overdue_no_earlier_than=new_date)
         )
 
-    def list_positive_transfers(self) -> Iterator[MbankAction]:
-        """Returns a generator that lists all positive transfers that were
-        observed so far."""
-
-        with self.connection.begin():
-            for entry in self.connection.execute(
-                self.bank_actions.select().where(
-                    self.bank_actions.c.action_type == "in_transfer"
-                )
-            ).mappings():
-                entry = {k: v for k, v in dict(entry).items() if k != "id"}
-                yield ksiemgowy.mbankmail.MbankAction(**entry)
+    @transactional
+    def list_positive_transfers(self) -> List[MbankAction]:
+        """Returns a list of all positive transfers that were observed so
+        far."""
+        ret = []
+        for entry in self.connection.execute(
+            self.bank_actions.select().where(
+                self.bank_actions.c.action_type == "in_transfer"
+            )
+        ).mappings():
+            entry = {k: v for k, v in dict(entry).items() if k != "id"}
+            ret.append(ksiemgowy.mbankmail.MbankAction(**entry))
+        return ret
 
     def add_positive_transfer(self, positive_action: MbankAction) -> None:
         """Adds a positive transfer to the database."""
@@ -230,9 +244,10 @@ class KsiemgowyDB:
             )
 
     @transactional
-    def list_expenses(self) -> Iterator[MbankAction]:
-        """Returns a generator that lists all expenses transfers that were
-        observed so far."""
+    def list_expenses(self) -> List[MbankAction]:
+        """Returns a list of all expenses transfers that were observed so
+        far."""
+        ret = []
         for entry in self.connection.execute(
             self.bank_actions.select().where(
                 self.bank_actions.c.amount_pln < 0
@@ -241,4 +256,5 @@ class KsiemgowyDB:
             entry = {k: v for k, v in dict(entry).items() if k != "id"}
             bank_action = ksiemgowy.mbankmail.MbankAction(**entry)
             bank_action.amount_pln *= -1
-            yield bank_action
+            ret.append(bank_action)
+        return ret
