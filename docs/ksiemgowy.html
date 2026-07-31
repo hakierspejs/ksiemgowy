@@ -428,16 +428,16 @@ notified.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.list_expenses">
-<span class="sig-name descname"><span class="pre">list_expenses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">MbankAction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.list_expenses" title="Link to this definition">¶</a></dt>
-<dd><p>Returns a generator that lists all expenses transfers that were
-observed so far.</p>
+<span class="sig-name descname"><span class="pre">list_expenses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">MbankAction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.list_expenses" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a list of all expenses transfers that were observed so
+far.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ksiemgowy.models.KsiemgowyDB.list_positive_transfers">
-<span class="sig-name descname"><span class="pre">list_positive_transfers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">MbankAction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.list_positive_transfers" title="Link to this definition">¶</a></dt>
-<dd><p>Returns a generator that lists all positive transfers that were
-observed so far.</p>
+<span class="sig-name descname"><span class="pre">list_positive_transfers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ksiemgowy.mbankmail.MbankAction" title="ksiemgowy.mbankmail.MbankAction"><span class="pre">MbankAction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ksiemgowy.models.KsiemgowyDB.list_positive_transfers" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a list of all positive transfers that were observed so
+far.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -469,6 +469,11 @@ committed if the method returns without an exception, and rolled back
 otherwise.</p>
 <p>I mostly wrote it to avoid extra indentation in the code that complicates
 merging and reading the diffs. Ideally I think we should factor it in.</p>
+<p>Generator functions are rejected outright. Calling one merely builds the
+generator without running a line of its body, so the transaction would
+open and close before a single row is read, and the body would then
+autobegin one that nobody ever commits - poisoning the connection for
+every later caller. Materialise the rows and return a list instead.</p>
 </dd></dl>
 
 </section>
