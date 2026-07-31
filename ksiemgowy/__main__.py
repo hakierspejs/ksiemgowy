@@ -57,7 +57,7 @@ def main(
         [
             ksiemgowy.models.KsiemgowyDB,
             ksiemgowy.config.HomepageUpdaterConfig,
-            ksiemgowy.config.ReportBuilderConfig
+            ksiemgowy.config.ReportBuilderConfig,
         ],
         None,
     ],

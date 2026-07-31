@@ -337,11 +337,6 @@ timestamp as string for rather random reasons.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="ksiemgowy.mbankmail.MbankAction.sender_acc_no">
-<span class="sig-name descname"><span class="pre">sender_acc_no</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction.sender_acc_no" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="ksiemgowy.mbankmail.MbankAction.in_desc">
 <span class="sig-name descname"><span class="pre">in_desc</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction.in_desc" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -357,10 +352,23 @@ timestamp as string for rather random reasons.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="ksiemgowy.mbankmail.MbankAction.sender_acc_no">
+<span class="sig-name descname"><span class="pre">sender_acc_no</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction.sender_acc_no" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="ksiemgowy.mbankmail.MbankAction.timestamp">
 <span class="sig-name descname"><span class="pre">timestamp</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#ksiemgowy.mbankmail.MbankAction.timestamp" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="ksiemgowy.mbankmail.MbankParseError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">ksiemgowy.mbankmail.</span></span><span class="sig-name descname"><span class="pre">MbankParseError</span></span><a class="headerlink" href="#ksiemgowy.mbankmail.MbankParseError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when an attachment contains what look like transactions, but
+no date header could be found to timestamp them with.</p>
 </dd></dl>
 
 <dl class="py function">

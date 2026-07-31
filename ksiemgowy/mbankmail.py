@@ -62,8 +62,12 @@ class MbankAction:
         """Anonymizes all potentially sensitive fields using
         mbank_anonymization_key as cryptographic pepper."""
         new = copy.copy(self)
-        new.sender_acc_no = anonymize(self.sender_acc_no, mbank_anonymization_key)
-        new.recipient_acc_no = anonymize(self.recipient_acc_no, mbank_anonymization_key)
+        new.sender_acc_no = anonymize(
+            self.sender_acc_no, mbank_anonymization_key
+        )
+        new.recipient_acc_no = anonymize(
+            self.recipient_acc_no, mbank_anonymization_key
+        )
         new.in_person = anonymize(self.in_person, mbank_anonymization_key)
         new.in_desc = anonymize(self.in_desc, mbank_anonymization_key)
         return new
@@ -76,7 +80,12 @@ class MbankAction:
     asdict = dataclasses.asdict
 
 
-def _extract_date(html: lxml.html.HtmlElement) -> Optional[str]:
+# lxml-stubs does not cover lxml.html, so under `mypy --strict` every
+# signature naming HtmlElement trips disallow_any_unimported. The annotation
+# is kept for the reader and the resulting Any is silenced explicitly.
+def _extract_date(  # type: ignore[no-any-unimported]
+    html: lxml.html.HtmlElement,
+) -> Optional[str]:
     """Extracts the report date from a header element. Up to 2026-07-13 mBank
     used <h5 class="znaki">, since 2026-07-15 it uses <h1 class="h1">. Rather
     than hardcoding a tag, look for a date in any header, so that the next
@@ -88,7 +97,7 @@ def _extract_date(html: lxml.html.HtmlElement) -> Optional[str]:
     return None
 
 
-def _iter_action_matches(
+def _iter_action_matches(  # type: ignore[no-any-unimported]
     html: lxml.html.HtmlElement,
 ) -> Iterator[Tuple[str, "re.Match[str]"]]:
     """Yields (time, regex match) for every table row that describes a

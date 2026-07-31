@@ -115,7 +115,8 @@ class KsiemgowyDB:
         with self.connection.begin():
             row = self.connection.execute(
                 self.sender_acc_no_to_email.select().where(
-                    self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no
+                    self.sender_acc_no_to_email.c.sender_acc_no
+                    == sender_acc_no
                 )
             ).fetchone()
 
@@ -167,7 +168,10 @@ class KsiemgowyDB:
 
             self.connection.execute(
                 self.sender_acc_no_to_email.update()
-                .where(self.sender_acc_no_to_email.c.sender_acc_no == sender_acc_no)
+                .where(
+                    self.sender_acc_no_to_email.c.sender_acc_no
+                    == sender_acc_no
+                )
                 .values(notify_overdue_no_earlier_than=new_date)
             )
 

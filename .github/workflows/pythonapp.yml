@@ -1,21 +1,29 @@
 name: ksiemgowy
 
 on:
-    - push
-    - schedule:
-          # once in a month
-          - cron: '0 0 1 * *'
+    push:
+    # Without this, merge requests get no checks at all.
+    pull_request:
+    schedule:
+        # once in a month
+        - cron: '0 0 1 * *'
 
 jobs:
     unittest_and_docs:
         runs-on: ubuntu-latest
 
+        # The job pushes the regenerated coverage report back to the branch.
+        # Since 2023 the default GITHUB_TOKEN is read-only on new repositories
+        # and on every fork, so the write has to be asked for explicitly.
+        permissions:
+            contents: write
+
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v7
             - name: Set up Python 3.8
-              uses: actions/setup-python@v1
+              uses: actions/setup-python@v7
               with:
-                  python-version: 3.8
+                  python-version: '3.8'
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip
@@ -24,15 +32,20 @@ jobs:
             - name: Run unit tests and generate coverage
               run: |
                   COVERAGE_PATH=$(python -c 'print(__import__("importlib").util.find_spec("coverage").origin)' | xargs dirname)
-                  find $COVERAGE_PATH -name index.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
-                  find $COVERAGE_PATH -name pyfile.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
+                  find "$COVERAGE_PATH" -name index.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
+                  find "$COVERAGE_PATH" -name pyfile.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
                   python -m coverage run --source=ksiemgowy --branch -m unittest -v
                   python -m coverage html
                   rm -rf docs/htmlcov
                   mv htmlcov docs
             - name: regenerage docs
               run: cd docs/_sphinx && make
-            - uses: stefanzweifel/git-auto-commit-action@v4.2.0
+            - uses: stefanzweifel/git-auto-commit-action@v7
+              # A pull_request event from a fork always gets a read-only
+              # token, whatever `permissions` says, so pushing back would
+              # fail every such run. The push event covers the same commits
+              # anyway.
+              if: github.event_name == 'push'
               with:
                   commit_message: Autoupdate code coverage stats
 
@@ -40,11 +53,11 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v7
             - name: Set up Python 3.8
-              uses: actions/setup-python@v1
+              uses: actions/setup-python@v7
               with:
-                  python-version: 3.8
+                  python-version: '3.8'
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip
@@ -58,11 +71,11 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v7
             - name: Set up Python 3.8
-              uses: actions/setup-python@v1
+              uses: actions/setup-python@v7
               with:
-                  python-version: 3.8
+                  python-version: '3.8'
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip
@@ -76,11 +89,11 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v7
             - name: Set up Python 3.8
-              uses: actions/setup-python@v1
+              uses: actions/setup-python@v7
               with:
-                  python-version: 3.8
+                  python-version: '3.8'
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip
