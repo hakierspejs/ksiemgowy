@@ -195,7 +195,7 @@ class KsiemgowyDB:
         bank_action.amount_pln *= -1
         with self.connection.begin():
             self.connection.execute(
-                self.bank_actions.insert(), **bank_action.asdict()
+                self.bank_actions.insert(), bank_action.asdict()
             )
 
     def list_expenses(self) -> Iterator[MbankAction]:

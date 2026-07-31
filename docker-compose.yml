@@ -3,9 +3,6 @@ services:
     ksiemgowyd:
         build:
             context: .
-        env_file:
-            - envfile_secret
-            - envfile_public
         environment:
             DEPLOY_KEY_PATH: /run/secrets/deploy_key
         volumes:
