@@ -14,6 +14,7 @@ import logging
 
 
 import schedule as schedule_module
+import sentry_sdk
 
 import ksiemgowy.mbankmail
 import ksiemgowy.config
