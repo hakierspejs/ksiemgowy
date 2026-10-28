@@ -320,6 +320,7 @@ def check_for_updates(
                     database,
                     mail_config,
                     should_send_mail,
+                    sentry_healthcheck_url,
                 )
 
             maybe_add_negative_action(
