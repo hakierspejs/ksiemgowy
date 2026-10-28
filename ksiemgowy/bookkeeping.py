@@ -242,13 +242,13 @@ def maybe_add_negative_action(
         LOGGER.debug("Skipping an action due to criteria not matched.")
 
 
+# pylint: disable=too-many-arguments,too-many-positional-arguments
 def add_positive_action(
     action: MbankAction,
     mbank_anonymization_key: bytes,
     database: KsiemgowyDB,
     mail_config: ksiemgowy.config.MailConfig,
     should_send_mail: bool,
-    sentry_healthcheck_url: T.Optional[str] = None,
 ) -> None:
     """Adds a positive action to the base. If mail sending is enabled,
     a notification is also sent."""

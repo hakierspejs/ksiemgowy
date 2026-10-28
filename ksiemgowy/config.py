@@ -106,7 +106,7 @@ class KsiemgowyConfig:  # pylint: disable=too-many-instance-attributes
     report_builder_config: ReportBuilderConfig
     log_level: str
     sentry_dsn: str
-    sentry_healthcheck_url: str
+    sentry_healthcheck_url: T.Optional[str] = None
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         """Returns an e-mail account used for overdue notifications. Currently
@@ -134,6 +134,7 @@ def parse_report_builder(config_section: T.Any) -> ReportBuilderConfig:
     )
 
 
+# pylint: disable=too-many-locals
 def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
     """Parses the configuration file and builds arguments for all routines."""
     config = yaml.load(config_file, yaml.SafeLoader)
