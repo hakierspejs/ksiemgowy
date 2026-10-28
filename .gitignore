@@ -8,3 +8,5 @@ config.yaml
 docs/.doctrees
 .coverage
 */.mypy_cache/*
+homepage_deploykey
+db_public
