@@ -8,6 +8,11 @@ services:
         restart: unless-stopped
         secrets:
             - deploy_key
+        dns:
+            - 1.1.1.1               
+            - 8.8.8.8
+
 secrets:
     deploy_key:
         file: homepage_deploykey
+
