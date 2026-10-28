@@ -68,6 +68,9 @@ class KsiemgowyDB:
             sqlalchemy.Column("balance", sqlalchemy.Float),
             sqlalchemy.Column("timestamp", sqlalchemy.String),
             sqlalchemy.Column("action_type", sqlalchemy.String),
+            sqlalchemy.Column(
+                "source_message_id", sqlalchemy.String, nullable=True
+            ),
         )
 
         try:

@@ -63,6 +63,7 @@ class MbankAction:
     balance: float
     timestamp: str
     action_type: str
+    source_message_id: T.Optional[str] = None
 
     def anonymized(self, mbank_anonymization_key: bytes) -> "MbankAction":
         """Anonymizes all potentially sensitive fields using

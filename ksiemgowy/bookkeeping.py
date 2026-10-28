@@ -99,6 +99,7 @@ def apply_autocorrections(
             balance=last_action.balance,
             timestamp=last_action.timestamp,
             action_type="in_transfer",
+            source_message_id=last_action.source_message_id,
         )
         database.add_positive_transfer(
             action.anonymized(mbank_anonymization_key)
@@ -114,6 +115,7 @@ def apply_autocorrections(
             balance=last_action.balance,
             timestamp=last_action.timestamp,
             action_type="out_transfer",
+            source_message_id=last_action.source_message_id,
         )
         database.add_expense(action.anonymized(mbank_anonymization_key))
 
@@ -280,10 +282,12 @@ def check_for_updates(
         database, mail, mail_config.imap_filter
     ):
         parsed = ksiemgowy.mbankmail.parse_mbank_email(msg)
+        source_message_id = str(msg.get("Message-ID", "")).strip() or None
         actions_per_accno: T.Dict[str, T.List[MbankAction]] = {
             observed_acc_number: []
         }
         for action in parsed.get("actions", []):
+            action.source_message_id = source_message_id
             LOGGER.debug(
                 "Observed an action: %r",
                 action.anonymized(mbank_anonymization_key),
