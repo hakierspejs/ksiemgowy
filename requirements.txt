@@ -4,3 +4,4 @@ schedule
 python-dateutil
 pyyaml
 holidays>=0.62
+sentry-sdk

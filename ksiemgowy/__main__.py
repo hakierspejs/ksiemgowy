@@ -139,6 +139,7 @@ def entrypoint() -> None:
         config = ksiemgowy.config.load_config(config_file)
     logging_format = "[%(asctime)s] " + logging.BASIC_FORMAT
     logging.basicConfig(level=config.log_level, format=logging_format)
+    sentry_sdk.init(dsn=config.sentry_dsn)
     main(
         config,
         ksiemgowy.models.KsiemgowyDB(config.database_uri),
