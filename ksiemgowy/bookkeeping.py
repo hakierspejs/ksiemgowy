@@ -249,11 +249,13 @@ def add_positive_action(
     database: KsiemgowyDB,
     mail_config: ksiemgowy.config.MailConfig,
     should_send_mail: bool,
+    sentry_healthcheck_url: T.Optional[str] = None,
 ) -> None:
     """Adds a positive action to the base. If mail sending is enabled,
     a notification is also sent."""
     anonymized_action = action.anonymized(mbank_anonymization_key)
     database.add_positive_transfer(anonymized_action)
+    ping_sentry_healthcheck(sentry_healthcheck_url)
     LOGGER.debug("added an action")
     if not should_send_mail:
         return
@@ -319,7 +321,6 @@ def check_for_updates(
                     mail_config,
                     should_send_mail,
                 )
-                ping_sentry_healthcheck(sentry_healthcheck_url)
 
             maybe_add_negative_action(
                 action,
