@@ -152,7 +152,7 @@ class KsiemgowyDB:
                 )
             ).fetchone()
 
-            if row:
+            if row and row._mapping["notify_arrived"] == "y":
                 ret: str = row._mapping["email"]
                 return ret
             return None
