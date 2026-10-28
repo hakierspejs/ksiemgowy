@@ -14,12 +14,13 @@ from email.mime.multipart import MIMEMultipart
 import holidays
 
 import ksiemgowy.config
+import ksiemgowy.mbankmail
 from ksiemgowy.mbankmail import MbankAction, anonymize
 from ksiemgowy.models import KsiemgowyDB
 
 
 LOGGER = logging.getLogger("ksiemgowy.__main__")
-POLISH_HOLIDAYS = holidays.Poland()  # type: ignore
+POLISH_HOLIDAYS = holidays.Poland()
 
 
 def build_confirmation_mail(

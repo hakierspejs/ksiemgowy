@@ -11,6 +11,7 @@ from functools import wraps
 import typing as T
 
 import sqlalchemy
+import sqlalchemy.exc
 
 import ksiemgowy.mbankmail
 from ksiemgowy.mbankmail import MbankAction
@@ -36,7 +37,7 @@ def transactional(method: T.Callable[..., T.Any]) -> T.Callable[..., T.Any]:
     if inspect.isgeneratorfunction(method):
         raise TypeError(
             f"@transactional cannot wrap the generator function "
-            f"{method.__qualname__}; return a list instead"
+            f"{method}; return a list instead"
         )
 
     @wraps(method)
