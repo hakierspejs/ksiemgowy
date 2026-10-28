@@ -250,11 +250,11 @@ class KsiemgowyDB:
         ret = []
         for entry in self.connection.execute(
             self.bank_actions.select().where(
-                self.bank_actions.c.amount_pln < 0
+                self.bank_actions.c.action_type == "out_transfer"
             )
         ).mappings():
             entry = {k: v for k, v in dict(entry).items() if k != "id"}
             bank_action = ksiemgowy.mbankmail.MbankAction(**entry)
-            bank_action.amount_pln *= -1
+            bank_action.amount_pln = abs(bank_action.amount_pln)
             ret.append(bank_action)
         return ret
