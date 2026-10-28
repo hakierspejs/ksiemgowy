@@ -106,6 +106,7 @@ class KsiemgowyConfig:  # pylint: disable=too-many-instance-attributes
     report_builder_config: ReportBuilderConfig
     log_level: str
     sentry_dsn: str
+    sentry_healthcheck_url: str
 
     def get_account_for_overdue_notifications(self) -> KsiemgowyAccount:
         """Returns an e-mail account used for overdue notifications. Currently
