@@ -20,7 +20,7 @@ from ksiemgowy.models import KsiemgowyDB
 
 
 LOGGER = logging.getLogger("ksiemgowy.__main__")
-POLISH_HOLIDAYS = holidays.Poland()
+POLISH_HOLIDAYS = holidays.country_holidays("PL")
 
 
 def build_confirmation_mail(
