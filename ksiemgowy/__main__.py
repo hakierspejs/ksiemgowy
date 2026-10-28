@@ -29,7 +29,8 @@ LOGGER = logging.getLogger("ksiemgowy.__main__")
 @atexit.register
 def atexit_handler(*_: T.Any, **__: T.Any) -> None:
     """Handles program termination in a predictable way."""
-    LOGGER.info("Shutting down")
+    LOGGER.info("Shutting down. First sleeping for 60s...")
+    time.sleep(60)
 
 
 def every_seconds_do(
