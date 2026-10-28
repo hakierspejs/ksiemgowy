@@ -142,6 +142,7 @@ def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
     dues_file_path = config["DUES_FILE_PATH"]
     log_level = config["LOG_LEVEL"]
     sentry_dsn = config["SENTRY_DSN"]
+    sentry_healthcheck_url = config.get("SENTRY_HEALTHCHECK_URL")
     report_builder_config = parse_report_builder(config["REPORT_BUILDER"])
     for account in config["ACCOUNTS"]:
         imap_login = account["IMAP_LOGIN"]
@@ -164,6 +165,7 @@ def load_config(config_file: T.IO[T.Any]) -> KsiemgowyConfig:
     return KsiemgowyConfig(
         log_level=log_level,
         sentry_dsn=sentry_dsn,
+        sentry_healthcheck_url=sentry_healthcheck_url,
         database_uri=config["DATABASE_URI"],
         accounts=accounts,
         mbank_anonymization_key=config["MBANK_ANONYMIZATION_KEY"].encode(),

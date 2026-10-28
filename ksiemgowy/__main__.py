@@ -80,6 +80,7 @@ def main(
             account.mail_config,
             account.acc_number,
             config.should_send_mail,
+            config.sentry_healthcheck_url,
         )
 
         register_fn(
@@ -91,6 +92,7 @@ def main(
                 account.mail_config,
                 account.acc_number,
                 config.should_send_mail,
+                config.sentry_healthcheck_url,
             ],
             {},
         )

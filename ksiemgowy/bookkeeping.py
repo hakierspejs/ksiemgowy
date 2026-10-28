@@ -7,6 +7,7 @@ import typing as T
 import logging
 import imaplib
 import email
+import urllib.request
 from email.message import Message
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -247,6 +248,7 @@ def add_positive_action(
     database: KsiemgowyDB,
     mail_config: ksiemgowy.config.MailConfig,
     should_send_mail: bool,
+    sentry_healthcheck_url: T.Optional[str] = None,
 ) -> None:
     """Adds a positive action to the base. If mail sending is enabled,
     a notification is also sent."""
@@ -268,12 +270,24 @@ def add_positive_action(
     LOGGER.info("sent an e-mail to %r regarding a new transfer", to_email)
 
 
+def ping_sentry_healthcheck(url: T.Optional[str]) -> None:
+    """Ping Sentry after an incoming transfer is stored. Best effort only."""
+    if not url:
+        return
+    try:
+        with urllib.request.urlopen(url, timeout=10):
+            pass
+    except (OSError, ValueError):
+        LOGGER.exception("Failed to ping Sentry healthcheck")
+
+
 def check_for_updates(
     mbank_anonymization_key: bytes,
     database: KsiemgowyDB,
     mail_config: ksiemgowy.config.MailConfig,
     observed_acc_number: str,
     should_send_mail: bool,
+    sentry_healthcheck_url: T.Optional[str] = None,
 ) -> None:
     """Checks for updates coming from the bank. If any new transfers are
     observed, they are handled according to the configuration."""
@@ -305,6 +319,7 @@ def check_for_updates(
                     mail_config,
                     should_send_mail,
                 )
+                ping_sentry_healthcheck(sentry_healthcheck_url)
 
             maybe_add_negative_action(
                 action,
