@@ -289,6 +289,7 @@ def check_for_updates(
     mail_config: ksiemgowy.config.MailConfig,
     observed_acc_number: str,
     should_send_mail: bool,
+    sentry_healthcheck_url: T.Optional[str] = None,
 ) -> None:
     """Checks for updates coming from the bank. If any new transfers are
     observed, they are handled according to the configuration."""
