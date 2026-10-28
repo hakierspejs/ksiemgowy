@@ -65,7 +65,7 @@ def gen_unseen_mbank_emails(
     mail.select("inbox")
     _, data = mail.search(None, imap_filter)
     mail_ids = data[0]
-    id_list = sorted(mail_ids.split(), key=int)
+    id_list = mail_ids.split()
     for mail_id in id_list:
         _, data = mail.fetch(mail_id, "(RFC822)")
         for mail_number, response_part in enumerate(data):
