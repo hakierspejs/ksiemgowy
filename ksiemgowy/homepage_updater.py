@@ -230,10 +230,7 @@ def maybe_update_dues(
     else:
         has_changed = do_states_differ(remote_state, current_report)
 
-    if has_changed and (
-        remote_state is None
-        or is_local_state_newer(remote_state, current_report)
-    ):
+    if has_changed:
         if remote_state is None:
             remote_state = current_report
         else:
