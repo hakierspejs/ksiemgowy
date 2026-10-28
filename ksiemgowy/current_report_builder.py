@@ -218,7 +218,7 @@ def build_extra_monthly_reservations(
     )
 
 
-T_PERIODIC_REPORT = TypedDict(
+T_PERIODIC_REPORT = TypedDict(  # pylint: disable=invalid-name
     "T_PERIODIC_REPORT",
     {
         "Wydatki": Dict[str, Dict[str, Dict[str, float]]],
@@ -229,7 +229,7 @@ T_PERIODIC_REPORT = TypedDict(
 )
 
 
-T_CURRENT_REPORT = TypedDict(
+T_CURRENT_REPORT = TypedDict(  # pylint: disable=invalid-name
     "T_CURRENT_REPORT",
     {
         "dues_total_lastmonth": float,

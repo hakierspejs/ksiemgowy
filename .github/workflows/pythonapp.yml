@@ -24,7 +24,7 @@ jobs:
                   python3.13 -m pip install -r requirements-dev.txt
             - name: Run unit tests and generate coverage
               run: |
-                  COVERAGE_PATH=$(python3.13 -c 'print(__import__("importlib").util.find_spec("coverage").origin)' | xargs dirname)
+                  COVERAGE_PATH=$(python3.13 -c 'import coverage, os; print(os.path.dirname(coverage.__file__))')
                   find $COVERAGE_PATH -name index.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
                   find $COVERAGE_PATH -name pyfile.html | grep htmlfiles | xargs -n1 sed '/created/d' -i
                   python3.13 -m coverage run --source=ksiemgowy --branch -m unittest -v

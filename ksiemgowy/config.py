@@ -93,7 +93,7 @@ class ReportBuilderConfig:
 
 
 @dataclass(frozen=True)
-class KsiemgowyConfig:
+class KsiemgowyConfig:  # pylint: disable=too-many-instance-attributes
     """Stores information required to start Ksiemgowy. This includes
     database, e-mail and website credentials, as well as cryptographic pepper
     used to anonymize account data."""

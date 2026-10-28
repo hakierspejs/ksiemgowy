@@ -1,5 +1,5 @@
 [tool.mypy]
-python_version = 3.8
+python_version = 3.13
 
 # Disallow dynamic typing
 disallow_any_expr = false

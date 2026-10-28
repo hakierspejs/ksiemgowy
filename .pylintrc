@@ -1,5 +1,4 @@
 [MESSAGES CONTROL]
-disable=bad-continuation
 
 [TYPECHECK]
 generated-members=holidays.Poland

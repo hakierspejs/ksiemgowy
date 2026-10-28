@@ -3,7 +3,7 @@ coverage
 mypy
 flake8
 pylint
-lxml-stubs
+types-lxml
 types-python-dateutil
 types-PyYAML
 types-dataclasses
