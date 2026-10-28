@@ -196,7 +196,7 @@ class KsiemgowyDB:
             raise ValueError(f"Account {sender_acc_no} not found in DB.")
         if row._mapping["notify_overdue_no_earlier_than"] is not None:
             base_date = row._mapping["notify_overdue_no_earlier_than"]
-        new_date = base_date + datetime.timedelta(days=3, hours=5)
+        new_date = max(now, base_date) + datetime.timedelta(days=3, hours=5)
 
         self.connection.execute(
             self.sender_acc_no_to_email.update()
