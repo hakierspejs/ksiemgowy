@@ -52,6 +52,7 @@ class KsiemgowySystemTestCase(unittest.TestCase):
 
         self.config_mock = ksiemgowy.config.KsiemgowyConfig(
             log_level="INFO",
+            sentry_dsn="",
             database_uri="",
             accounts=[
                 ksiemgowy.config.KsiemgowyAccount(
